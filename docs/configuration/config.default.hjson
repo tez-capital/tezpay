@@ -1,0 +1,21 @@
+{
+  tezpay_config_version: 0
+  baker: ""
+  payouts: {
+    wallet_mode: local-private-key
+    fee: 0.05
+    explorer: https://tzkt.io/
+  }
+  delegators: {
+    requirements: {}
+  }
+  income_recipients: {}
+  network: {
+    rpc_url: https://mainnet.api.tez.ie
+    tzkt_url: https://api.tzkt.io/
+    explorer: https://tzkt.io/
+  }
+  overdelegation: {
+    protect: true
+  }
+}
