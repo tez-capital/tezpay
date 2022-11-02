@@ -1,0 +1,57 @@
+{
+  tezpay_config_version: 0
+  baker: ""
+  payouts: {
+    wallet_mode: local-private-key
+    fee: 7.5
+    baker_pays_transaction_fee: true
+    baker_pays_allocation_fee: true
+    minimum_payout_amount: 10.5
+  }
+  delegators: {
+    requirements: {
+      minimum_balance: 0.5
+    }
+    ignore: [
+      tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU
+      tz1burnburnburnburnburnburnburjAYjjX
+    ]
+    overrides: {
+      tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: {
+        recipient: ""
+        fee: 0.5
+        no_fee: true
+        minimum_balance: 2.5
+      }
+    }
+  }
+  income_recipients: {
+    bonds: {
+      tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: 45.5
+      tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE: 54.5
+    }
+    fees: {
+      tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: 45.5
+      tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE: 54.5
+    }
+    donate: 2.5
+    donations: {
+      tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: 10
+      tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv: 90
+    }
+  }
+  network: {
+    rpc_url: https://mainnet.api.tez.ie
+    tzkt_url: https://api.tzkt.io/v1/
+    ignore_kt: true
+  }
+  overdelegation: {
+    protect: true
+  }
+  notifications: [
+    {
+      type: discord
+      webhook: https://my-discord-webhook.com/
+    }
+  ]
+}
