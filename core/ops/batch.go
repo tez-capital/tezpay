@@ -3,7 +3,6 @@ package ops
 import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
@@ -79,7 +78,7 @@ func SplitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLim
 	})
 }
 
-func (b *Batch) ToOpExecutionContext(signer interfaces.SignerEngine, transactor interfaces.TransactorEngine) (*OpExecutionContext, error) {
+func (b *Batch) ToOpExecutionContext(signer common.SignerEngine, transactor common.TransactorEngine) (*OpExecutionContext, error) {
 	op := codec.NewOp().WithSource(signer.GetPKH())
 	for _, p := range *b {
 		op.WithTransfer(p.Recipient, p.Amount.Int64())

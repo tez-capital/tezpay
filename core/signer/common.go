@@ -7,15 +7,15 @@ import (
 	"strings"
 
 	"github.com/alis-is/tezpay/clients"
-	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/sirupsen/logrus"
 )
 
-func Load(kind string) (interfaces.SignerEngine, error) {
+func Load(kind string) (common.SignerEngine, error) {
 	wotkingDirectory := state.Global.GetWorkingDirectory()
 	switch kind {
 	case string(enums.WALLET_MODE_LOCAL_PRIVATE_KEY):

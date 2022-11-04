@@ -9,7 +9,6 @@ import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/alis-is/tezpay/clients"
-	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/reports"
@@ -21,12 +20,12 @@ import (
 
 type configurationAndEngines struct {
 	Configuration *configuration.RuntimeConfiguration
-	Collector     interfaces.CollectorEngine
-	Signer        interfaces.SignerEngine
-	Transactor    interfaces.TransactorEngine
+	Collector     common.CollectorEngine
+	Signer        common.SignerEngine
+	Transactor    common.TransactorEngine
 }
 
-func (cae *configurationAndEngines) Unwrap() (*configuration.RuntimeConfiguration, interfaces.CollectorEngine, interfaces.SignerEngine, interfaces.TransactorEngine) {
+func (cae *configurationAndEngines) Unwrap() (*configuration.RuntimeConfiguration, common.CollectorEngine, common.SignerEngine, common.TransactorEngine) {
 	return cae.Configuration, cae.Collector, cae.Signer, cae.Transactor
 }
 

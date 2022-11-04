@@ -2,10 +2,10 @@ package configuration
 
 import (
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/clients/interfaces"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/signer"
 )
 
@@ -85,6 +85,6 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 	}
 }
 
-func (configuration *RuntimeConfiguration) LoadSigner() (interfaces.SignerEngine, error) {
+func (configuration *RuntimeConfiguration) LoadSigner() (common.SignerEngine, error) {
 	return signer.Load(string(configuration.PayoutConfiguration.WalletMode))
 }

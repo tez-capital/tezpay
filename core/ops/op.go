@@ -4,16 +4,16 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/clients/interfaces"
+	"github.com/alis-is/tezpay/core/common"
 )
 
 type OpExecutionContext struct {
 	Op         *codec.Op
-	Transactor interfaces.TransactorEngine
+	Transactor common.TransactorEngine
 	opHash     tezos.OpHash
 }
 
-func InitOpExecutionContext(op *codec.Op, transactor interfaces.TransactorEngine) *OpExecutionContext {
+func InitOpExecutionContext(op *codec.Op, transactor common.TransactorEngine) *OpExecutionContext {
 	return &OpExecutionContext{
 		Op:         op,
 		opHash:     tezos.ZeroOpHash,

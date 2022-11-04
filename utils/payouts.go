@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -83,7 +82,7 @@ func FilterReportsByBaker(payouts []common.PayoutReport, t tezos.Address) []comm
 	})
 }
 
-func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.PayoutReport, collector interfaces.CollectorEngine) ([]common.PayoutRecipe, []common.PayoutReport) {
+func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.PayoutReport, collector common.CollectorEngine) ([]common.PayoutRecipe, []common.PayoutReport) {
 	paidOut := make(map[string]common.PayoutReport)
 	validOpHashes := make(map[string]bool)
 	if collector == nil {

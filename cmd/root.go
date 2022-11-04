@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/signer"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
@@ -67,7 +67,7 @@ Copyright © %d alis.is
 			log.Trace("Log level set to '" + log.GetLevel().String() + "'")
 
 			singerFlagData, _ := cmd.Flags().GetString(SIGNER_FLAG)
-			var signerOverride interfaces.SignerEngine
+			var signerOverride common.SignerEngine
 			if singerFlagData != "" {
 				log.Debug("trying to load signer override")
 				if loadedSigner, err := signer.Load(singerFlagData); err != nil {

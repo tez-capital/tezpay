@@ -1,6 +1,8 @@
 package state
 
-import "github.com/alis-is/tezpay/clients/interfaces"
+import (
+	"github.com/alis-is/tezpay/core/common"
+)
 
 var (
 	Global State
@@ -9,7 +11,7 @@ var (
 type StateInitOptions struct {
 	WantsJsonOutput       bool
 	InjectedConfiguration *string
-	SignerOverride        interfaces.SignerEngine
+	SignerOverride        common.SignerEngine
 	Debug                 bool
 }
 
@@ -18,7 +20,7 @@ type State struct {
 	wantsJsonOutput          bool
 	injectedConfiguration    []byte
 	hasInjectedConfiguration bool
-	SignerOverride           interfaces.SignerEngine
+	SignerOverride           common.SignerEngine
 	debug                    bool
 }
 

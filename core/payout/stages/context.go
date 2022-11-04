@@ -5,7 +5,6 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/clients"
-	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/common"
 	log "github.com/sirupsen/logrus"
@@ -27,7 +26,7 @@ type StageData struct {
 type Context struct {
 	PayoutKey            tezos.Key
 	configuration        *configuration.RuntimeConfiguration
-	Collector            interfaces.CollectorEngine
+	Collector            common.CollectorEngine
 	Cycle                int64
 	CycleData            *common.BakersCycleData
 	StageData            StageData
@@ -78,7 +77,7 @@ func (ctx *Context) GetCycle() int64 {
 	return ctx.Cycle
 }
 
-func (ctx *Context) GetCollector() interfaces.CollectorEngine {
+func (ctx *Context) GetCollector() common.CollectorEngine {
 	return ctx.Collector
 }
 
