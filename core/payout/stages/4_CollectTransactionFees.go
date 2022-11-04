@@ -66,10 +66,10 @@ func collectTransactionFees(ctx common.Context) (result common.Context, err erro
 		if candidate.Candidate.IsInvalid {
 			return candidate
 		}
-		if configuration.PayoutConfiguration.IsPayingTxFee {
+		if !configuration.PayoutConfiguration.IsPayingTxFee {
 			candidate.BondsAmount = candidate.BondsAmount.Sub64(candidate.GetOperationFeesWithoutAllocation())
 		}
-		if configuration.PayoutConfiguration.IsPayingAllocationTxFee {
+		if !configuration.PayoutConfiguration.IsPayingAllocationTxFee {
 			candidate.BondsAmount = candidate.BondsAmount.Sub64(candidate.GetAllocationFee())
 		}
 		return candidate
