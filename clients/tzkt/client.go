@@ -9,7 +9,7 @@ import (
 	"net/url"
 
 	"blockwatch.cc/tzgo/tezos"
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
+	"github.com/alis-is/tezpay/core/common"
 
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -130,7 +130,7 @@ func (client *Client) getCycleData(baker []byte, cycle int64) (*tzktBakersCycleD
 }
 
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=0
-func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycleData *tezpay_tezos.BakersCycleData, err error) {
+func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycleData *common.BakersCycleData, err error) {
 
 	bakerAddr, _ := baker.MarshalText()
 
@@ -163,7 +163,7 @@ func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycl
 		}
 	})()
 
-	return &tezpay_tezos.BakersCycleData{
+	return &common.BakersCycleData{
 		StakingBalance:     tezos.NewZ(tzktBakerCycleData.StakingBalance),
 		DelegatedBalance:   tezos.NewZ(tzktBakerCycleData.DelegatedBalance),
 		BlockRewards:       tezos.NewZ(tzktBakerCycleData.BlockRewards),
@@ -171,12 +171,12 @@ func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycl
 		NumDelegators:      tzktBakerCycleData.NumDelegators,
 		FrozenDeposit:      tezos.NewZ(tzktBakerData.FrozenDepositLimit),
 		BlockFees:          tezos.NewZ(tzktBakerCycleData.BlockFees),
-		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) tezpay_tezos.Delegator {
+		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) common.Delegator {
 			addr, err := tezos.ParseAddress(delegator.Address)
 			if err != nil {
 				panic(err)
 			}
-			return tezpay_tezos.Delegator{
+			return common.Delegator{
 				Address: addr,
 				Balance: tezos.NewZ(delegator.Balance),
 				Emptied: delegator.Emptied,

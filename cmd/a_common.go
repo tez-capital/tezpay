@@ -11,7 +11,7 @@ import (
 	"github.com/alis-is/tezpay/clients"
 	"github.com/alis-is/tezpay/clients/interfaces"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/reports"
 	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/state"

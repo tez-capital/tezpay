@@ -2,26 +2,25 @@ package stages
 
 import (
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/payout/common"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
-func validateSimulatedPayouts(ctx common.Context) (result common.Context, err error) {
+func validateSimulatedPayouts(ctx Context) (result Context, err error) {
 	configuration := ctx.GetConfiguration()
 	simulated := ctx.StageData.PayoutCandidatesSimulated
 
 	log.Debug("validating simulated payout candidates")
 
 	// TODO: Accounting
-	ctx.StageData.PayoutCandidatesSimulated = lo.Map(simulated, func(candidate common.PayoutCandidateSimulated, _ int) common.PayoutCandidateSimulated {
+	ctx.StageData.PayoutCandidatesSimulated = lo.Map(simulated, func(candidate PayoutCandidateSimulated, _ int) PayoutCandidateSimulated {
 		if candidate.Candidate.IsInvalid {
 			return candidate
 		}
 
 		validationContext := candidate.ToValidationContext(configuration)
 		result := *validationContext.Validate(
-			common.MinumumAmountSimulatedValidator,
+			MinumumAmountSimulatedValidator,
 		).ToPayoutCandidateSimulated()
 
 		// collect fees if invalid
@@ -36,4 +35,4 @@ func validateSimulatedPayouts(ctx common.Context) (result common.Context, err er
 	return ctx, nil
 }
 
-var ValidateSimulatedPayouts = common.WrapStage(validateSimulatedPayouts)
+var ValidateSimulatedPayouts = WrapStage(validateSimulatedPayouts)

@@ -5,7 +5,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/clients/interfaces"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )

@@ -6,8 +6,8 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
 	"github.com/alis-is/tezpay/clients/tzkt"
+	"github.com/alis-is/tezpay/core/common"
 )
 
 type DefaultRpcAndTzktColletor struct {
@@ -58,7 +58,7 @@ func (engine *DefaultRpcAndTzktColletor) GetLastCompletedCycle() (int64, error) 
 	return cycle - 1, err
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetCycleData(baker tezos.Address, cycle int64) (*tezpay_tezos.BakersCycleData, error) {
+func (engine *DefaultRpcAndTzktColletor) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
 	return engine.tzkt.GetCycleData(baker, cycle)
 }
 

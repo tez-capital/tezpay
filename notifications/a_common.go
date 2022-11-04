@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/utils"
 )
 

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/dghubble/oauth1"
 	twitter "github.com/g8rswimmer/go-twitter/v2"
 	log "github.com/sirupsen/logrus"

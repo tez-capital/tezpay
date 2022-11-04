@@ -1,7 +1,8 @@
-package common
+package stages
 
 import (
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
 )
 
@@ -45,8 +46,8 @@ func (result WrappedStageResult) Unwrap() (Context, error) {
 	return result.Ctx, result.Err
 }
 
-func sumValidPayoutsAmount(payouts []PayoutRecipe) tezos.Z {
-	return lo.Reduce(payouts, func(agg tezos.Z, payout PayoutRecipe, _ int) tezos.Z {
+func sumValidPayoutsAmount(payouts []common.PayoutRecipe) tezos.Z {
+	return lo.Reduce(payouts, func(agg tezos.Z, payout common.PayoutRecipe, _ int) tezos.Z {
 		if !payout.IsValid {
 			return agg
 		}
@@ -54,15 +55,15 @@ func sumValidPayoutsAmount(payouts []PayoutRecipe) tezos.Z {
 	}, tezos.Zero)
 }
 
-func (result WrappedStageResult) ToCyclePayoutBlueprint() (*CyclePayoutBlueprint, error) {
+func (result WrappedStageResult) ToCyclePayoutBlueprint() (*common.CyclePayoutBlueprint, error) {
 	if result.Err != nil {
 		return nil, result.Err
 	}
 
-	return &CyclePayoutBlueprint{
+	return &common.CyclePayoutBlueprint{
 		Cycle:   result.Ctx.Cycle,
 		Payouts: result.Ctx.StageData.Payouts,
-		Summary: CyclePayoutSummary{
+		Summary: common.CyclePayoutSummary{
 			Cycle:              result.Ctx.Cycle,
 			Delegators:         len(result.Ctx.CycleData.Delegators),
 			StakingBalance:     result.Ctx.CycleData.StakingBalance,

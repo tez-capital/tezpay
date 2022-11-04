@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/samber/lo"

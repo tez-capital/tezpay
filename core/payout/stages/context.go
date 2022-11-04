@@ -1,4 +1,4 @@
-package common
+package stages
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/clients"
 	"github.com/alis-is/tezpay/clients/interfaces"
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
 	"github.com/alis-is/tezpay/configuration"
+	"github.com/alis-is/tezpay/core/common"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,7 +17,7 @@ type StageData struct {
 	PayoutCandidatesWithBondAmountAndFees []PayoutCandidateWithBondAmountAndFee
 	PayoutCandidatesSimulated             []PayoutCandidateSimulated
 
-	Payouts           []PayoutRecipe
+	Payouts           []common.PayoutRecipe
 	BakerBondsAmount  tezos.Z
 	DonateBondsAmount tezos.Z
 	BakerFeesAmount   tezos.Z
@@ -29,7 +29,7 @@ type Context struct {
 	configuration        *configuration.RuntimeConfiguration
 	Collector            interfaces.CollectorEngine
 	Cycle                int64
-	CycleData            *tezpay_tezos.BakersCycleData
+	CycleData            *common.BakersCycleData
 	StageData            StageData
 	DistributableRewards tezos.Z
 }
@@ -70,7 +70,7 @@ func (ctx *Context) GetConfiguration() *configuration.RuntimeConfiguration {
 	return ctx.configuration
 }
 
-func (ctx *Context) GetCycleData() *tezpay_tezos.BakersCycleData {
+func (ctx *Context) GetCycleData() *common.BakersCycleData {
 	return ctx.CycleData
 }
 

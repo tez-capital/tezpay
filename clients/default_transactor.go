@@ -6,7 +6,7 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
+	"github.com/alis-is/tezpay/core/common"
 )
 
 type DefaultRpcTransactor struct {
@@ -39,12 +39,12 @@ func (transactor *DefaultRpcTransactor) GetId() string {
 	return "DefaultRpcTransactor"
 }
 
-func (transactor *DefaultRpcTransactor) GetLimits() (*tezpay_tezos.OperationLimits, error) {
+func (transactor *DefaultRpcTransactor) GetLimits() (*common.OperationLimits, error) {
 	params, err := transactor.rpc.GetParams(transactor.ctx, rpc.NewBlockOffset(rpc.Head, 0))
 	if err != nil {
 		return nil, err
 	}
-	return &tezpay_tezos.OperationLimits{
+	return &common.OperationLimits{
 		HardGasLimitPerOperation:     params.HardGasLimitPerBlock,
 		HardStorageLimitPerOperation: params.HardStorageLimitPerOperation,
 		MaxOperationDataLength:       params.MaxOperationDataLength,

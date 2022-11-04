@@ -3,15 +3,14 @@ package stages
 import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
 	"github.com/samber/lo"
 )
 
-func getBakerBondsAmount(cycleData *tezpay_tezos.BakersCycleData, overdelegationProtection bool) tezos.Z {
+func getBakerBondsAmount(cycleData *common.BakersCycleData, overdelegationProtection bool) tezos.Z {
 	bakerBalance := cycleData.GetBakerBalance()
 	totalRewards := cycleData.GetTotalRewards()
 
@@ -26,7 +25,7 @@ func getBakerBondsAmount(cycleData *tezpay_tezos.BakersCycleData, overdelegation
 	return bakerAmount
 }
 
-func distributeBonds(ctx common.Context) (common.Context, error) {
+func distributeBonds(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
 	log.Debugf("distributing bonds")
 
@@ -35,18 +34,18 @@ func distributeBonds(ctx common.Context) (common.Context, error) {
 	candidates := ctx.StageData.PayoutCandidates
 
 	availableRewards := ctx.CycleData.GetTotalRewards().Sub(bakerBonds)
-	totalBalance := lo.Reduce(candidates, func(total tezos.Z, candidate common.PayoutCandidate, _ int) tezos.Z { // of all delegators, including invalids
+	totalBalance := lo.Reduce(candidates, func(total tezos.Z, candidate PayoutCandidate, _ int) tezos.Z { // of all delegators, including invalids
 		return total.Add(candidate.Balance)
 	}, tezos.NewZ(0))
 
-	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(candidates, func(candidate common.PayoutCandidate, _ int) common.PayoutCandidateWithBondAmount {
+	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(candidates, func(candidate PayoutCandidate, _ int) PayoutCandidateWithBondAmount {
 		if candidate.IsInvalid {
-			return common.PayoutCandidateWithBondAmount{
+			return PayoutCandidateWithBondAmount{
 				Candidate:   candidate,
 				BondsAmount: tezos.Zero,
 			}
 		}
-		return common.PayoutCandidateWithBondAmount{
+		return PayoutCandidateWithBondAmount{
 			Candidate:   candidate,
 			BondsAmount: availableRewards.Mul(candidate.Balance).Div(totalBalance),
 		}
@@ -59,4 +58,4 @@ func distributeBonds(ctx common.Context) (common.Context, error) {
 	return ctx, nil
 }
 
-var DistributeBonds = common.WrapStage(distributeBonds)
+var DistributeBonds = WrapStage(distributeBonds)

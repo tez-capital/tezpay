@@ -4,21 +4,21 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
-func collectTransactionFees(ctx common.Context) (result common.Context, err error) {
+func collectTransactionFees(ctx Context) (result Context, err error) {
 	configuration := ctx.GetConfiguration()
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmountAndFees
 
 	log.Debug("simulating transactions to collect tx fees")
 	// simulate
-	simulatedPayouts := lo.Map(candidates, func(candidate common.PayoutCandidateWithBondAmountAndFee, _ int) common.PayoutCandidateSimulated {
+	simulatedPayouts := lo.Map(candidates, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 		if candidate.Candidate.IsInvalid {
-			return common.PayoutCandidateSimulated{
+			return PayoutCandidateSimulated{
 				Candidate: candidate.Candidate,
 			}
 		}
@@ -26,7 +26,7 @@ func collectTransactionFees(ctx common.Context) (result common.Context, err erro
 		if candidate.BondsAmount.IsZero() {
 			candidate.Candidate.IsInvalid = true
 			candidate.Candidate.InvalidBecause = enums.INVALID_PAYOUT_ZERO
-			return common.PayoutCandidateSimulated{
+			return PayoutCandidateSimulated{
 				Candidate: candidate.Candidate,
 			}
 		}
@@ -40,7 +40,7 @@ func collectTransactionFees(ctx common.Context) (result common.Context, err erro
 			log.Debugf(err.Error())
 			candidate.Candidate.IsInvalid = true
 			candidate.Candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS
-			return common.PayoutCandidateSimulated{
+			return PayoutCandidateSimulated{
 				Candidate: candidate.Candidate,
 			}
 
@@ -48,7 +48,7 @@ func collectTransactionFees(ctx common.Context) (result common.Context, err erro
 
 		costs := receipt.TotalCosts()
 
-		return common.PayoutCandidateSimulated{
+		return PayoutCandidateSimulated{
 			Candidate:      candidate.Candidate,
 			BondsAmount:    candidate.BondsAmount,
 			Fee:            candidate.Fee,
@@ -62,7 +62,7 @@ func collectTransactionFees(ctx common.Context) (result common.Context, err erro
 		}
 	})
 
-	simulatedPayouts = lo.Map(simulatedPayouts, func(candidate common.PayoutCandidateSimulated, _ int) common.PayoutCandidateSimulated {
+	simulatedPayouts = lo.Map(simulatedPayouts, func(candidate PayoutCandidateSimulated, _ int) PayoutCandidateSimulated {
 		if candidate.Candidate.IsInvalid {
 			return candidate
 		}
@@ -78,4 +78,4 @@ func collectTransactionFees(ctx common.Context) (result common.Context, err erro
 	return ctx, nil
 }
 
-var CollectTransactionFees = common.WrapStage(collectTransactionFees)
+var CollectTransactionFees = WrapStage(collectTransactionFees)

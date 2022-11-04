@@ -7,13 +7,13 @@ import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
-func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[string]float32, amount tezos.Z, ctx common.Context) ([]common.PayoutRecipe, error) {
+func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[string]float32, amount tezos.Z, ctx Context) ([]common.PayoutRecipe, error) {
 	totalPercentage := lo.Reduce(lo.Values(distributionDefinition), func(agg float32, entry float32, _ int) float32 {
 		return agg + entry
 	}, float32(0))
@@ -68,12 +68,12 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 }
 
 // injects bonds, fee and donation payments and finalizes Payouts
-func finalizePayouts(ctx common.Context) (result common.Context, err error) {
+func finalizePayouts(ctx Context) (result Context, err error) {
 	configuration := ctx.GetConfiguration()
 	log.Debug("finalizing payouts")
 	simulated := ctx.StageData.PayoutCandidatesSimulated
 
-	delegatorPayouts := lo.Map(simulated, func(candidate common.PayoutCandidateSimulated, _ int) common.PayoutRecipe {
+	delegatorPayouts := lo.Map(simulated, func(candidate PayoutCandidateSimulated, _ int) common.PayoutRecipe {
 		return candidate.ToPayoutRecipe(ctx.GetConfiguration().BakerPKH, ctx.Cycle, enums.PAYOUT_KIND_DELEGATOR_REWARD)
 	})
 
@@ -113,4 +113,4 @@ func finalizePayouts(ctx common.Context) (result common.Context, err error) {
 	return ctx, nil
 }
 
-var FinalizePayouts = common.WrapStage(finalizePayouts)
+var FinalizePayouts = WrapStage(finalizePayouts)

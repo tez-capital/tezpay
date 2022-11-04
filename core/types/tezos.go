@@ -1,4 +1,4 @@
-package tezos
+package types
 
 import (
 	"blockwatch.cc/tzgo/tezos"

@@ -2,32 +2,31 @@ package stages
 
 import (
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/payout/common"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
-func collectBakerFees(ctx common.Context) (common.Context, error) {
+func collectBakerFees(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
 	log.Debugf("collecting baker fee")
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
 
-	candidatesWithBondsAndFees := lo.Map(candidates, func(candidateWithBondsAmount common.PayoutCandidateWithBondAmount, _ int) common.PayoutCandidateWithBondAmountAndFee {
+	candidatesWithBondsAndFees := lo.Map(candidates, func(candidateWithBondsAmount PayoutCandidateWithBondAmount, _ int) PayoutCandidateWithBondAmountAndFee {
 		if candidateWithBondsAmount.Candidate.IsInvalid {
-			return common.PayoutCandidateWithBondAmountAndFee{
+			return PayoutCandidateWithBondAmountAndFee{
 				Candidate: candidateWithBondsAmount.Candidate,
 			}
 		}
 		fee := utils.GetZPortion(candidateWithBondsAmount.BondsAmount, candidateWithBondsAmount.Candidate.FeeRate)
-		return common.PayoutCandidateWithBondAmountAndFee{
+		return PayoutCandidateWithBondAmountAndFee{
 			Candidate:   candidateWithBondsAmount.Candidate,
 			BondsAmount: candidateWithBondsAmount.BondsAmount.Sub(fee),
 			Fee:         fee,
 		}
 	})
 
-	collectedFees := lo.Reduce(candidatesWithBondsAndFees, func(agg tezos.Z, candidateWithBondsAmountAndFee common.PayoutCandidateWithBondAmountAndFee, _ int) tezos.Z {
+	collectedFees := lo.Reduce(candidatesWithBondsAndFees, func(agg tezos.Z, candidateWithBondsAmountAndFee PayoutCandidateWithBondAmountAndFee, _ int) tezos.Z {
 		return agg.Add(candidateWithBondsAmountAndFee.Fee)
 	}, tezos.Zero)
 
@@ -39,4 +38,4 @@ func collectBakerFees(ctx common.Context) (common.Context, error) {
 	return ctx, nil
 }
 
-var CollectBakerFee = common.WrapStage(collectBakerFees)
+var CollectBakerFee = WrapStage(collectBakerFees)

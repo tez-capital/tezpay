@@ -1,31 +1,30 @@
 package stages
 
 import (
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
-func generatePayoutCandidates(ctx common.Context) (common.Context, error) {
+func generatePayoutCandidates(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
 
 	log.Debugf("genrating payout candidates")
 
-	ctx.StageData.PayoutCandidates = lo.Map(ctx.CycleData.Delegators, func(delegator tezpay_tezos.Delegator, _ int) common.PayoutCandidate {
-		payoutCandidate := common.DelegatorToPayoutCandidate(delegator, configuration)
+	ctx.StageData.PayoutCandidates = lo.Map(ctx.CycleData.Delegators, func(delegator common.Delegator, _ int) PayoutCandidate {
+		payoutCandidate := DelegatorToPayoutCandidate(delegator, configuration)
 		validationContext := payoutCandidate.ToValidationContext(&ctx)
 		return *validationContext.Validate(
-			common.IsIgnoredValidator,
-			common.RecipientValidator,
-			common.MinimumBalanceValidator,
-			common.IgnoreKtValidator,
-			common.Emptiedalidator,
-			common.RecipientNotBaker,
+			IsIgnoredValidator,
+			RecipientValidator,
+			MinimumBalanceValidator,
+			IgnoreKtValidator,
+			Emptiedalidator,
+			RecipientNotBaker,
 		).ToPayoutCandidate()
 	})
 
 	return ctx, nil
 }
 
-var GeneratePayoutCandidates = common.WrapStage(generatePayoutCandidates)
+var GeneratePayoutCandidates = WrapStage(generatePayoutCandidates)

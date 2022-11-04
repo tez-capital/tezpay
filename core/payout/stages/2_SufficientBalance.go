@@ -5,13 +5,12 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/payout/common"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
-func checkSufficientBalance(ctx common.Context) (common.Context, error) {
+func checkSufficientBalance(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
 	log.Debugf("checking for sufficient balance")
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
@@ -21,13 +20,13 @@ func checkSufficientBalance(ctx common.Context) (common.Context, error) {
 		return ctx, err
 	}
 
-	totalPayouts := len(lo.Filter(candidates, func(candidate common.PayoutCandidateWithBondAmount, _ int) bool {
+	totalPayouts := len(lo.Filter(candidates, func(candidate PayoutCandidateWithBondAmount, _ int) bool {
 		return !candidate.Candidate.IsInvalid
 	}))
 	// add all bonds, fees and donations destinations
 	totalPayouts = totalPayouts + len(configuration.IncomeRecipients.Bonds) + len(configuration.IncomeRecipients.Fees) + utils.Max(len(configuration.IncomeRecipients.Donations), 1)
 
-	requiredbalance := lo.Reduce(candidates, func(agg tezos.Z, candidate common.PayoutCandidateWithBondAmount, _ int) tezos.Z {
+	requiredbalance := lo.Reduce(candidates, func(agg tezos.Z, candidate PayoutCandidateWithBondAmount, _ int) tezos.Z {
 		return agg.Add(candidate.BondsAmount)
 	}, tezos.Zero)
 
@@ -42,4 +41,4 @@ func checkSufficientBalance(ctx common.Context) (common.Context, error) {
 	return ctx, nil
 }
 
-var CheckSufficientBalance = common.WrapStage(checkSufficientBalance)
+var CheckSufficientBalance = WrapStage(checkSufficientBalance)

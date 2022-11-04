@@ -1,4 +1,4 @@
-package common
+package stages
 
 import (
 	"github.com/alis-is/tezpay/configuration"

@@ -4,9 +4,8 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/clients/interfaces"
-	tezpay_tezos "github.com/alis-is/tezpay/clients/tezos"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,16 +16,16 @@ type batchBlueprint struct {
 	UsedGas        int64
 	TransactionFee int64
 	Op             *codec.Op
-	limits         tezpay_tezos.OperationLimits
+	limits         common.OperationLimits
 }
 
-func newBatch(limits *tezpay_tezos.OperationLimits) batchBlueprint {
+func newBatch(limits *common.OperationLimits) batchBlueprint {
 	return batchBlueprint{
 		Payouts:     make([]common.PayoutRecipe, 0),
 		UsedStorage: 0,
 		UsedGas:     0,
 		Op:          codec.NewOp().WithSource(tezos.ZeroAddress), // dummy address
-		limits: tezpay_tezos.OperationLimits{
+		limits: common.OperationLimits{
 			HardGasLimitPerOperation:     limits.HardGasLimitPerOperation * 95 / 100,     // little reserve
 			HardStorageLimitPerOperation: limits.HardStorageLimitPerOperation * 95 / 100, // little reserve
 			MaxOperationDataLength:       limits.MaxOperationDataLength * 95 / 100,       // little reserve
@@ -58,7 +57,7 @@ func (b *batchBlueprint) ToBatch() Batch {
 
 type Batch []common.PayoutRecipe
 
-func SplitIntoBatches(payouts []common.PayoutRecipe, limits *tezpay_tezos.OperationLimits) []Batch {
+func SplitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLimits) []Batch {
 	batches := make([]Batch, 0)
 	batchBlueprint := newBatch(limits)
 

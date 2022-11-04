@@ -5,7 +5,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/payout/stages"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,7 +20,7 @@ func generatePayouts(payoutAddr tezos.Key, cycle int64, config *configuration.Ru
 		return nil, fmt.Errorf("configuration not specified")
 	}
 
-	ctx, err := common.InitContext(payoutAddr, config, cycle)
+	ctx, err := stages.InitContext(payoutAddr, config, cycle)
 	if err != nil {
 		return nil, err
 	}

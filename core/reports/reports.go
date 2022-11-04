@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/payout/common"
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/gocarina/gocsv"

@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/payout"
-	"github.com/alis-is/tezpay/core/payout/common"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/spf13/cobra"

@@ -1,4 +1,4 @@
-package common
+package stages
 
 import (
 	"blockwatch.cc/tzgo/tezos"
