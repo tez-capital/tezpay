@@ -51,8 +51,17 @@
   }
   notifications: [
     {
+      message_template: my awesome message
       type: discord
       webhook: https://my-discord-webhook.com/
+    }
+    {
+      access_token: your access token
+      access_token_secret: your access token secret
+      "consumer secret": your consumer secret
+      consumer_key: your consumer key
+      message_template: my awesome message
+      type: twitter
     }
   ]
 }
