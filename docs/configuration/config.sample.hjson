@@ -7,6 +7,7 @@
     baker_pays_transaction_fee: true
     baker_pays_allocation_fee: true
     minimum_payout_amount: 10.5
+    explorer: https://tzstats.com/
   }
   delegators: {
     requirements: {

@@ -4,6 +4,7 @@
   payouts: {
     wallet_mode: local-private-key
     fee: 5
+    explorer: https://tzkt.io/
   }
   delegators: {
     requirements: {}
