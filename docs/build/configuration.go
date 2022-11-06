@@ -51,7 +51,19 @@ func GenerateSample() {
 			Explorer:                "https://tzstats.com/",
 		},
 		NotificationConfigurations: []map[string]interface{}{
-			{"type": "discord", "webhook": "https://my-discord-webhook.com/"},
+			{
+				"type":             "discord",
+				"webhook":          "https://my-discord-webhook.com/",
+				"message_template": "my awesome message",
+			},
+			{
+				"type":                "twitter",
+				"access_token":        "your access token",
+				"access_token_secret": "your access token secret",
+				"consumer_key":        "your consumer key",
+				"consumer secret":     "your consumer secret",
+				"message_template":    "my awesome message",
+			},
 		},
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
 			Bonds: map[string]float32{
