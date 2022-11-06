@@ -14,7 +14,7 @@ type InMemorySigner struct {
 func InitInMemorySigner(key string) (*InMemorySigner, error) {
 	tkey, err := tezos.ParsePrivateKey(key)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid key '%s' - %s", key, err.Error())
+		return nil, fmt.Errorf("invalid key '%s' - %s", key, err.Error())
 	}
 	return &InMemorySigner{
 		Key: tkey,

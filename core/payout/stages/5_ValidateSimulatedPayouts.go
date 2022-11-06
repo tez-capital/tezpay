@@ -14,7 +14,7 @@ func validateSimulatedPayouts(ctx Context) (result Context, err error) {
 
 	// TODO: Accounting
 	ctx.StageData.PayoutCandidatesSimulated = lo.Map(simulated, func(candidate PayoutCandidateSimulated, _ int) PayoutCandidateSimulated {
-		if candidate.Candidate.IsInvalid {
+		if candidate.IsInvalid {
 			return candidate
 		}
 
@@ -24,7 +24,7 @@ func validateSimulatedPayouts(ctx Context) (result Context, err error) {
 		).ToPayoutCandidateSimulated()
 
 		// collect fees if invalid
-		if candidate.Candidate.IsInvalid {
+		if candidate.IsInvalid {
 			ctx.StageData.BakerFeesAmount = ctx.StageData.BakerFeesAmount.Add(candidate.BondsAmount)
 			candidate.Fee = candidate.Fee.Add(candidate.BondsAmount)
 			candidate.BondsAmount = tezos.Zero

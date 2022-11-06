@@ -48,6 +48,7 @@ func GenerateSample() {
 			IsPayingTxFee:           true,
 			IsPayingAllocationTxFee: true,
 			MinimumAmount:           10.5,
+			Explorer:                "https://tzstats.com/",
 		},
 		NotificationConfigurations: []map[string]interface{}{
 			{"type": "discord", "webhook": "https://my-discord-webhook.com/"},

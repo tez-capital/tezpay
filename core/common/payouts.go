@@ -58,18 +58,34 @@ type PayoutContext struct {
 }
 
 type CyclePayoutSummary struct {
-	Cycle              int64   `json:"cycle"`
-	Delegators         int     `json:"delegators"`
-	StakingBalance     tezos.Z `json:"staking_balance"`
-	EarnedFees         tezos.Z `json:"cycle_fees"`
-	EarnedRewards      tezos.Z `json:"cycle_rewards"`
-	DistributedRewards tezos.Z `json:"distributed_rewards"`
-	BondIncome         tezos.Z `json:"bond_income"`
-	FeeIncome          tezos.Z `json:"fee_income"`
-	IncomeTotal        tezos.Z `json:"total_income"`
-	DonatedBonds       tezos.Z `json:"donated_bonds"`
-	DonatedFees        tezos.Z `json:"donated_fees"`
-	DonatedTotal       tezos.Z `json:"donated_total"`
+	Cycle              int64     `json:"cycle"`
+	Delegators         int       `json:"delegators"`
+	StakingBalance     tezos.Z   `json:"staking_balance"`
+	EarnedFees         tezos.Z   `json:"cycle_fees"`
+	EarnedRewards      tezos.Z   `json:"cycle_rewards"`
+	DistributedRewards tezos.Z   `json:"distributed_rewards"`
+	BondIncome         tezos.Z   `json:"bond_income"`
+	FeeIncome          tezos.Z   `json:"fee_income"`
+	IncomeTotal        tezos.Z   `json:"total_income"`
+	DonatedBonds       tezos.Z   `json:"donated_bonds"`
+	DonatedFees        tezos.Z   `json:"donated_fees"`
+	DonatedTotal       tezos.Z   `json:"donated_total"`
+	Timestamp          time.Time `json:"timestamp"`
+}
+
+func (summary *CyclePayoutSummary) Add(another *CyclePayoutSummary) *CyclePayoutSummary {
+	return &CyclePayoutSummary{
+		StakingBalance:     summary.StakingBalance.Add(another.StakingBalance),
+		EarnedFees:         summary.EarnedFees.Add(another.EarnedFees),
+		EarnedRewards:      summary.EarnedRewards.Add(another.EarnedRewards),
+		DistributedRewards: summary.DistributedRewards.Add(another.DistributedRewards),
+		BondIncome:         summary.BondIncome.Add(another.BondIncome),
+		FeeIncome:          summary.FeeIncome.Add(another.FeeIncome),
+		IncomeTotal:        summary.IncomeTotal.Add(another.IncomeTotal),
+		DonatedBonds:       summary.DonatedBonds.Add(another.DonatedBonds),
+		DonatedFees:        summary.DonatedFees.Add(another.DonatedFees),
+		DonatedTotal:       summary.DonatedTotal.Add(another.DonatedTotal),
+	}
 }
 
 type CyclePayoutBlueprint struct {

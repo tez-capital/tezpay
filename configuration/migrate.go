@@ -21,7 +21,7 @@ func WriteMigratedConfiguration(configuration LatestConfigurationType) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(constants.CONFIG_FILE_NAME, marshaled, 0)
+	err = os.WriteFile(constants.CONFIG_FILE_NAME, marshaled, 0644)
 	return err
 }
 

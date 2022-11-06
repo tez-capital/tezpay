@@ -47,6 +47,7 @@ type PayoutConfigurationV0 struct {
 	IsPayingAllocationTxFee bool             `json:"baker_pays_allocation_fee,omitempty"`
 	MinimumAmount           float64          `json:"minimum_payout_amount,omitempty"`
 	IgnoreEmptyAccounts     bool             `json:"ignore_empty_accounts,omitempty"`
+	Explorer                string           `json:"explorer,omitempty"`
 }
 
 type NotificatorConfigurationV0 struct {
@@ -90,6 +91,7 @@ func GetDefaultV0() ConfigurationV0 {
 			IsPayingTxFee:           false,
 			IsPayingAllocationTxFee: false,
 			MinimumAmount:           constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
+			Explorer:                "https://tzkt.io/",
 		},
 		NotificationConfigurations: make([]map[string]interface{}, 0),
 		SourceBytes:                []byte{},

@@ -13,16 +13,15 @@ func collectBakerFees(ctx Context) (Context, error) {
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
 
 	candidatesWithBondsAndFees := lo.Map(candidates, func(candidateWithBondsAmount PayoutCandidateWithBondAmount, _ int) PayoutCandidateWithBondAmountAndFee {
-		if candidateWithBondsAmount.Candidate.IsInvalid {
+		if candidateWithBondsAmount.IsInvalid {
 			return PayoutCandidateWithBondAmountAndFee{
-				Candidate: candidateWithBondsAmount.Candidate,
+				PayoutCandidateWithBondAmount: candidateWithBondsAmount,
 			}
 		}
-		fee := utils.GetZPortion(candidateWithBondsAmount.BondsAmount, candidateWithBondsAmount.Candidate.FeeRate)
+		fee := utils.GetZPortion(candidateWithBondsAmount.BondsAmount, candidateWithBondsAmount.FeeRate)
 		return PayoutCandidateWithBondAmountAndFee{
-			Candidate:   candidateWithBondsAmount.Candidate,
-			BondsAmount: candidateWithBondsAmount.BondsAmount.Sub(fee),
-			Fee:         fee,
+			PayoutCandidateWithBondAmount: candidateWithBondsAmount,
+			Fee:                           fee,
 		}
 	})
 

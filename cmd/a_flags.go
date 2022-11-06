@@ -10,4 +10,7 @@ const (
 	REPORT_TO_STDOUT                 = "report-to-stdout"
 	DISABLE_SEPERATE_SC_PAYOUTS_FLAG = "no-separate-sc"
 	SILENT_FLAG                      = "silent"
+	CYCLES_FLAG                      = "cycles"
+	FIRST_CYCLE_FLAG                 = "first-cycle"
+	LAST_CYCLE_FLAG                  = "last-cycle"
 )

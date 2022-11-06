@@ -21,7 +21,7 @@ func checkSufficientBalance(ctx Context) (Context, error) {
 	}
 
 	totalPayouts := len(lo.Filter(candidates, func(candidate PayoutCandidateWithBondAmount, _ int) bool {
-		return !candidate.Candidate.IsInvalid
+		return !candidate.IsInvalid
 	}))
 	// add all bonds, fees and donations destinations
 	totalPayouts = totalPayouts + len(configuration.IncomeRecipients.Bonds) + len(configuration.IncomeRecipients.Fees) + utils.Max(len(configuration.IncomeRecipients.Donations), 1)

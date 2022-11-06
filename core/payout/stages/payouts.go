@@ -32,20 +32,17 @@ func (candidate *PayoutCandidate) ToValidationContext(ctx *Context) PayoutValida
 }
 
 type PayoutCandidateWithBondAmount struct {
-	Candidate   PayoutCandidate
+	PayoutCandidate
 	BondsAmount tezos.Z
 }
 
 type PayoutCandidateWithBondAmountAndFee struct {
-	Candidate   PayoutCandidate
-	BondsAmount tezos.Z
-	Fee         tezos.Z
+	PayoutCandidateWithBondAmount
+	Fee tezos.Z
 }
 
 type PayoutCandidateSimulated struct {
-	Candidate      PayoutCandidate
-	BondsAmount    tezos.Z
-	Fee            tezos.Z
+	PayoutCandidateWithBondAmountAndFee
 	AllocationBurn int64
 	StorageBurn    int64
 	OpLimits       *common.OpLimits
@@ -64,7 +61,7 @@ func (payout *PayoutCandidateSimulated) GetOperationFeesWithoutAllocation() int6
 }
 
 func (candidate *PayoutCandidateSimulated) ToValidationContext(config *configuration.RuntimeConfiguration) PayoutSimulatedValidationContext {
-	pkh, _ := candidate.Candidate.Recipient.MarshalText()
+	pkh, _ := candidate.Recipient.MarshalText()
 	var overrides *configuration.RuntimeDelegatorOverride
 	if delegatorOverride, found := config.Delegators.Overrides[string(pkh)]; found {
 		overrides = &delegatorOverride
@@ -78,24 +75,24 @@ func (candidate *PayoutCandidateSimulated) ToValidationContext(config *configura
 
 func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycle int64, kind enums.EPayoutKind) common.PayoutRecipe {
 	note := ""
-	if payout.Candidate.IsInvalid {
+	if payout.IsInvalid {
 		kind = enums.PAYOUT_KIND_INVALID
-		note = string(payout.Candidate.InvalidBecause)
+		note = string(payout.InvalidBecause)
 	}
 
 	return common.PayoutRecipe{
 		Baker:            baker,
 		Cycle:            cycle,
 		Kind:             kind,
-		Delegator:        payout.Candidate.Source,
-		Recipient:        payout.Candidate.Recipient,
-		DelegatedBalance: payout.Candidate.Balance,
+		Delegator:        payout.Source,
+		Recipient:        payout.Recipient,
+		DelegatedBalance: payout.Balance,
 		Amount:           payout.BondsAmount,
-		FeeRate:          payout.Candidate.FeeRate,
+		FeeRate:          payout.FeeRate,
 		Fee:              payout.Fee,
 		OpLimits:         payout.OpLimits,
 		Note:             note,
-		IsValid:          !payout.Candidate.IsInvalid,
+		IsValid:          !payout.IsInvalid,
 	}
 }
 

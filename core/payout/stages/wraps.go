@@ -1,6 +1,8 @@
 package stages
 
 import (
+	"time"
+
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/samber/lo"
@@ -76,6 +78,7 @@ func (result WrappedStageResult) ToCyclePayoutBlueprint() (*common.CyclePayoutBl
 			DonatedBonds:       result.Ctx.StageData.DonateBondsAmount,
 			DonatedFees:        result.Ctx.StageData.DonateFeesAmount,
 			DonatedTotal:       result.Ctx.StageData.DonateFeesAmount.Add(result.Ctx.StageData.DonateBondsAmount),
+			Timestamp:          time.Now(),
 		},
 	}, nil
 }

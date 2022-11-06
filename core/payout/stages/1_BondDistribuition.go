@@ -41,13 +41,13 @@ func distributeBonds(ctx Context) (Context, error) {
 	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(candidates, func(candidate PayoutCandidate, _ int) PayoutCandidateWithBondAmount {
 		if candidate.IsInvalid {
 			return PayoutCandidateWithBondAmount{
-				Candidate:   candidate,
-				BondsAmount: tezos.Zero,
+				PayoutCandidate: candidate,
+				BondsAmount:     tezos.Zero,
 			}
 		}
 		return PayoutCandidateWithBondAmount{
-			Candidate:   candidate,
-			BondsAmount: availableRewards.Mul(candidate.Balance).Div(totalBalance),
+			PayoutCandidate: candidate,
+			BondsAmount:     availableRewards.Mul(candidate.Balance).Div(totalBalance),
 		}
 	})
 

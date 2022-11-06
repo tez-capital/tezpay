@@ -99,3 +99,15 @@ func WriteCycleSummary(summary common.CyclePayoutSummary) error {
 	err = os.WriteFile(targetFile, data, 0644)
 	return err
 }
+
+func ReadCycleSummary(cycle int64) (*common.CyclePayoutSummary, error) {
+	workingDirectory := state.Global.GetWorkingDirectory()
+	sourceFile := path.Join(workingDirectory, constants.REPORTS_DIRECTORY, fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	data, err := os.ReadFile(sourceFile)
+	if err != nil {
+		return nil, err
+	}
+	var summary common.CyclePayoutSummary
+	err = json.Unmarshal(data, &summary)
+	return &summary, err
+}

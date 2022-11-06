@@ -1,6 +1,6 @@
 package constants
 
 const (
-	VERSION  = "0.0.5-alpha"
+	VERSION  = "0.0.7-alpha"
 	CODENAME = "tp"
 )

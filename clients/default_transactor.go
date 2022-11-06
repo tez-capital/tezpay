@@ -7,11 +7,12 @@ import (
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type DefaultRpcTransactor struct {
 	rpc    *rpc.Client
-	ctx    context.Context
 	Cancel context.CancelFunc
 }
 
@@ -30,7 +31,6 @@ func InitDefaultTransactor(rpcUrl string) (*DefaultRpcTransactor, error) {
 
 	return &DefaultRpcTransactor{
 		rpc:    rpcClient,
-		ctx:    ctx,
 		Cancel: cancel,
 	}, nil
 }
@@ -40,7 +40,7 @@ func (transactor *DefaultRpcTransactor) GetId() string {
 }
 
 func (transactor *DefaultRpcTransactor) GetLimits() (*common.OperationLimits, error) {
-	params, err := transactor.rpc.GetParams(transactor.ctx, rpc.NewBlockOffset(rpc.Head, 0))
+	params, err := transactor.rpc.GetParams(context.Background(), rpc.NewBlockOffset(rpc.Head, 0))
 	if err != nil {
 		return nil, err
 	}
@@ -52,23 +52,28 @@ func (transactor *DefaultRpcTransactor) GetLimits() (*common.OperationLimits, er
 }
 
 func (transactor *DefaultRpcTransactor) Complete(op *codec.Op, key tezos.Key) error {
-	err := transactor.rpc.Complete(transactor.ctx, op, key)
+	err := transactor.rpc.Complete(context.Background(), op, key)
 	return err
 }
 
 func (transactor *DefaultRpcTransactor) Broadcast(op *codec.Op) (tezos.OpHash, error) {
-	return transactor.rpc.Broadcast(transactor.ctx, op)
+	return transactor.rpc.Broadcast(context.Background(), op)
 }
 
 func (transactor *DefaultRpcTransactor) WaitOpConfirmation(opHash tezos.OpHash, ttl int64, confirmations int64) (*rpc.Receipt, error) {
+	ctx, cancel := context.WithCancel(context.Background())
 	res := rpc.NewResult(opHash).WithTTL(ttl).WithConfirmations(confirmations)
 	transactor.rpc.Listen()
 	res.Listen(transactor.rpc.BlockObserver)
-	res.WaitContext(transactor.ctx)
+	utils.CallbackOnInterrupt(func() {
+		logrus.Warnf("waiting for confirmation of '%s' canceled", opHash)
+		cancel()
+	})
+	res.WaitContext(ctx)
 	if err := res.Err(); err != nil {
 		return nil, err
 	}
 
 	// return receipt
-	return res.GetReceipt(transactor.ctx)
+	return res.GetReceipt(context.Background())
 }

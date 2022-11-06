@@ -23,14 +23,14 @@ func (validationContext *PayoutSimulatedValidationContext) ToPayoutCandidateSimu
 }
 
 func (validationContext *PayoutSimulatedValidationContext) Validate(validators ...PayoutSimulatedCandidateValidator) *PayoutSimulatedValidationContext {
-	if validationContext.Payout.Candidate.IsInvalid || len(validators) == 0 {
+	if validationContext.Payout.IsInvalid || len(validators) == 0 {
 		return validationContext
 	}
 	for _, validator := range validators {
-		log.Tracef("validating payout to %s with %s", validationContext.Payout.Candidate.Recipient, validator.Id)
+		log.Tracef("validating payout to %s with %s", validationContext.Payout.Recipient, validator.Id)
 		validator.Validate(validationContext.Payout, validationContext.Configuration, validationContext.Overrides)
-		log.Tracef("payout to %s validation result: %b", validationContext.Payout.Candidate.Recipient, validationContext.Payout.Candidate.IsInvalid)
-		if validationContext.Payout.Candidate.IsInvalid {
+		log.Tracef("payout to %s validation result: %t", validationContext.Payout.Recipient, validationContext.Payout.IsInvalid)
+		if validationContext.Payout.IsInvalid {
 			break
 		}
 	}
@@ -43,8 +43,8 @@ func ValidateSimulatedMinumumAmount(candidate *PayoutCandidateSimulated, configu
 	treshhold := configuration.PayoutConfiguration.MinimumAmount
 	diff := candidate.BondsAmount.Sub(treshhold)
 	if diff.IsNeg() {
-		candidate.Candidate.IsInvalid = true
-		candidate.Candidate.InvalidBecause = enums.INVALID_PAYOUT_BELLOW_MINIMUM
+		candidate.IsInvalid = true
+		candidate.InvalidBecause = enums.INVALID_PAYOUT_BELLOW_MINIMUM
 	}
 }
 

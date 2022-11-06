@@ -39,10 +39,9 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	payoutTable.SetStyle(table.StyleLight)
 	payoutTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignLeft}})
 	payoutTable.SetOutputMirror(os.Stdout)
-	payoutTable.AppendHeader(table.Row{header, header, header, header, header, header, header, header, header}, table.RowConfig{AutoMerge: true})
-	payoutTable.AppendSeparator()
-	payoutTable.AppendRow(table.Row{"Delegator", "Recipient", "Delegated Balance", "Kind", "Amount", "Fee Rate", "Baker Fee", "Transaction Fee", "Note"}, table.RowConfig{AutoMerge: true})
-	payoutTable.AppendSeparator()
+	payoutTable.SetTitle(header)
+	payoutTable.Style().Title.Align = text.AlignCenter
+	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Delegated Balance", "Kind", "Amount", "Fee Rate", "Baker Fee", "Transaction Fee", "Note"}, table.RowConfig{AutoMerge: true})
 	for _, payout := range payouts {
 		note := payout.Note
 		if note == "" {
@@ -101,10 +100,9 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 	payoutTable.SetStyle(table.StyleLight)
 	payoutTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignLeft}})
 	payoutTable.SetOutputMirror(os.Stdout)
-	payoutTable.AppendHeader(table.Row{header, header, header, header, header, header, header}, table.RowConfig{AutoMerge: true})
-	payoutTable.AppendSeparator()
-	payoutTable.AppendRow(table.Row{"Delegator", "Recipient", "Kind", "Amount", "Baker Fee", "Transaction Fee", "OpHash"}, table.RowConfig{AutoMerge: true})
-	payoutTable.AppendSeparator()
+	payoutTable.SetTitle(header)
+	payoutTable.Style().Title.Align = text.AlignCenter
+	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Kind", "Amount", "Baker Fee", "Transaction Fee", "OpHash"}, table.RowConfig{AutoMerge: true})
 	for _, payout := range payouts {
 		note := payout.Note
 		if note == "" {
@@ -128,4 +126,25 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
 	}
 	payoutTable.Render()
+}
+
+func PrintCycleSummary(summary common.CyclePayoutSummary, header string) {
+	summaryTable := table.NewWriter()
+	summaryTable.SetStyle(table.StyleLight)
+	summaryTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignRight}})
+	summaryTable.SetOutputMirror(os.Stdout)
+	summaryTable.SetTitle(header)
+	summaryTable.Style().Title.Align = text.AlignCenter
+	summaryTable.AppendRow(table.Row{"Earned Fees", MutezToTezS(summary.EarnedFees.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Earned Rewards", MutezToTezS(summary.EarnedRewards.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Distributed Rewards", MutezToTezS(summary.DistributedRewards.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendSeparator()
+	summaryTable.AppendRow(table.Row{"Donated Bonds", MutezToTezS(summary.DonatedBonds.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Fees", MutezToTezS(summary.DonatedFees.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Total", MutezToTezS(summary.DonatedTotal.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendSeparator()
+	summaryTable.AppendRow(table.Row{"Bond Income", MutezToTezS(summary.BondIncome.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Fee Income", MutezToTezS(summary.FeeIncome.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Income Total", MutezToTezS(summary.IncomeTotal.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.Render()
 }
