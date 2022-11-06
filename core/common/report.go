@@ -16,7 +16,7 @@ type PayoutReport struct {
 	DelegatedBalance tezos.Z           `json:"delegator_balance,omitempty" csv:"delegator_balance"`
 	Recipient        tezos.Address     `json:"recipient,omitempty" csv:"recipient"`
 	Amount           tezos.Z           `json:"amount,omitempty" csv:"amount"`
-	FeeRate          float32           `json:"fee_rate,omitempty" csv:"fee_rate"`
+	FeeRate          float64           `json:"fee_rate,omitempty" csv:"fee_rate"`
 	Fee              tezos.Z           `json:"fee,omitempty" csv:"fee"`
 	TransactionFee   int64             `json:"tx_fee,omitempty" csv:"tx_fee"`
 	OpHash           tezos.OpHash      `json:"op_hash,omitempty" csv:"op_hash"`

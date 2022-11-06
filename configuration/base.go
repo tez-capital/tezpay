@@ -96,6 +96,6 @@ func Load() (*RuntimeConfiguration, error) {
 		return nil, err
 	}
 	runtime := ConfigurationToRuntimeConfiguration(configuration)
-	isValid := runtime.Validate()
-	return runtime, isValid
+	err = runtime.Validate()
+	return runtime, err
 }

@@ -58,7 +58,7 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 		if addr, err := tezos.ParseAddress(delegatorOverride.Recipient); err == nil {
 			delegatorOverrides[k] = tezpay_configuration.DelegatorOverrideV0{
 				Recipient:      addr,
-				Fee:            delegatorOverride.Fee,
+				Fee:            delegatorOverride.Fee / 100,
 				NoFee:          delegatorOverride.Fee == 0.,
 				MinimumBalance: 0,
 			}
@@ -72,7 +72,7 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 		Version:  0,
 		BakerPKH: address,
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
-			Donate: 5,
+			Donate: 0.05,
 		},
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
 			Requirements: tezpay_configuration.DelegatorRequirementsV0{
@@ -90,7 +90,7 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 			IsProtectionEnabled: configuration.Overdelegation.IsProtectionEnabled,
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
-			Fee:           configuration.Fee,
+			Fee:           configuration.Fee / 100,
 			IsPayingTxFee: configuration.PaymentRequirements.IsPayingTxFee,
 			WalletMode:    enums.WalletMode(configuration.WalletMode),
 			MinimumAmount: configuration.PaymentRequirements.MinimumAmount,

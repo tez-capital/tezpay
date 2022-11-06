@@ -6,8 +6,8 @@ import (
 )
 
 type IncomeRecipientsV0 struct {
-	BondRewards map[string]float32 `json:"bond_rewards"`
-	FeeRewards  map[string]float32 `json:"fee_income"`
+	BondRewards map[string]float64 `json:"bond_rewards"`
+	FeeRewards  map[string]float64 `json:"fee_income"`
 }
 
 type DelegatorRequirementsV0 struct {
@@ -16,7 +16,7 @@ type DelegatorRequirementsV0 struct {
 
 type DelegatorOverrideV0 struct {
 	Recipient string  `json:"recipient,omitempty"`
-	Fee       float32 `json:"fee,omitempty"`
+	Fee       float64 `json:"fee,omitempty"`
 }
 
 type TezosNetworkConfigurationV0 struct {
@@ -36,7 +36,7 @@ type PaymentRequirementsV0 struct {
 
 type ConfigurationV0 struct {
 	BakerPKH                   string                         `json:"baking_address"`
-	Fee                        float32                        `json:"default_fee,omitempty"`
+	Fee                        float64                        `json:"default_fee,omitempty"`
 	WalletMode                 string                         `json:"payout_wallet_mode"`
 	DelegatorRequirements      DelegatorRequirementsV0        `json:"delegator_requirements,omitempty"`
 	IncomeRecipients           IncomeRecipientsV0             `json:"income_recipients,omitempty"`

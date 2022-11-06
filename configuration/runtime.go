@@ -15,7 +15,7 @@ type RuntimeDelegatorRequirements struct {
 
 type RuntimeDelegatorOverride struct {
 	Recipient      tezos.Address `json:"recipient,omitempty"`
-	Fee            float32       `json:"fee,omitempty"`
+	Fee            float64       `json:"fee,omitempty"`
 	NoFee          bool          `json:"no_fee,omitempty"`
 	MinimumBalance tezos.Z       `json:"minimum_balance,omitempty"`
 }
@@ -35,7 +35,7 @@ type RuntimeNotificatorConfiguration struct {
 
 type RuntimePayoutConfiguration struct {
 	WalletMode              enums.WalletMode `json:"wallet_mode,omitempty"`
-	Fee                     float32          `json:"fee,omitempty"`
+	Fee                     float64          `json:"fee,omitempty"`
 	IsPayingTxFee           bool             `json:"baker_pays_transaction_fee,omitempty"`
 	IsPayingAllocationTxFee bool             `json:"baker_pays_allocation_fee,omitempty"`
 	MinimumAmount           tezos.Z          `json:"minimum_payout_amount,omitempty"`

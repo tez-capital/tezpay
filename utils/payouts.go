@@ -89,10 +89,13 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 		log.Debugf("collector undefined filtering payout recipes only by succcess status from reports")
 	}
 	for _, report := range reports {
-		k := report.Delegator.String()
+		k := report.Delegator
+		if k.Equal(tezos.ZeroAddress) { // bonds, fees, donatio nrewards
+			k = report.Recipient
+		}
 		if collector != nil && !report.OpHash.Equal(tezos.ZeroOpHash) {
 			if _, ok := validOpHashes[report.OpHash.String()]; ok {
-				paidOut[k] = report
+				paidOut[k.String()] = report
 				continue
 			}
 
@@ -102,19 +105,23 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 				log.Warnf("collector check of '%s' failed", report.OpHash)
 			}
 			if paid {
-				paidOut[k] = report
+				paidOut[k.String()] = report
 				validOpHashes[report.OpHash.String()] = true
 			}
 		}
 
 		if report.IsSuccess {
-			paidOut[k] = report
+			paidOut[k.String()] = report
 			validOpHashes[report.OpHash.String()] = true
 		}
 	}
+
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		k := payout.Delegator.String()
-		_, ok := paidOut[k]
+		k := payout.Delegator
+		if k.Equal(tezos.ZeroAddress) {
+			k = payout.Recipient
+		}
+		_, ok := paidOut[k.String()]
 		return !ok
 	}), lo.Values(paidOut)
 }

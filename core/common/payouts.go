@@ -21,7 +21,7 @@ type PayoutRecipe struct {
 	Kind             enums.EPayoutKind `json:"kind,omitempty"`
 	DelegatedBalance tezos.Z           `json:"delegator_balance,omitempty"`
 	Amount           tezos.Z           `json:"amount,omitempty"`
-	FeeRate          float32           `json:"fee_rate,omitempty"`
+	FeeRate          float64           `json:"fee_rate,omitempty"`
 	Fee              tezos.Z           `json:"fee,omitempty"`
 	OpLimits         *OpLimits         `json:"op_limits,omitempty"`
 	Note             string            `json:"note,omitempty"`

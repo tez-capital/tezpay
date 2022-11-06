@@ -10,12 +10,15 @@ type FloatConstraint interface {
 	float32 | float64
 }
 
-func GetZPortion[T FloatConstraint](val tezos.Z, percent T) tezos.Z {
-	if percent == 0 {
+func GetZPortion[T FloatConstraint](val tezos.Z, portion T) tezos.Z {
+	if portion == 0 {
 		return tezos.Zero
 	}
-	portionRelativeTo10000 := int64(math.Floor(float64(percent) * 100))
-	return val.Mul64(portionRelativeTo10000).Div64(10000)
+	if portion >= 1 {
+		return val
+	}
+	portionRelativeTo1000000 := int64(math.Floor(float64(portion) * 10000))
+	return val.Mul64(portionRelativeTo1000000).Div64(10000)
 }
 
 type NumberConstraint interface {

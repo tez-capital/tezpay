@@ -13,22 +13,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[string]float32, amount tezos.Z, ctx Context) ([]common.PayoutRecipe, error) {
-	totalPercentage := lo.Reduce(lo.Values(distributionDefinition), func(agg float32, entry float32, _ int) float32 {
+func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[string]float64, amount tezos.Z, ctx Context) ([]common.PayoutRecipe, error) {
+	totalPercentage := lo.Reduce(lo.Values(distributionDefinition), func(agg float64, entry float64, _ int) float64 {
 		return agg + entry
-	}, float32(0))
+	}, float64(0))
 	if totalPercentage > 100 {
 		return []common.PayoutRecipe{}, fmt.Errorf("expects <= 100%% but got %f", totalPercentage)
 	}
 	i := 0
 	result := make([]common.PayoutRecipe, len(distributionDefinition))
-	for recipient, percentage := range distributionDefinition {
+	for recipient, portion := range distributionDefinition {
 		recipient, err := tezos.ParseAddress(recipient)
 		if err != nil {
 			return []common.PayoutRecipe{}, err
 		}
 
-		recipientPortion := utils.GetZPortion(amount, percentage)
+		recipientPortion := utils.GetZPortion(amount, portion)
 		if recipientPortion.IsZero() {
 			continue
 		}
@@ -93,7 +93,7 @@ func finalizePayouts(ctx Context) (result Context, err error) {
 	donationDistributionDefinition := configuration.IncomeRecipients.Donations
 	if len(donationDistributionDefinition) == 0 && configuration.IncomeRecipients.Donate > 0 { // inject default destination
 		log.Trace("no donation destination found, donating to tezpay")
-		donationDistributionDefinition = map[string]float32{
+		donationDistributionDefinition = map[string]float64{
 			constants.DEFAULT_DONATION_ADDRESS: 100,
 		}
 	}

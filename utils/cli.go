@@ -24,11 +24,11 @@ func shortenAddress(taddr tezos.Address) string {
 	return fmt.Sprintf("%s...%s", addr[:5], addr[total-5:])
 }
 
-func toPercentage[T FloatConstraint](percentage T) string {
-	if percentage == 0 {
+func toPercentage[T FloatConstraint](portion T) string {
+	if portion == 0 {
 		return "-"
 	}
-	return fmt.Sprintf("%.2f %%", percentage)
+	return fmt.Sprintf("%.2f %%", portion*100)
 }
 
 func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {

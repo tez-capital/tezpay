@@ -7,10 +7,10 @@ import (
 )
 
 type IncomeRecipientsV0 struct {
-	Bonds     map[string]float32 `json:"bonds,omitempty"`
-	Fees      map[string]float32 `json:"fees,omitempty"`
-	Donate    float32            `json:"donate,omitempty"`
-	Donations map[string]float32 `json:"donations,omitempty"`
+	Bonds     map[string]float64 `json:"bonds,omitempty"`
+	Fees      map[string]float64 `json:"fees,omitempty"`
+	Donate    float64            `json:"donate,omitempty"`
+	Donations map[string]float64 `json:"donations,omitempty"`
 }
 
 type DelegatorRequirementsV0 struct {
@@ -19,7 +19,7 @@ type DelegatorRequirementsV0 struct {
 
 type DelegatorOverrideV0 struct {
 	Recipient      tezos.Address `json:"recipient,omitempty"`
-	Fee            float32       `json:"fee,omitempty"`
+	Fee            float64       `json:"fee,omitempty"`
 	NoFee          bool          `json:"no_fee,omitempty"`
 	MinimumBalance float64       `json:"minimum_balance,omitempty"`
 }
@@ -42,7 +42,7 @@ type OverdelegationConfigurationV0 struct {
 
 type PayoutConfigurationV0 struct {
 	WalletMode              enums.WalletMode `json:"wallet_mode"`
-	Fee                     float32          `json:"fee,omitempty"`
+	Fee                     float64          `json:"fee,omitempty"`
 	IsPayingTxFee           bool             `json:"baker_pays_transaction_fee,omitempty"`
 	IsPayingAllocationTxFee bool             `json:"baker_pays_allocation_fee,omitempty"`
 	MinimumAmount           float64          `json:"minimum_payout_amount,omitempty"`

@@ -10,7 +10,7 @@ import (
 type PayoutCandidate struct {
 	Source         tezos.Address
 	Recipient      tezos.Address
-	FeeRate        float32
+	FeeRate        float64
 	Balance        tezos.Z
 	IsInvalid      bool
 	IsEmptied      bool
