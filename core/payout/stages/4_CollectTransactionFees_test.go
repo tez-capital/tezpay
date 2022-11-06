@@ -33,15 +33,15 @@ var (
 	}
 	config    = configuration.GetDefaultRuntimeConfiguration()
 	collector = mock.InitSimpleColletor()
-	ctx       = Context{
-		StageData:     StageData{PayoutCandidatesWithBondAmountAndFees: payoutCandidatesWithBondAmountAndFees},
-		Collector:     collector,
-		configuration: &config,
-	}
 )
 
 func TestCollectTransactionFees(t *testing.T) {
 	assert := assert.New(t)
+	ctx := Context{
+		StageData:     StageData{PayoutCandidatesWithBondAmountAndFees: payoutCandidatesWithBondAmountAndFees},
+		Collector:     collector,
+		configuration: &config,
+	}
 
 	t.Log("check gas usage")
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -83,5 +83,30 @@ func TestCollectTransactionFees(t *testing.T) {
 	for i, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
 		assert.LessOrEqual(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+	}
+
+	t.Log("chech paying tx fee")
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = true
+	collector.SetOpts(&mock.SimpleCollectorOpts{
+		AllocationBurn: 1000,
+		StorageBurn:    0,
+		UsedMilliGas:   1000000,
+	})
+	result = CollectTransactionFees(WrappedStageResult{Ctx: ctx, Err: nil})
+	for i, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
+		assert.Equal(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-1000 /*allocation fee*/)
+	}
+
+	t.Log("chech not paying tx & allocation fee")
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = true
+	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = true
+	collector.SetOpts(&mock.SimpleCollectorOpts{
+		AllocationBurn: 1000,
+		StorageBurn:    0,
+		UsedMilliGas:   1000000,
+	})
+	result = CollectTransactionFees(WrappedStageResult{Ctx: ctx, Err: nil})
+	for i, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
+		assert.Equal(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64())
 	}
 }
