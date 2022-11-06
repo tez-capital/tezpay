@@ -5,7 +5,7 @@ const (
 
 	DELEGATION_CAPACITY_FACTOR = 10
 
-	DEFAULT_BAKER_FEE                 = float64(5.)
+	DEFAULT_BAKER_FEE                 = float64(.05)
 	DEFAULT_DELEGATOR_MINIMUM_BALANCE = float64(0)
 	DEFAULT_PAYOUT_MINIMUM_AMOUNT     = float64(0)
 	DEFAULT_RPC_URL                   = "https://mainnet.api.tez.ie"

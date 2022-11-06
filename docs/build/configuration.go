@@ -27,7 +27,7 @@ func GenerateSample() {
 			Overrides: map[string]tezpay_configuration.DelegatorOverrideV0{
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": {
 					Recipient:      tezos.InvalidAddress,
-					Fee:            0.5,
+					Fee:            0.005,
 					NoFee:          true,
 					MinimumBalance: 2.5,
 				},
@@ -44,7 +44,7 @@ func GenerateSample() {
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
 			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
-			Fee:                     7.5,
+			Fee:                     .075,
 			IsPayingTxFee:           true,
 			IsPayingAllocationTxFee: true,
 			MinimumAmount:           10.5,
@@ -67,17 +67,17 @@ func GenerateSample() {
 		},
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
 			Bonds: map[string]float64{
-				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 45.5,
-				"tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE": 54.5,
+				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.455,
+				"tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE": 0.545,
 			},
 			Fees: map[string]float64{
-				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 45.5,
-				"tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE": 54.5,
+				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.455,
+				"tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE": 0.545,
 			},
 			Donate: 2.5,
 			Donations: map[string]float64{
-				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 10,
-				"tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv": 90,
+				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.10,
+				"tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv": 0.90,
 			},
 		},
 	}
