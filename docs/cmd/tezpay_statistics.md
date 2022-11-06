@@ -1,21 +1,21 @@
-## tezpay generate-payouts
+## tezpay statistics
 
-generate payouts
+prints earning stats
 
 ### Synopsis
 
-generates payouts without further processing
+prints out earning statiscs
 
 ```
-tezpay generate-payouts [flags]
+tezpay statistics [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cycle int        cycle to generate payouts for
-  -h, --help             help for generate-payouts
-      --to-file string   saves generated payouts to specified file
+      --cycles int       number of cycles to collect statistics from (default 10)
+  -h, --help             help for statistics
+      --last-cycle int   last cycle to collect statistics from (has priority over --cycles)
 ```
 
 ### Options inherited from parent commands
