@@ -60,6 +60,10 @@ func (transactor *DefaultRpcTransactor) Broadcast(op *codec.Op) (tezos.OpHash, e
 	return transactor.rpc.Broadcast(context.Background(), op)
 }
 
+func (transactor *DefaultRpcTransactor) Send(op *codec.Op, opts *rpc.CallOptions) (*rpc.Receipt, error) {
+	return transactor.rpc.Send(context.Background(), op, opts)
+}
+
 func (transactor *DefaultRpcTransactor) WaitOpConfirmation(opHash tezos.OpHash, ttl int64, confirmations int64) (*rpc.Receipt, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	res := rpc.NewResult(opHash).WithTTL(ttl).WithConfirmations(confirmations)

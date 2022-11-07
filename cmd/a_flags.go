@@ -13,4 +13,5 @@ const (
 	CYCLES_FLAG                      = "cycles"
 	FIRST_CYCLE_FLAG                 = "first-cycle"
 	LAST_CYCLE_FLAG                  = "last-cycle"
+	MUTEZ_FLAG                       = "mutez"
 )

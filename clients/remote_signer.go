@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"blockwatch.cc/tzgo/codec"
+	"blockwatch.cc/tzgo/signer"
 	"blockwatch.cc/tzgo/signer/remote"
 	"blockwatch.cc/tzgo/tezos"
 )
@@ -50,20 +51,24 @@ func InitRemoteSigner(address string, remoteUrl string) (*RemoteSigner, error) {
 	}, nil
 }
 
-func (signer *RemoteSigner) GetId() string {
+func (remoteSigner *RemoteSigner) GetId() string {
 	return "RemoteSigner"
 }
 
-func (signer *RemoteSigner) GetPKH() tezos.Address {
-	return signer.Address
+func (remoteSigner *RemoteSigner) GetPKH() tezos.Address {
+	return remoteSigner.Address
 }
 
-func (signer *RemoteSigner) GetKey() tezos.Key {
-	return signer.Key
+func (remoteSigner *RemoteSigner) GetKey() tezos.Key {
+	return remoteSigner.Key
 }
 
-func (signer *RemoteSigner) Sign(op *codec.Op) error {
-	sig, err := signer.Remote.SignOperation(context.Background(), signer.Address, op)
+func (remoteSigner *RemoteSigner) GetSigner() signer.Signer {
+	return remoteSigner.Remote
+}
+
+func (remoteSigner *RemoteSigner) Sign(op *codec.Op) error {
+	sig, err := remoteSigner.Remote.SignOperation(context.Background(), remoteSigner.Address, op)
 	if err != nil {
 		return err
 	}

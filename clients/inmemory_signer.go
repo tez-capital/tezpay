@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"blockwatch.cc/tzgo/codec"
+	"blockwatch.cc/tzgo/signer"
 	"blockwatch.cc/tzgo/tezos"
 )
 
@@ -21,21 +22,25 @@ func InitInMemorySigner(key string) (*InMemorySigner, error) {
 	}, nil
 }
 
-func (signer *InMemorySigner) GetId() string {
+func (inMemSigner *InMemorySigner) GetId() string {
 	return "InMemorySigner"
 }
 
-func (signer *InMemorySigner) GetPKH() tezos.Address {
-	return signer.Key.Address()
+func (inMemSigner *InMemorySigner) GetPKH() tezos.Address {
+	return inMemSigner.Key.Address()
 }
 
-func (signer *InMemorySigner) GetKey() tezos.Key {
-	return signer.Key.Public()
+func (inMemSigner *InMemorySigner) GetKey() tezos.Key {
+	return inMemSigner.Key.Public()
 }
 
-func (signer *InMemorySigner) Sign(op *codec.Op) error {
-	if err := op.Sign(signer.Key); err != nil {
+func (inMemSigner *InMemorySigner) Sign(op *codec.Op) error {
+	if err := op.Sign(inMemSigner.Key); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (inMemSigner *InMemorySigner) GetSigner() signer.Signer {
+	return signer.NewFromKey(inMemSigner.Key)
 }

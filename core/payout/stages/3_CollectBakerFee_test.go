@@ -32,7 +32,7 @@ var (
 )
 
 func adjustFee(ctx Context, fee float64) {
-	for i, _ := range ctx.StageData.PayoutCandidatesWithBondAmount {
+	for i := range ctx.StageData.PayoutCandidatesWithBondAmount {
 		ctx.StageData.PayoutCandidatesWithBondAmount[i].FeeRate = fee
 	}
 }
