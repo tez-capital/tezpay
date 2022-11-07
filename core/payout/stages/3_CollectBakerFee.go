@@ -19,6 +19,7 @@ func collectBakerFees(ctx Context) (Context, error) {
 			}
 		}
 		fee := utils.GetZPortion(candidateWithBondsAmount.BondsAmount, candidateWithBondsAmount.FeeRate)
+		candidateWithBondsAmount.BondsAmount = candidateWithBondsAmount.BondsAmount.Sub(fee)
 		return PayoutCandidateWithBondAmountAndFee{
 			PayoutCandidateWithBondAmount: candidateWithBondsAmount,
 			Fee:                           fee,

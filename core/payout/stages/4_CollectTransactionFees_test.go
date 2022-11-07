@@ -109,4 +109,21 @@ func TestCollectTransactionFees(t *testing.T) {
 	for i, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
 		assert.Equal(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64())
 	}
+
+	t.Log("chech per op estimate")
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = false
+	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
+	collector.SetOpts(&mock.SimpleCollectorOpts{
+		AllocationBurn: 1000,
+		StorageBurn:    0,
+		UsedMilliGas:   1000000,
+		SingleOnly:     true,
+	})
+	result = CollectTransactionFees(WrappedStageResult{Ctx: ctx, Err: nil})
+
+	assert.Nil(result.Err)
+	for i, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
+		assert.LessOrEqual(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+	}
 }

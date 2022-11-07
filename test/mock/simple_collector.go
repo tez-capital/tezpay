@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"errors"
+
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
@@ -18,6 +20,7 @@ type SimpleCollectorOpts struct {
 	StorageBurn    int64
 	AllocationBurn int64
 	UsedMilliGas   int64
+	SingleOnly     bool
 }
 
 func InitSimpleColletor() *SimpleColletor {
@@ -85,6 +88,9 @@ func (engine *SimpleColletor) GetExpectedTxCosts() int64 {
 }
 
 func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
+	if engine.opts.SingleOnly && len(o.Contents) > 1 {
+		return nil, errors.New("failed to batch estimate")
+	}
 	opList := append(rpc.OperationList{},
 		lo.Map(o.Contents, func(content codec.Operation, _ int) rpc.TypedOperation {
 			return rpc.Transaction{
