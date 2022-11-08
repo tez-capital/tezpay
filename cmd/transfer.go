@@ -42,7 +42,7 @@ var transferCmd = &cobra.Command{
 
 			amount, err := strconv.ParseFloat(args[i+1], 64)
 			if err != nil {
-				log.Errorf("invalid amount '%f' - '%s'", args[i+1], err.Error())
+				log.Errorf("invalid amount '%s' - '%s'", args[i+1], err.Error())
 				os.Exit(EXIT_IVNALID_ARGS)
 			}
 			if !mutez {
