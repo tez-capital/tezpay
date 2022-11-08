@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"net/url"
+
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
@@ -28,4 +30,12 @@ func CalculateStorageLimit(costs tezos.Costs) int64 {
 		limit += constants.ALLOCATION_STORAGE
 	}
 	return limit
+}
+
+func GetOpReference(opHash tezos.OpHash, explorer string) string {
+	reference := opHash.String()
+	if explorer != "" {
+		reference, _ = url.JoinPath(explorer, opHash.String())
+	}
+	return reference
 }

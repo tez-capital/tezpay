@@ -41,7 +41,7 @@ var payCmd = &cobra.Command{
 		log.Info("checking past reports")
 		reportResidues := assertRunWithResultAndErrFmt(func() ([]common.PayoutReport, error) {
 			return loadPastPayoutReports(config.BakerPKH, payoutBlueprint.Cycle)
-		}, EXIT_PAYOUT_REPORTS_PARSING_FAULURE, "Failed to read old payout reports from cycle %d - %s")
+		}, EXIT_PAYOUT_REPORTS_PARSING_FAULURE, "Failed to read old payout reports from cycle #%d - %s")
 		payouts, reportsOfPastSuccesfulPayouts := utils.FilterRecipesByReports(utils.OnlyValidPayouts(payoutBlueprint.Payouts), reportResidues, nil)
 
 		if state.Global.GetWantsOutputJson() {
@@ -49,7 +49,7 @@ var payCmd = &cobra.Command{
 			utils.PrintPayoutsAsJson(payouts)
 		} else {
 			utils.PrintInvalidPayoutRecipes(payoutBlueprint.Payouts, payoutBlueprint.Cycle)
-			utils.PrintReports(reportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %d", payoutBlueprint.Cycle), true)
+			utils.PrintReports(reportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", payoutBlueprint.Cycle), true)
 			utils.PrintValidPayoutRecipes(payouts, payoutBlueprint.Cycle)
 		}
 
@@ -97,7 +97,8 @@ var payCmd = &cobra.Command{
 				batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to broadcast - %s", err.Error()))
 				continue
 			}
-			log.Infof("waiting for confirmation of batch n.%d (%s)", i+1, opExecCtx.GetOpHash())
+
+			log.Infof("waiting for confirmation of batch n.%d (%s)", i+1, utils.GetOpReference(opExecCtx.GetOpHash(), config.Network.Explorer))
 			rcpt, err := opExecCtx.WaitConfirmation(constants.DEFAULT_REQUIRED_CONFIRMATIONS)
 			if err != nil {
 				log.Warnf("batch n.%d - %s", i+1, err.Error())
@@ -147,6 +148,7 @@ var payCmd = &cobra.Command{
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 			notifyPayoutsProcessedThroughAllNotificators(config, &payoutBlueprint.Summary)
 		}
+		utils.PrintBatchResults(batchesResults, fmt.Sprintf("Results of #%d", payoutBlueprint.Cycle), config.Network.Explorer)
 	},
 }
 

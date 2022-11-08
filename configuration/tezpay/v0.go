@@ -33,6 +33,7 @@ type DelegatorsConfigurationV0 struct {
 type TezosNetworkConfigurationV0 struct {
 	RpcUrl                 string `json:"rpc_url,omitempty"`
 	TzktUrl                string `json:"tzkt_url,omitempty"`
+	Explorer               string `json:"explorer,omitempty"`
 	DoNotPaySmartContracts bool   `json:"ignore_kt,omitempty"`
 }
 
@@ -80,6 +81,7 @@ func GetDefaultV0() ConfigurationV0 {
 		Network: TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_RPC_URL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
+			Explorer:               constants.DEFAULT_EXPLORER_URL,
 			DoNotPaySmartContracts: false,
 		},
 		Overdelegation: OverdelegationConfigurationV0{

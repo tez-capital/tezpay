@@ -10,6 +10,7 @@ const (
 	DEFAULT_PAYOUT_MINIMUM_AMOUNT     = float64(0)
 	DEFAULT_RPC_URL                   = "https://mainnet.api.tez.ie"
 	DEFAULT_TZKT_URL                  = "https://api.tzkt.io/v1/"
+	DEFAULT_EXPLORER_URL              = "https://tzkt.io/"
 	DEFAULT_REQUIRED_CONFIRMATIONS    = int64(2)
 
 	TRANSACTION_FEE_BUFFER = 0

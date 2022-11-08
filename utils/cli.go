@@ -72,12 +72,12 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 
 // print invalid payouts
 func PrintInvalidPayoutRecipes(payouts []common.PayoutRecipe, cycle int64) {
-	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - %d", cycle), false)
+	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - #%d", cycle), false)
 }
 
 // print payable payouts
 func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycle int64) {
-	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - %d", cycle), true)
+	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - #%d", cycle), true)
 }
 
 func PrintPayoutsAsJson[T PayoutConstraint](payouts []T) {
@@ -147,4 +147,21 @@ func PrintCycleSummary(summary common.CyclePayoutSummary, header string) {
 	summaryTable.AppendRow(table.Row{"Fee Income", MutezToTezS(summary.FeeIncome.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendRow(table.Row{"Income Total", MutezToTezS(summary.IncomeTotal.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.Render()
+}
+
+func PrintBatchResults(results []common.BatchResult, header string, explorerUrl string) {
+	if len(results) == 0 {
+		return
+	}
+	resultsTable := table.NewWriter()
+	resultsTable.SetStyle(table.StyleLight)
+	resultsTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignLeft}})
+	resultsTable.SetOutputMirror(os.Stdout)
+	resultsTable.SetTitle(header)
+	resultsTable.Style().Title.Align = text.AlignCenter
+	resultsTable.AppendHeader(table.Row{"n.", "Transactions", "Success", "Reference"}, table.RowConfig{AutoMerge: true})
+	for i, result := range results {
+		resultsTable.AppendRow(table.Row{i + 1, len(result.Payouts), result.IsSuccess, GetOpReference(result.OpHash, explorerUrl)}, table.RowConfig{AutoMerge: false})
+	}
+	resultsTable.Render()
 }
