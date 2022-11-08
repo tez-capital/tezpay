@@ -31,7 +31,7 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx Context) [
 	})
 	batches := make([][]PayoutCandidateWithBondAmountAndFee, 0)
 	for offset := 0; offset < len(candidates); offset += TX_BATCH_CAPACITY {
-		batches = append(batches, lo.Slice(candidates, offset, TX_BATCH_CAPACITY))
+		batches = append(batches, lo.Slice(candidates, offset, offset+TX_BATCH_CAPACITY))
 	}
 	batchesSimulated := lo.Map(batches, func(batch []PayoutCandidateWithBondAmountAndFee, index int) []PayoutCandidateSimulated {
 		op := codec.NewOp().WithSource(ctx.PayoutKey.Address())

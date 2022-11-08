@@ -162,6 +162,7 @@ func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycl
 			return
 		}
 	})()
+	log.Tracef("fetched baker data with %d delegators", len(collectedDelegators))
 
 	return &common.BakersCycleData{
 		StakingBalance:     tezos.NewZ(tzktBakerCycleData.StakingBalance),
