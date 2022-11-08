@@ -36,7 +36,12 @@ var statisticsCmd = &cobra.Command{
 			ok++
 		}
 
-		utils.PrintCycleSummary(total, fmt.Sprintf("Statistics #%d - #%d", lastCycle-int64(n), lastCycle))
+		firstCycle := lastCycle - int64(n-1)
+		header := fmt.Sprintf("Statistics #%d - #%d", firstCycle, lastCycle)
+		if firstCycle == lastCycle {
+			header = fmt.Sprintf("Statistics #%d", lastCycle)
+		}
+		utils.PrintCycleSummary(total, header)
 	},
 }
 
