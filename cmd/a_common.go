@@ -115,7 +115,7 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 			continue
 		}
 
-		log.Infof("Sending notification with %s", notificatorConfiguration.Type)
+		log.Infof("nending notification with %s", notificatorConfiguration.Type)
 		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
 			log.Warnf("failed to send notification - %s", err.Error())
@@ -128,7 +128,7 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 			continue
 		}
 	}
-	log.Info("Notifications sent.")
+	log.Info("notifications sent.")
 }
 func notifyPayoutsProcessedThroughAllNotificators(configuration *configuration.RuntimeConfiguration, summary *common.CyclePayoutSummary) {
 	notifyPayoutsProcessed(configuration, summary, "")
