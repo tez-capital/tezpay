@@ -16,7 +16,7 @@ func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayout
 
 	for i := 0; i < v.NumField(); i++ {
 		val := fmt.Sprintf("%v", v.Field(i).Interface())
-		if typeOfS.Field(i).Type.Name() == "tezos.Z" {
+		if typeOfS.Field(i).Type.Name() == "Z" && strings.Contains(typeOfS.Field(i).Type.PkgPath(), "tzgo/tezos") {
 			val = fmt.Sprintf("%v", utils.MutezToTezS(v.Field(i).Interface().(tezos.Z).Int64()))
 		}
 		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", typeOfS.Field(i).Name), val)
