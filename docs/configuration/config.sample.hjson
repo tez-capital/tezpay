@@ -54,7 +54,7 @@
     {
       message_template: my awesome message
       type: discord
-      webhook: https://my-discord-webhook.com/
+      webhook_url: https://my-discord-webhook.com/
     }
     {
       access_token: your access token
