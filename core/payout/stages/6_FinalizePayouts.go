@@ -18,7 +18,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		return agg + entry
 	}, float64(0))
 	if totalPercentage > 100 {
-		return []common.PayoutRecipe{}, fmt.Errorf("expects <= 100%% but got %f", totalPercentage)
+		return []common.PayoutRecipe{}, fmt.Errorf("expects <= 100%% but only has %f", totalPercentage)
 	}
 	i := 0
 	result := make([]common.PayoutRecipe, len(distributionDefinition))

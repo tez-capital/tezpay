@@ -73,7 +73,7 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx Context) [
 		costs := receipt.Costs()
 		return lo.Map(batch, func(candidate PayoutCandidateWithBondAmountAndFee, index int) PayoutCandidateSimulated {
 			if index >= len(costs) {
-				panic("Partial estimate. This should never happend!")
+				panic("Partial estimate. This should never happen!")
 			}
 			return PayoutCandidateSimulated{
 				PayoutCandidateWithBondAmountAndFee: candidate,
