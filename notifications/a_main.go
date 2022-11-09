@@ -16,3 +16,14 @@ func LoadNotificatior(kind string, configuration []byte) (interfaces.Notificator
 		return nil, fmt.Errorf("not supported plugin %s", kind)
 	}
 }
+
+func ValidateNotificatorConfiguration(kind string, configuration []byte) error {
+	switch kind {
+	case "twitter":
+		return ValidateTwitterConfiguration(configuration)
+	case "discord":
+		return ValidateDiscordConfiguration(configuration)
+	default:
+		return fmt.Errorf("not supported plugin %s", kind)
+	}
+}

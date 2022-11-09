@@ -54,7 +54,7 @@ func GenerateSample() {
 		NotificationConfigurations: []map[string]interface{}{
 			{
 				"type":             "discord",
-				"webhook":          "https://my-discord-webhook.com/",
+				"webhook_url":      "https://my-discord-webhook.com/",
 				"message_template": "my awesome message",
 			},
 			{

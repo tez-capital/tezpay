@@ -2,6 +2,7 @@ package notifications
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -33,10 +34,6 @@ const (
 	// https://github.com/discordjs/discord.js/blob/aec44a0c93f620b22242f35e626d817e831fc8cb/packages/discord.js/src/util/Util.js#L517
 	DISCORD_WEBHOOK_REGEX = `https?:\/\/(?:ptb\.|canary\.)?discord\.com\/api(?:\/v\d{1,2})?\/webhooks\/(\d{17,19})\/([\w-]{68})`
 )
-
-//   if (!matches || matches.length <= 2) return null;
-
-//   const [, id, token] = matches;
 
 func InitDiscordNotificator(configurationBytes []byte) (*DiscordNotificator, error) {
 	configuration := discordNotificatorConfiguration{}
@@ -78,6 +75,42 @@ func InitDiscordNotificator(configurationBytes []byte) (*DiscordNotificator, err
 		id:              id,
 		token:           token,
 	}, nil
+}
+
+func ValidateDiscordConfiguration(configurationBytes []byte) error {
+	configuration := discordNotificatorConfiguration{}
+	err := json.Unmarshal(configurationBytes, &configuration)
+	if err != nil {
+		return err
+	}
+	id := configuration.WebhookId
+	token := configuration.WebhookToken
+	if configuration.WebhookUrl != "" {
+		wr, err := regexp.Compile(DISCORD_WEBHOOK_REGEX)
+		if err != nil {
+			return err
+		}
+		matched := wr.FindStringSubmatch(configuration.WebhookUrl)
+		if len(matched) > 2 {
+			id = matched[1]
+			token = matched[2]
+		} else {
+			return errors.New("failed to parse discord webhook")
+		}
+	}
+	if id == "" {
+		if configuration.WebhookUrl != "" {
+			return errors.New("invalid discord webhook url - failed to parse id")
+		}
+		return errors.New("invalid discord webhook id")
+	}
+	if token == "" {
+		if configuration.WebhookUrl != "" {
+			return errors.New("invalid discord webhook url - failed to parse token")
+		}
+		return errors.New("invalid discord webhook token")
+	}
+	return nil
 }
 
 func (dn *DiscordNotificator) Notify(summary *common.CyclePayoutSummary) error {

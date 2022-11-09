@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -63,6 +64,28 @@ func InitTwitterNotificator(configurationBytes []byte) (*TwitterNotificator, err
 		client:          client,
 		messageTemplate: msgTemplate,
 	}, nil
+}
+
+func ValidateTwitterConfiguration(configurationBytes []byte) error {
+	configuration := twitterNotificatorConfiguration{}
+	err := json.Unmarshal(configurationBytes, &configuration)
+	if err != nil {
+		return err
+	}
+	if configuration.AccessToken == "" {
+		return errors.New("invalid twitter access token")
+	}
+	if configuration.AccessTokenSecret == "" {
+		return errors.New("invalid twitter access token secret")
+	}
+	if configuration.ConsumerKey == "" {
+		return errors.New("invalid twitter consumer key")
+	}
+	if configuration.ConsumerSecret == "" {
+		return errors.New("invalid twitter consumer secret")
+	}
+
+	return nil
 }
 
 func (tn *TwitterNotificator) Notify(summary *common.CyclePayoutSummary) error {
