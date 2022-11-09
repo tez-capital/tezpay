@@ -35,7 +35,7 @@ func checkSufficientBalance(ctx Context) (Context, error) {
 
 	diff := payableBalance.Sub(requiredbalance)
 	if diff.IsNeg() || diff.IsZero() { // zero is probably too on edge so better to keep checking for zero
-		return ctx, fmt.Errorf("insufficient balance - needs at least %s but got %s", utils.MutezToTezS(requiredbalance.Int64()), utils.MutezToTezS(payableBalance.Int64()))
+		return ctx, fmt.Errorf("insufficient balance - needs at least %s but only has %s", utils.MutezToTezS(requiredbalance.Int64()), utils.MutezToTezS(payableBalance.Int64()))
 	}
 
 	return ctx, nil
