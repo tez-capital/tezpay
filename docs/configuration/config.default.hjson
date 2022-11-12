@@ -12,7 +12,7 @@
   income_recipients: {}
   network: {
     rpc_url: https://mainnet.api.tez.ie
-    tzkt_url: https://api.tzkt.io/v1/
+    tzkt_url: https://api.tzkt.io/
     explorer: https://tzkt.io/
   }
   overdelegation: {
