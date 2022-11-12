@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/core/ops"
 	"github.com/alis-is/tezpay/core/payout"
@@ -91,7 +90,7 @@ var payCmd = &cobra.Command{
 				continue
 			}
 			log.Infof("broadcasting batch n.%d", i+1)
-			err = opExecCtx.Broadcast()
+			err = opExecCtx.Dispatch(nil)
 			if err != nil {
 				log.Warnf("batch n.%d - %s", i+1, err.Error())
 				batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to broadcast - %s", err.Error()))
@@ -99,15 +98,10 @@ var payCmd = &cobra.Command{
 			}
 
 			log.Infof("waiting for confirmation of batch n.%d (%s)", i+1, utils.GetOpReference(opExecCtx.GetOpHash(), config.Network.Explorer))
-			rcpt, err := opExecCtx.WaitConfirmation(constants.DEFAULT_REQUIRED_CONFIRMATIONS)
+			err = opExecCtx.WaitForApply()
 			if err != nil {
 				log.Warnf("batch n.%d - %s", i+1, err.Error())
 				batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to confirm - %s", err.Error()))
-				continue
-			}
-			if !rcpt.IsSuccess() {
-				log.Warnf("batch n.%d - %s", i+1, rcpt.Error().Error())
-				batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed on chain - %s", err.Error()))
 				continue
 			}
 

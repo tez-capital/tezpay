@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"errors"
+
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
@@ -10,30 +12,36 @@ import (
 type OpExecutionContext struct {
 	Op         *codec.Op
 	Transactor common.TransactorEngine
-	opHash     tezos.OpHash
+	result     common.OpResult
 }
 
 func InitOpExecutionContext(op *codec.Op, transactor common.TransactorEngine) *OpExecutionContext {
 	return &OpExecutionContext{
 		Op:         op,
-		opHash:     tezos.ZeroOpHash,
+		result:     nil,
 		Transactor: transactor,
 	}
 }
 
 func (ctx *OpExecutionContext) GetOpHash() tezos.OpHash {
-	return ctx.opHash
+	if ctx.result == nil {
+		return tezos.ZeroOpHash
+	}
+	return ctx.result.GetOpHash()
 }
 
-func (ctx *OpExecutionContext) Broadcast() error {
-	opHash, err := ctx.Transactor.Broadcast(ctx.Op)
+func (ctx *OpExecutionContext) Dispatch(opts *rpc.CallOptions) error {
+	result, err := ctx.Transactor.Dispatch(ctx.Op, opts)
 	if err != nil {
 		return err
 	}
-	ctx.opHash = opHash
+	ctx.result = result
 	return err
 }
 
-func (ctx *OpExecutionContext) WaitConfirmation(confirmations int64) (*rpc.Receipt, error) {
-	return ctx.Transactor.WaitOpConfirmation(ctx.opHash, ctx.Op.TTL, confirmations)
+func (ctx *OpExecutionContext) WaitForApply() error {
+	if ctx.result == nil {
+		return errors.New("operation was not dispatched yet")
+	}
+	return ctx.result.WaitForApply()
 }

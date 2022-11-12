@@ -104,7 +104,7 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 			if err != nil {
 				log.Warnf("collector check of '%s' failed", report.OpHash)
 			}
-			if paid {
+			if paid == common.OPERATION_STATUS_APPLIED {
 				paidOut[k.String()] = report
 				validOpHashes[report.OpHash.String()] = true
 			}

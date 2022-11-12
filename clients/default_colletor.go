@@ -59,11 +59,11 @@ func (engine *DefaultRpcAndTzktColletor) GetLastCompletedCycle() (int64, error) 
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
-	return engine.tzkt.GetCycleData(baker, cycle)
+	return engine.tzkt.GetCycleData(context.Background(), baker, cycle)
 }
 
-func (engine *DefaultRpcAndTzktColletor) WasOperationApplied(op tezos.OpHash) (bool, error) {
-	return engine.tzkt.WasOperationApplied(op)
+func (engine *DefaultRpcAndTzktColletor) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {
+	return engine.tzkt.WasOperationApplied(context.Background(), op)
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetBranch(offset int64) (hash tezos.BlockHash, err error) {

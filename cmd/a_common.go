@@ -42,7 +42,9 @@ func loadConfigurationAndEngines() (*configurationAndEngines, error) {
 			return nil, fmt.Errorf("failed to load signer - %s", err.Error())
 		}
 	}
-	transactorEngine, err := clients.InitDefaultTransactor(config.Network.RpcUrl)
+	// for testing point transactor to testnet
+	// transactorEngine, err := clients.InitDefaultTransactor("https://rpc.tzkt.io/ghostnet/", "https://api.ghostnet.tzkt.io/") // (config.Network.RpcUrl, config.Network.TzktUrl)
+	transactorEngine, err := clients.InitDefaultTransactor(config.Network.RpcUrl, config.Network.TzktUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load transactor - %s", err.Error())
 	}

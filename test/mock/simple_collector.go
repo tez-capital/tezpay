@@ -68,8 +68,8 @@ func (engine *SimpleColletor) GetCycleData(baker tezos.Address, cycle int64) (*c
 	}, nil
 }
 
-func (engine *SimpleColletor) WasOperationApplied(op tezos.OpHash) (bool, error) {
-	return true, nil
+func (engine *SimpleColletor) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {
+	return common.OPERATION_STATUS_APPLIED, nil
 }
 
 func (engine *SimpleColletor) GetBranch(offset int64) (hash tezos.BlockHash, err error) {

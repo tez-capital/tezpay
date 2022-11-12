@@ -36,7 +36,7 @@ func GenerateSample() {
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 "https://mainnet.api.tez.ie",
-			TzktUrl:                "https://api.tzkt.io/v1/",
+			TzktUrl:                "https://api.tzkt.io/",
 			Explorer:               "https://tzstats.com/",
 			DoNotPaySmartContracts: true,
 		},

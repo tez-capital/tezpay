@@ -2,6 +2,7 @@ package tzkt
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -54,7 +55,7 @@ func InitClient(rootUrl string) (*Client, error) {
 	}, nil
 }
 
-func (client *Client) Get(path string) (*http.Response, error) {
+func (client *Client) Get(ctx context.Context, path string) (*http.Response, error) {
 	rel, err := url.Parse(path)
 	if err != nil {
 		return nil, err
@@ -62,7 +63,9 @@ func (client *Client) Get(path string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.Get(client.rootUrl.ResolveReference(rel).String())
+	request, _ := http.NewRequestWithContext(ctx, "GET", client.rootUrl.ResolveReference(rel).String(), nil)
+
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +86,10 @@ func unmarshallTzktResponse[T any](resp *http.Response, result *T) error {
 }
 
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=${limit}&offset=${offset}
-func (client *Client) getDelegatorsCycleData(baker []byte, cycle int64, limit int32, offset int) ([]splitDelegator, error) {
-	u := fmt.Sprintf("rewards/split/%s/%d?limit=%d&offset=%d", baker, cycle, limit, offset)
+func (client *Client) getDelegatorsCycleData(ctx context.Context, baker []byte, cycle int64, limit int32, offset int) ([]splitDelegator, error) {
+	u := fmt.Sprintf("v1/rewards/split/%s/%d?limit=%d&offset=%d", baker, cycle, limit, offset)
 	log.Debugf("getting delegators data of '%s' for cycle %d (%s)", baker, cycle, u)
-	resp, err := client.Get(u)
+	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
 	}
@@ -98,10 +101,10 @@ func (client *Client) getDelegatorsCycleData(baker []byte, cycle int64, limit in
 	return data.Delegators, nil
 }
 
-func (client *Client) getBakerData(baker []byte) (*bakerData, error) {
-	u := fmt.Sprintf("delegates/%s", baker)
+func (client *Client) getBakerData(ctx context.Context, baker []byte) (*bakerData, error) {
+	u := fmt.Sprintf("v1/delegates/%s", baker)
 	log.Debugf("getting baker data of '%s' (%s)", baker, u)
-	resp, err := client.Get(u)
+	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
 	}
@@ -113,10 +116,10 @@ func (client *Client) getBakerData(baker []byte) (*bakerData, error) {
 	return data, nil
 }
 
-func (client *Client) getCycleData(baker []byte, cycle int64) (*tzktBakersCycleData, error) {
-	u := fmt.Sprintf("rewards/split/%s/%d?limit=0", baker, cycle)
+func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int64) (*tzktBakersCycleData, error) {
+	u := fmt.Sprintf("v1/rewards/split/%s/%d?limit=0", baker, cycle)
 	log.Debugf("getting cycle data of '%s' for cycle %d (%s)", baker, cycle, u)
-	resp, err := client.Get(u)
+	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
 	}
@@ -130,15 +133,15 @@ func (client *Client) getCycleData(baker []byte, cycle int64) (*tzktBakersCycleD
 }
 
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=0
-func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycleData *common.BakersCycleData, err error) {
+func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cycle int64) (bakersCycleData *common.BakersCycleData, err error) {
 
 	bakerAddr, _ := baker.MarshalText()
 
-	tzktBakerData, err := client.getBakerData(bakerAddr)
+	tzktBakerData, err := client.getBakerData(ctx, bakerAddr)
 	if err != nil {
 		return nil, err
 	}
-	tzktBakerCycleData, err := client.getCycleData(bakerAddr, cycle)
+	tzktBakerCycleData, err := client.getCycleData(ctx, bakerAddr, cycle)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +149,7 @@ func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycl
 	collectedDelegators := make([]splitDelegator, 0)
 	fetched := DELEGATOR_FETCH_LIMIT
 	for fetched == DELEGATOR_FETCH_LIMIT {
-		newDelegators, err := client.getDelegatorsCycleData(bakerAddr, cycle, DELEGATOR_FETCH_LIMIT, len(collectedDelegators))
+		newDelegators, err := client.getDelegatorsCycleData(ctx, bakerAddr, cycle, DELEGATOR_FETCH_LIMIT, len(collectedDelegators))
 		if err != nil {
 			return nil, err
 		}
@@ -188,22 +191,28 @@ func (client *Client) GetCycleData(baker tezos.Address, cycle int64) (bakersCycl
 }
 
 // https://api.tzkt.io/v1/operations/transactions/onyUK7ZnQHzeNYbWSLL4zVATBtvLLk5GpPDv3VfoQPLtsBCjPX1/status
-func (client *Client) WasOperationApplied(opHash tezos.OpHash) (bool, error) {
+func (client *Client) WasOperationApplied(ctx context.Context, opHash tezos.OpHash) (common.OperationStatus, error) {
 	op, _ := opHash.MarshalText()
 
-	path := fmt.Sprintf("/operations/transactions/%s/status", op)
-	resp, err := client.Get(path)
+	path := fmt.Sprintf("v1/operations/transactions/%s/status", op)
+	resp, err := client.Get(ctx, path)
 	if err != nil {
-		return false, fmt.Errorf("failed to check operation stuats - %s", err.Error())
+		return common.OPERATION_STATUS_UNKNOWN, fmt.Errorf("failed to check operation stuats - %s", err.Error())
 	}
 	if resp.StatusCode == 204 {
-		return false, nil
+		return common.OPERATION_STATUS_NOT_EXISTS, nil
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, fmt.Errorf("failed to check operation status response body - %s", err.Error())
+		return common.OPERATION_STATUS_UNKNOWN, fmt.Errorf("failed to check operation status response body - %s", err.Error())
 	}
-	return bytes.Equal(body, []byte("true")), nil
+	if bytes.Equal(body, []byte("true")) {
+		return common.OPERATION_STATUS_APPLIED, nil
+	}
+	if bytes.Equal(body, []byte("false")) {
+		return common.OPERATION_STATUS_FAILED, nil
+	}
+	return common.OPERATION_STATUS_NOT_EXISTS, nil
 }
