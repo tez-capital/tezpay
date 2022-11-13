@@ -3,27 +3,49 @@ package notifications
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/notifications/interfaces"
+	"github.com/alis-is/tezpay/core/common"
 )
 
-func LoadNotificatior(kind string, configuration []byte) (interfaces.NotificatorEngine, error) {
+type NotificatorKind string
+
+const (
+	TELEGRAM_NOTIFICATOR NotificatorKind = "telegram"
+	TWITTER_NOTIFICATOR  NotificatorKind = "twitter"
+	DISCORD_NOTIFICATOR  NotificatorKind = "discord"
+	EMAIL_NOTIFICATOR    NotificatorKind = "email"
+	EXTERNAL_NOTIFICATOR NotificatorKind = "external"
+)
+
+func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.NotificatorEngine, error) {
 	switch kind {
-	case "twitter":
+	case TWITTER_NOTIFICATOR:
 		return InitTwitterNotificator(configuration)
-	case "discord":
+	case DISCORD_NOTIFICATOR:
 		return InitDiscordNotificator(configuration)
+	case TELEGRAM_NOTIFICATOR:
+		return InitTelegramNotificator(configuration)
+	case EMAIL_NOTIFICATOR:
+		return InitExternalNotificator(configuration)
+	case EXTERNAL_NOTIFICATOR:
+		return InitExternalNotificator(configuration)
 	default:
-		return nil, fmt.Errorf("not supported plugin %s", kind)
+		return nil, fmt.Errorf("not supported notificator %s", kind)
 	}
 }
 
-func ValidateNotificatorConfiguration(kind string, configuration []byte) error {
+func ValidateNotificatorConfiguration(kind NotificatorKind, configuration []byte) error {
 	switch kind {
-	case "twitter":
+	case TWITTER_NOTIFICATOR:
 		return ValidateTwitterConfiguration(configuration)
-	case "discord":
+	case DISCORD_NOTIFICATOR:
 		return ValidateDiscordConfiguration(configuration)
+	case TELEGRAM_NOTIFICATOR:
+		return ValidateTelegramConfiguration(configuration)
+	case EMAIL_NOTIFICATOR:
+		return ValidateEmailConfiguration(configuration)
+	case EXTERNAL_NOTIFICATOR:
+		return ValidateExternalConfiguration(configuration)
 	default:
-		return fmt.Errorf("not supported plugin %s", kind)
+		return fmt.Errorf("not supported notificator %s", kind)
 	}
 }

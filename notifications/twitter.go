@@ -58,7 +58,7 @@ func InitTwitterNotificator(configurationBytes []byte) (*TwitterNotificator, err
 		msgTemplate = DEFAULT_TWITTER_MESSAGE_TEMPLATE
 	}
 
-	log.Trace("twitter plugin initialized")
+	log.Trace("twitter notificator initialized")
 
 	return &TwitterNotificator{
 		client:          client,
@@ -88,9 +88,16 @@ func ValidateTwitterConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (tn *TwitterNotificator) Notify(summary *common.CyclePayoutSummary) error {
+func (tn *TwitterNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
 	_, err := tn.client.CreateTweet(context.Background(), twitter.CreateTweetRequest{
 		Text: PopulateMessageTemplate(tn.messageTemplate, summary),
+	})
+	return err
+}
+
+func (tn *TwitterNotificator) AdminNotify(msg string) error {
+	_, err := tn.client.CreateTweet(context.Background(), twitter.CreateTweetRequest{
+		Text: msg,
 	})
 	return err
 }

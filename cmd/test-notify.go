@@ -14,7 +14,7 @@ var notificationTestCmd = &cobra.Command{
 		config, _, _, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 		for _, notificatorConfiguration := range config.NotificationConfigurations {
-			if notificator != "" && notificatorConfiguration.Type != notificator {
+			if notificator != "" && string(notificatorConfiguration.Type) != notificator {
 				continue
 			}
 

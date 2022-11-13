@@ -10,6 +10,7 @@ import (
 	"github.com/alis-is/tezpay/configuration/migrations"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/samber/lo"
@@ -50,8 +51,8 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		Overdelegation:   configuration.Overdelegation,
 		NotificationConfigurations: lo.Map(configuration.NotificationConfigurations, func(item map[string]interface{}, index int) RuntimeNotificatorConfiguration {
 			var isValid bool
-			var notificatorType string
-			if notificatorType, isValid = item["type"].(string); !isValid {
+			var notificatorType notifications.NotificatorKind
+			if notificatorType, isValid = item["type"].(notifications.NotificatorKind); !isValid {
 				log.Warnf("invalid notificator type %v", item["type"])
 			}
 

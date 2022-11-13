@@ -65,6 +65,27 @@ func GenerateSample() {
 				"consumer_secret":     "your consumer secret",
 				"message_template":    "my awesome message",
 			},
+			{
+				"type":             "telegram",
+				"api_token":        "your api token",
+				"receivers":        []interface{}{"list of chat numbers without quotes", -1234567890},
+				"message_template": "my awesome message",
+			},
+			{
+				"type":             "email",
+				"sender":           "my@email.is",
+				"smtp_server":      "smtp.gmail.com",
+				"smtp_identity":    "",
+				"smtp_username":    "my@email.is",
+				"smtp_password":    "password123",
+				"recipients":       []string{"my-follower1@email.is", "my-follower2@email.is"},
+				"message_template": "my awesome message",
+			},
+			{
+				"type": "external",
+				"path": "path to external notificator binary",
+				"args": []string{"--kind", "<kind>", "<data>"},
+			},
 		},
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
 			Bonds: map[string]float64{

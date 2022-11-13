@@ -49,3 +49,9 @@ type TransactorEngine interface {
 	GetLimits() (*OperationLimits, error)
 	WaitOpConfirmation(opHash tezos.OpHash, ttl int64, confirmations int64) (*rpc.Receipt, error)
 }
+
+type NotificatorEngine interface {
+	PayoutSummaryNotify(summary *CyclePayoutSummary) error
+	AdminNotify(msg string) error
+	TestNotify() error
+}

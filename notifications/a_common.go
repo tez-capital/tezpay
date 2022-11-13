@@ -10,6 +10,15 @@ import (
 	"github.com/alis-is/tezpay/utils"
 )
 
+type NotificationKind string
+
+const (
+	PAYOUT_SUMMARY_NOTIFICATION NotificationKind = "payout_summary"
+	ADMIN_NOTIFICATION          NotificationKind = "admin"
+	TEST_NOTIFICATION           NotificationKind = "test"
+	TEXT_NOTIFICATION           NotificationKind = "text"
+)
+
 func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary) string {
 	v := reflect.ValueOf(*summary)
 	typeOfS := v.Type()

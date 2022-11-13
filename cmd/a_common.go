@@ -113,7 +113,7 @@ func requireConfirmation(msg string) error {
 
 func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, summary *common.CyclePayoutSummary, filter string) {
 	for _, notificatorConfiguration := range configuration.NotificationConfigurations {
-		if filter != "" && notificatorConfiguration.Type != filter {
+		if filter != "" && string(notificatorConfiguration.Type) != filter {
 			continue
 		}
 
@@ -124,7 +124,7 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 			continue
 		}
 
-		err = notificator.Notify(summary)
+		err = notificator.PayoutSummaryNotify(summary)
 		if err != nil {
 			log.Warnf("failed to send notification - %s", err.Error())
 			continue

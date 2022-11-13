@@ -67,7 +67,7 @@ func InitDiscordNotificator(configurationBytes []byte) (*DiscordNotificator, err
 		return nil, err
 	}
 
-	log.Trace("discord plugin initialized")
+	log.Trace("discord notificator initialized")
 
 	return &DiscordNotificator{
 		session:         session,
@@ -113,7 +113,7 @@ func ValidateDiscordConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (dn *DiscordNotificator) Notify(summary *common.CyclePayoutSummary) error {
+func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
 
 	_, err := dn.session.WebhookExecute(dn.id, dn.token, true, &discordgo.WebhookParams{
 		Embeds: []*discordgo.MessageEmbed{
@@ -132,6 +132,13 @@ func (dn *DiscordNotificator) Notify(summary *common.CyclePayoutSummary) error {
 				},
 			},
 		},
+	})
+	return err
+}
+
+func (dn *DiscordNotificator) AdminNotify(msg string) error {
+	_, err := dn.session.WebhookExecute(dn.id, dn.token, true, &discordgo.WebhookParams{
+		Content: msg,
 	})
 	return err
 }
