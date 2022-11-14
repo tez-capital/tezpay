@@ -67,7 +67,8 @@ func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 		return err
 	}
 	rcpt, err := result.result.GetReceipt(context.Background())
-	result.rpc.Close()
+	// TODO: uncomment after tzgo fix
+	// result.rpc.Close()
 	if err != nil {
 		return err
 	}
