@@ -51,15 +51,15 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		Overdelegation:   configuration.Overdelegation,
 		NotificationConfigurations: lo.Map(configuration.NotificationConfigurations, func(item map[string]interface{}, index int) RuntimeNotificatorConfiguration {
 			var isValid bool
-			var notificatorType notifications.NotificatorKind
-			if notificatorType, isValid = item["type"].(notifications.NotificatorKind); !isValid {
+			var notificatorType string
+			if notificatorType, isValid = item["type"].(string); !isValid {
 				log.Warnf("invalid notificator type %v", item["type"])
 			}
 
 			configuration, _ := json.Marshal(item)
 
 			return RuntimeNotificatorConfiguration{
-				Type:          notificatorType,
+				Type:          notifications.NotificatorKind(notificatorType),
 				Configuration: configuration,
 				Options:       item,
 				IsValid:       isValid,
