@@ -96,7 +96,7 @@ func GenerateSample() {
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.455,
 				"tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE": 0.545,
 			},
-			Donate: 2.5,
+			Donate: 0.025,
 			Donations: map[string]float64{
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.10,
 				"tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv": 0.90,
