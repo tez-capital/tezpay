@@ -17,7 +17,7 @@ else
     LATEST=$(wget -qO- https://api.github.com/repos/alis-is/tezpay/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
 fi
 
-if ./tezpay -v | grep "$LATEST"; then
+if ./tezpay version | grep "$LATEST"; then
     echo "Latest tezpay already available."
     exit 0
 fi
