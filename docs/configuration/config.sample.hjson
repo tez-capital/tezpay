@@ -7,7 +7,6 @@
     baker_pays_transaction_fee: true
     baker_pays_allocation_fee: true
     minimum_payout_amount: 10.5
-    explorer: https://tzstats.com/
   }
   delegators: {
     requirements: {
@@ -55,6 +54,12 @@
       message_template: my awesome message
       type: discord
       webhook_url: https://my-discord-webhook.com/
+    }
+    {
+      message_template: my awesome message
+      type: discord
+      webhook_id: webhook id
+      webhook_token: webhook token
     }
     {
       access_token: your access token
