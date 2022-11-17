@@ -1,11 +1,13 @@
 package stages
 
 import (
+	"errors"
 	"testing"
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/test/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -146,4 +148,45 @@ func TestCollectTransactionFees(t *testing.T) {
 	assert.Equal(len(result.Ctx.StageData.PayoutCandidatesSimulated), len(ops))
 
 	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
+
+	t.Log("fail estimate")
+	collector.SetOpts(&mock.SimpleCollectorOpts{
+		AllocationBurn: 1000,
+		StorageBurn:    0,
+		UsedMilliGas:   1000000,
+		SingleOnly:     true,
+		FailWithError:  errors.New("failed estimate"),
+	})
+	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
+	result = CollectTransactionFees(WrappedStageResult{Ctx: ctx, Err: nil})
+	for _, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
+		assert.Equal(v.IsInvalid, true)
+		assert.Equal(v.InvalidBecause, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
+	}
+
+	t.Log("failed receipt")
+	collector.SetOpts(&mock.SimpleCollectorOpts{
+		AllocationBurn:       1000,
+		StorageBurn:          0,
+		UsedMilliGas:         1000000,
+		SingleOnly:           true,
+		FailWithReceiptError: errors.New("failed receipt"),
+	})
+	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
+	result = CollectTransactionFees(WrappedStageResult{Ctx: ctx, Err: nil})
+	for _, v := range result.Ctx.StageData.PayoutCandidatesSimulated {
+		assert.Equal(v.IsInvalid, true)
+		assert.Equal(v.InvalidBecause, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
+	}
+
+	t.Log("test partial panic")
+	collector.SetOpts(&mock.SimpleCollectorOpts{
+		AllocationBurn:   1000,
+		StorageBurn:      0,
+		UsedMilliGas:     1000000,
+		SingleOnly:       false,
+		ReturnOnlyNCosts: 1,
+	})
+	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
+	assert.Panics(func() { CollectTransactionFees(WrappedStageResult{Ctx: ctx, Err: nil}) })
 }

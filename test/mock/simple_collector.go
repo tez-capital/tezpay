@@ -17,10 +17,13 @@ type SimpleColletor struct {
 }
 
 type SimpleCollectorOpts struct {
-	StorageBurn    int64
-	AllocationBurn int64
-	UsedMilliGas   int64
-	SingleOnly     bool
+	StorageBurn          int64
+	AllocationBurn       int64
+	UsedMilliGas         int64
+	SingleOnly           bool
+	FailWithError        error
+	FailWithReceiptError error
+	ReturnOnlyNCosts     int
 }
 
 func InitSimpleColletor() *SimpleColletor {
@@ -91,8 +94,16 @@ func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.R
 	if engine.opts.SingleOnly && len(o.Contents) > 1 {
 		return nil, errors.New("failed to batch estimate")
 	}
+	if engine.opts.FailWithError != nil {
+		return nil, engine.opts.FailWithError
+	}
+	returnCostsCount := len(o.Contents)
+	if engine.opts.ReturnOnlyNCosts > 0 {
+		returnCostsCount = engine.opts.ReturnOnlyNCosts
+	}
+
 	opList := append(rpc.OperationList{},
-		lo.Map(o.Contents, func(content codec.Operation, _ int) rpc.TypedOperation {
+		lo.Slice(lo.Map(o.Contents, func(content codec.Operation, _ int) rpc.TypedOperation {
 			return rpc.Transaction{
 				Manager: rpc.Manager{
 					Fee: 500,
@@ -119,7 +130,35 @@ func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.R
 					},
 				},
 			}
-		})...)
+		}), 0, returnCostsCount)...)
+
+	// TODO: likely move to test package as util function
+	if engine.opts.FailWithReceiptError != nil {
+		return &rpc.Receipt{
+			Op: &rpc.Operation{
+				Contents: []rpc.TypedOperation{
+					rpc.Transaction{
+						Manager: rpc.Manager{
+							Generic: rpc.Generic{
+								Metadata: rpc.OperationMetadata{
+									Result: rpc.OperationResult{
+										Status: tezos.OpStatusFailed,
+										Errors: []rpc.OperationError{
+											{
+												GenericError: rpc.GenericError{
+													Kind: engine.opts.FailWithReceiptError.Error(),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, nil
+	}
 
 	return &rpc.Receipt{
 		Block: tezos.ZeroBlockHash,

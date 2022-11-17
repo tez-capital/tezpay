@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/test/mock"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
@@ -82,5 +83,36 @@ func TestCollectBakerFees(t *testing.T) {
 	for i, v := range result.Ctx.StageData.PayoutCandidatesWithBondAmountAndFees {
 		assert.Equal(utils.GetZPortion(payoutCandidatesWithBondAmount[i].BondsAmount, 1-feeRate).Int64(), v.BondsAmount.Int64())
 		assert.Equal(utils.GetZPortion(payoutCandidatesWithBondAmount[i].BondsAmount, feeRate).Int64(), v.Fee.Int64())
+	}
+
+	t.Log("check 1 fee")
+	feeRate = 1
+	adjustFee(ctx, feeRate)
+	result = CollectBakerFee(WrappedStageResult{Ctx: ctx, Err: nil})
+	assert.Nil(result.Err)
+	for _, v := range result.Ctx.StageData.PayoutCandidatesWithBondAmountAndFees {
+		assert.True(v.IsInvalid)
+		assert.Equal(v.InvalidBecause, enums.INVALID_PAYOUT_BELLOW_MINIMUM)
+	}
+
+	t.Log("invalidCandidates")
+	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(payoutCandidatesWithBondAmount, func(candidate PayoutCandidateWithBondAmount, index int) PayoutCandidateWithBondAmount {
+		candidate.IsInvalid = true
+		if index == 0 {
+			candidate.InvalidBecause = enums.INVALID_DELEGATOR_EMPTIED
+		} else if index == 1 {
+			candidate.InvalidBecause = enums.INVALID_DELEGATOR_IGNORED
+		}
+		return candidate
+	})
+	result = CollectBakerFee(WrappedStageResult{Ctx: ctx, Err: nil})
+	assert.Nil(result.Err)
+	for index, v := range result.Ctx.StageData.PayoutCandidatesWithBondAmountAndFees {
+		assert.True(v.IsInvalid)
+		if index == 0 {
+			assert.Equal(v.InvalidBecause, enums.INVALID_DELEGATOR_EMPTIED)
+		} else if index == 1 {
+			assert.Equal(v.InvalidBecause, enums.INVALID_DELEGATOR_IGNORED)
+		}
 	}
 }

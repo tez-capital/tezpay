@@ -44,10 +44,10 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx Context) [
 				receipt, err := ctx.Collector.Simulate(op, ctx.PayoutKey)
 				if err != nil || !receipt.IsSuccess() {
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d)", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64())
-					if !receipt.IsSuccess() {
-						log.Debugf(receipt.Error().Error())
-					} else {
+					if err != nil {
 						log.Debugf(err.Error())
+					} else {
+						log.Debugf(receipt.Error().Error())
 					}
 					candidate.IsInvalid = true
 					candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS
