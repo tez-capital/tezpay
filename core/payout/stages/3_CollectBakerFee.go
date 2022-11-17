@@ -2,6 +2,7 @@ package stages
 
 import (
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -20,6 +21,13 @@ func collectBakerFees(ctx Context) (Context, error) {
 		}
 		fee := utils.GetZPortion(candidateWithBondsAmount.BondsAmount, candidateWithBondsAmount.FeeRate)
 		candidateWithBondsAmount.BondsAmount = candidateWithBondsAmount.BondsAmount.Sub(fee)
+		if candidateWithBondsAmount.BondsAmount.IsZero() || candidateWithBondsAmount.BondsAmount.IsNeg() {
+			candidateWithBondsAmount.IsInvalid = true
+			candidateWithBondsAmount.InvalidBecause = enums.INVALID_PAYOUT_BELLOW_MINIMUM
+			return PayoutCandidateWithBondAmountAndFee{
+				PayoutCandidateWithBondAmount: candidateWithBondsAmount,
+			}
+		}
 		return PayoutCandidateWithBondAmountAndFee{
 			PayoutCandidateWithBondAmount: candidateWithBondsAmount,
 			Fee:                           fee,

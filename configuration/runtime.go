@@ -75,12 +75,12 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_RPC_URL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
+			Explorer:               constants.DEFAULT_EXPLORER_URL,
 			DoNotPaySmartContracts: false,
 		},
 		Overdelegation: tezpay_configuration.OverdelegationConfigurationV0{
 			IsProtectionEnabled: true,
 		},
-
 		NotificationConfigurations: make([]RuntimeNotificatorConfiguration, 0),
 		SourceBytes:                []byte{},
 	}

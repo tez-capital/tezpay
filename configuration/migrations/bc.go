@@ -43,6 +43,20 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 		return []byte{}, nil, err
 	}
 
+	feeRecipients := make(map[string]float64, len(configuration.IncomeRecipients.FeeRewards))
+	if len(configuration.IncomeRecipients.FeeRewards) > 0 {
+		for recipient, share := range configuration.IncomeRecipients.FeeRewards {
+			feeRecipients[recipient] = share
+		}
+	}
+
+	bondRecipients := make(map[string]float64, len(configuration.IncomeRecipients.BondRewards))
+	if len(configuration.IncomeRecipients.BondRewards) > 0 {
+		for recipient, share := range configuration.IncomeRecipients.BondRewards {
+			bondRecipients[recipient] = share
+		}
+	}
+
 	overdelegationExcludedAddresses := make([]tezos.Address, len(configuration.Overdelegation.ExcludedAddresses))
 	for index, pkh := range configuration.Overdelegation.ExcludedAddresses {
 		if addr, err := tezos.ParseAddress(pkh); err == nil {
@@ -72,6 +86,8 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 		Version:  0,
 		BakerPKH: address,
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
+			Bonds:  bondRecipients,
+			Fees:   feeRecipients,
 			Donate: 0.05,
 		},
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{

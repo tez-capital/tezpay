@@ -14,16 +14,12 @@ const (
 	TX_BATCH_CAPACITY = 20
 )
 
-func isValidPayout(payout PayoutCandidateWithBondAmountAndFee) bool {
-	return !payout.IsInvalid && !payout.BondsAmount.IsZero() && !payout.BondsAmount.IsNeg()
-}
-
 func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx Context) []PayoutCandidateSimulated {
 	candidates := lo.Filter(payouts, func(payout PayoutCandidateWithBondAmountAndFee, _ int) bool {
-		return isValidPayout(payout)
+		return !payout.IsInvalid
 	})
 	invalid := lo.Map(lo.Filter(payouts, func(payout PayoutCandidateWithBondAmountAndFee, _ int) bool {
-		return !isValidPayout(payout)
+		return payout.IsInvalid
 	}), func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 		return PayoutCandidateSimulated{
 			PayoutCandidateWithBondAmountAndFee: candidate,
@@ -39,16 +35,20 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx Context) [
 			op.WithTransfer(p.Recipient, p.BondsAmount.Int64())
 		}
 		receipt, err := ctx.Collector.Simulate(op, ctx.PayoutKey)
-		if err != nil {
+		if err != nil || !receipt.IsSuccess() {
 			log.Tracef("failed to estimate tx costs of batch n.%d (falling back to one by one estimate)", index)
 			return lo.Map(batch, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 				op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
 				op.WithTransfer(candidate.Recipient, candidate.BondsAmount.Int64())
 
 				receipt, err := ctx.Collector.Simulate(op, ctx.PayoutKey)
-				if err != nil {
+				if err != nil || !receipt.IsSuccess() {
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d)", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64())
-					log.Debugf(err.Error())
+					if !receipt.IsSuccess() {
+						log.Debugf(receipt.Error().Error())
+					} else {
+						log.Debugf(err.Error())
+					}
 					candidate.IsInvalid = true
 					candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS
 					return PayoutCandidateSimulated{
