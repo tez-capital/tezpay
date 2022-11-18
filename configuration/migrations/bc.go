@@ -46,14 +46,14 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 	feeRecipients := make(map[string]float64, len(configuration.IncomeRecipients.FeeRewards))
 	if len(configuration.IncomeRecipients.FeeRewards) > 0 {
 		for recipient, share := range configuration.IncomeRecipients.FeeRewards {
-			feeRecipients[recipient] = share
+			feeRecipients[recipient] = share / 100
 		}
 	}
 
 	bondRecipients := make(map[string]float64, len(configuration.IncomeRecipients.BondRewards))
 	if len(configuration.IncomeRecipients.BondRewards) > 0 {
 		for recipient, share := range configuration.IncomeRecipients.BondRewards {
-			bondRecipients[recipient] = share
+			bondRecipients[recipient] = share / 100
 		}
 	}
 
