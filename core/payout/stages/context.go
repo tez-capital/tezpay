@@ -21,6 +21,7 @@ type StageData struct {
 	DonateBondsAmount tezos.Z
 	BakerFeesAmount   tezos.Z
 	DonateFeesAmount  tezos.Z
+	PaidDelegators    int
 }
 
 type Context struct {

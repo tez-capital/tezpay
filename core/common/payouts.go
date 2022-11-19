@@ -60,6 +60,7 @@ type PayoutContext struct {
 type CyclePayoutSummary struct {
 	Cycle              int64     `json:"cycle"`
 	Delegators         int       `json:"delegators"`
+	PaidDelegators     int       `json:"paid_delegators"`
 	StakingBalance     tezos.Z   `json:"staking_balance"`
 	EarnedFees         tezos.Z   `json:"cycle_fees"`
 	EarnedRewards      tezos.Z   `json:"cycle_rewards"`

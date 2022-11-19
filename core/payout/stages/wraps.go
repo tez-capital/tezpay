@@ -68,6 +68,7 @@ func (result WrappedStageResult) ToCyclePayoutBlueprint() (*common.CyclePayoutBl
 		Summary: common.CyclePayoutSummary{
 			Cycle:              result.Ctx.Cycle,
 			Delegators:         len(result.Ctx.CycleData.Delegators),
+			PaidDelegators:     result.Ctx.StageData.PaidDelegators,
 			StakingBalance:     result.Ctx.CycleData.StakingBalance,
 			EarnedFees:         result.Ctx.CycleData.BlockFees,
 			EarnedRewards:      result.Ctx.CycleData.BlockRewards.Add(result.Ctx.CycleData.EndorsementRewards),

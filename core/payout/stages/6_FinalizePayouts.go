@@ -109,6 +109,7 @@ func finalizePayouts(ctx Context) (result Context, err error) {
 	payouts = append(payouts, donationPayouts...)
 
 	ctx.StageData.Payouts = payouts
+	ctx.StageData.PaidDelegators = len(delegatorPayouts)
 
 	return ctx, nil
 }
