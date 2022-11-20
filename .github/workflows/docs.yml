@@ -72,7 +72,7 @@ jobs:
           echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
       - name: update-builder
-        uses: cpina/github-action-push-to-another-repository@main
+        uses: cryi/github-action-pr-to-another-repository@main
         env:
           SSH_DEPLOY_KEY: ${{ secrets.ACCESS_DOCS_BUILDER }}
           GITHUB_SHA: $GITHUB_SHA 
@@ -82,4 +82,5 @@ jobs:
           destination-repository-name: docs.tez.capital_builder
           user-email: docs-builder@tez.capital
           commit-message: publish-${{ steps.date.outputs.date }}
+          source-branch: main
           target-branch: tezpay-${{ steps.date.outputs.date }}
