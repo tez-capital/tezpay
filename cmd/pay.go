@@ -21,7 +21,7 @@ var payCmd = &cobra.Command{
 	Short: "manual payout",
 	Long:  "runs manual payout",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, _, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
@@ -41,7 +41,7 @@ var payCmd = &cobra.Command{
 		reportResidues := assertRunWithResultAndErrFmt(func() ([]common.PayoutReport, error) {
 			return loadPastPayoutReports(config.BakerPKH, payoutBlueprint.Cycle)
 		}, EXIT_PAYOUT_REPORTS_PARSING_FAULURE, "Failed to read old payout reports from cycle #%d - %s")
-		payouts, reportsOfPastSuccesfulPayouts := utils.FilterRecipesByReports(utils.OnlyValidPayouts(payoutBlueprint.Payouts), reportResidues, nil)
+		payouts, reportsOfPastSuccesfulPayouts := utils.FilterRecipesByReports(utils.OnlyValidPayouts(payoutBlueprint.Payouts), reportResidues, collector)
 
 		if state.Global.GetWantsOutputJson() {
 			utils.PrintPayoutsAsJson(reportsOfPastSuccesfulPayouts)
