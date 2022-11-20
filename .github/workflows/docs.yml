@@ -23,12 +23,6 @@ jobs:
         with:
           commit_message: Automated Docs Generation
 
-      - name: clone builder
-        uses: actions/checkout@v3
-        with:
-          path: docs-builder
-          repository: tez-capital/docs.tez.capital_builder
-
       - name: report docs updated
         uses: peter-evans/repository-dispatch@v2
         with:
