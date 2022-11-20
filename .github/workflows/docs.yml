@@ -28,59 +28,11 @@ jobs:
         with:
           path: docs-builder
           repository: tez-capital/docs.tez.capital_builder
-      
-      - name: inject tp docs
-        run: |
-          # command reference
 
-          rm -rf docs-builder/content/reusable/tezpay/cmd/*
-          mkdir -p docs-builder/content/reusable/tezpay/cmd/
-          export CWD=$PWD
-          cd docs/cmd
-          for f in *.md; do 
-            echo "Processing $f file..."; 
-            (echo "---";
-            echo "title: $(printf $f | cut -d. -f1)";
-            echo "weight: 3";
-            echo "type: docs";
-            echo "---") | \
-            cat - $f > $CWD/docs-builder/content/reusable/tezpay/cmd/$f
-          done
-          cd ../..
-
-          # configuration samples
-          rm -rf docs-builder/content/reusable/tezpay/configuration/*
-          mkdir -p docs-builder/content/reusable/tezpay/configuration/
-          cd docs/configuration
-          for f in config.*.hjson; do 
-            echo "Processing $f file..."; 
-            (echo "---";
-            echo "title: $(printf $f | cut -d. -f2)";
-            echo "weight: 3";
-            echo "type: docs";
-            echo "summary: tezpay $(printf $f | cut -d. -f2) configuration";
-            echo "---";
-            echo '```yaml') | \
-            cat - $f > $CWD/docs-builder/content/reusable/tezpay/configuration/$(printf $f | cut -d. -f2).md
-            (echo ''; echo '```') >> $CWD/docs-builder/content/reusable/tezpay/configuration/$(printf $f | cut -d. -f2).md
-          done
-          cd ../..
-
-      - name: Get current date
-        id: date
-        run: |
-          echo "date=$(date -u +'%Y-%m-%dT%H%M%SZ')" >> $GITHUB_OUTPUT
-
-      - name: update-builder
-        uses: cryi/github-action-pr-to-another-repository@main
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.ACCESS_DOCS_BUILDER }}
-          GITHUB_SHA: $GITHUB_SHA 
+      - name: report docs updated
+        uses: peter-evans/repository-dispatch@v2
         with:
-          source-directory: docs-builder/
-          destination-github-username: tez-capital
-          destination-repository-name: docs.tez.capital_builder
-          user-email: docs-builder@tez.capital
-          commit-message: publish-${{ steps.date.outputs.date }}
-          source-branch: main
-          target-branch: tezpay-${{ steps.date.outputs.date }}
+          token: ${{ secrets.DOCS_BUILDER_ACCESS_TOKEN }}
+          repository: tez-capital/docs.tez.capital_builder
+          event-type: subproject-updated
+          client-payload: '{ "id": "${{ steps.repository_info.outputs.ID }}", "repository": "${{github.repository}}", "version": "${{github.ref_name}}"}'
