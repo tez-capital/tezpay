@@ -21,7 +21,7 @@ func aliasing(configuration []byte) []byte {
 	config = strings.ReplaceAll(config, "api_key_secret", "consumer_secret")
 	config = strings.ReplaceAll(config, "api_key", "consumer_key")
 	// discord
-	config = strings.ReplaceAll(config, "webhook", "webhook_url")
+	config = strings.ReplaceAll(config, "webhook:", "webhook_url:")
 	// message template aliasing
 	config = strings.ReplaceAll(config, "<T_REWARDS>", "<DistributedRewards>")
 	config = strings.ReplaceAll(config, "<CYCLE>", "<Cycle>")
