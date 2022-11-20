@@ -35,7 +35,7 @@ func GenerateSample() {
 			Ignore: []tezos.Address{tezos.ZeroAddress, tezos.BurnAddress},
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
-			RpcUrl:                 "https://mainnet.api.tez.ie",
+			RpcUrl:                 "https://rpc.tez.capital/",
 			TzktUrl:                "https://api.tzkt.io/",
 			Explorer:               "https://tzstats.com/",
 			DoNotPaySmartContracts: true,

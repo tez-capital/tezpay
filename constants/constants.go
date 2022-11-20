@@ -8,7 +8,7 @@ const (
 	DEFAULT_BAKER_FEE                 = float64(.05)
 	DEFAULT_DELEGATOR_MINIMUM_BALANCE = float64(0)
 	DEFAULT_PAYOUT_MINIMUM_AMOUNT     = float64(0)
-	DEFAULT_RPC_URL                   = "https://mainnet.api.tez.ie"
+	DEFAULT_RPC_URL                   = "https://rpc.tez.capital/"
 	DEFAULT_TZKT_URL                  = "https://api.tzkt.io/"
 	DEFAULT_EXPLORER_URL              = "https://tzkt.io/"
 	DEFAULT_REQUIRED_CONFIRMATIONS    = int64(2)
