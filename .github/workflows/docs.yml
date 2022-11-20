@@ -25,12 +25,9 @@ jobs:
 
       - name: clone builder
         uses: actions/checkout@v3
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.ACCESS_DOCS_BUILDER }}
         with:
           path: docs-builder
           repository: tez-capital/docs.tez.capital_builder
-          ssh-key: $SSH_DEPLOY_KEY
       
       - name: inject tp docs
         run: |
