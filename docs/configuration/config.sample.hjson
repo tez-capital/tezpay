@@ -41,7 +41,7 @@
     }
   }
   network: {
-    rpc_url: https://mainnet.api.tez.ie
+    rpc_url: https://rpc.tez.capital/
     tzkt_url: https://api.tzkt.io/
     explorer: https://tzstats.com/
     ignore_kt: true
