@@ -24,7 +24,7 @@ jobs:
           commit_message: Automated Docs Generation
 
       - name: clone builder
-        uses: actions/checkout
+        uses: actions/checkout@v3
         env:
           SSH_DEPLOY_KEY: ${{ secrets.ACCESS_DOCS_BUILDER }}
         with:
