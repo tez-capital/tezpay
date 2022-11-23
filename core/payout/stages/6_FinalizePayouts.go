@@ -109,7 +109,9 @@ func finalizePayouts(ctx Context) (result Context, err error) {
 	payouts = append(payouts, donationPayouts...)
 
 	ctx.StageData.Payouts = payouts
-	ctx.StageData.PaidDelegators = len(delegatorPayouts)
+	ctx.StageData.PaidDelegators = len(lo.Filter(delegatorPayouts, func(recipe common.PayoutRecipe, _ int) bool {
+		return recipe.Kind != enums.PAYOUT_KIND_INVALID
+	}))
 
 	return ctx, nil
 }
