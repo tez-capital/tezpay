@@ -38,7 +38,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	delegatorOverrides := lo.MapEntries(configuration.Delegators.Overrides, func(k string, delegatorOverride tezpay_configuration.DelegatorOverrideV0) (string, RuntimeDelegatorOverride) {
 		actualFee := delegatorOverride.Fee
 		noFee := delegatorOverride.NoFee
-		if feeFromFeeOverrides, ok := delegatorFeeOverrides[k]; actualFee == 0 && ok {
+		if feeFromFeeOverrides, ok := delegatorFeeOverrides[k]; actualFee == 0 && !noFee && ok {
 			actualFee = feeFromFeeOverrides
 			noFee = feeFromFeeOverrides == 0
 		}
