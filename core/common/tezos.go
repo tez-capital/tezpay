@@ -15,7 +15,7 @@ type BakersCycleData struct {
 	DelegatedBalance   tezos.Z
 	BlockRewards       tezos.Z
 	EndorsementRewards tezos.Z
-	FrozenDeposit      tezos.Z
+	FrozenDepositLimit tezos.Z
 	NumDelegators      int32
 	BlockFees          tezos.Z
 	Delegators         []Delegator

@@ -32,6 +32,10 @@ func GenerateSample() {
 					MinimumBalance: 2.5,
 				},
 			},
+			FeeOverrides: map[string][]tezos.Address{
+				"1":  {tezos.ZeroAddress, tezos.BurnAddress},
+				".5": {tezos.InvalidAddress},
+			},
 			Ignore: []tezos.Address{tezos.ZeroAddress, tezos.BurnAddress},
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{

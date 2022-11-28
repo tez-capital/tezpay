@@ -28,6 +28,7 @@ type DelegatorsConfigurationV0 struct {
 	Requirements DelegatorRequirementsV0        `json:"requirements,omitempty"`
 	Ignore       []tezos.Address                `json:"ignore,omitempty"`
 	Overrides    map[string]DelegatorOverrideV0 `json:"overrides,omitempty"`
+	FeeOverrides map[string][]tezos.Address     `json:"fee_overrides,omitempty"`
 }
 
 type TezosNetworkConfigurationV0 struct {

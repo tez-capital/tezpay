@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"path"
+	"strconv"
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/configuration/migrations"
@@ -22,7 +23,41 @@ func FloatAmountToMutez(amount float64) tezos.Z {
 	return tezos.NewZ(int64(math.Floor(mutez)))
 }
 
-func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType) *RuntimeConfiguration {
+func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType) (*RuntimeConfiguration, error) {
+	delegatorFeeOverrides := make(map[string]float64)
+	for k, addresses := range configuration.Delegators.FeeOverrides {
+		for _, a := range addresses {
+			fee, err := strconv.ParseFloat(k, 64)
+			if err != nil {
+				return nil, err
+			}
+			delegatorFeeOverrides[a.String()] = fee
+		}
+	}
+
+	delegatorOverrides := lo.MapEntries(configuration.Delegators.Overrides, func(k string, delegatorOverride tezpay_configuration.DelegatorOverrideV0) (string, RuntimeDelegatorOverride) {
+		actualFee := delegatorOverride.Fee
+		noFee := delegatorOverride.NoFee
+		if feeFromFeeOverrides, ok := delegatorFeeOverrides[k]; actualFee == 0 && ok {
+			actualFee = feeFromFeeOverrides
+			noFee = feeFromFeeOverrides == 0
+		}
+		return k, RuntimeDelegatorOverride{
+			Recipient:      delegatorOverride.Recipient,
+			Fee:            actualFee,
+			NoFee:          noFee,
+			MinimumBalance: FloatAmountToMutez(delegatorOverride.MinimumBalance),
+		}
+	})
+	for k, v := range delegatorFeeOverrides {
+		if _, ok := delegatorOverrides[k]; !ok {
+			delegatorOverrides[k] = RuntimeDelegatorOverride{
+				Fee:   v,
+				NoFee: v == 0,
+			}
+		}
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -36,15 +71,8 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			Requirements: RuntimeDelegatorRequirements{
 				MinimumBalance: FloatAmountToMutez(configuration.Delegators.Requirements.MinimumBalance),
 			},
-			Overrides: lo.MapEntries(configuration.Delegators.Overrides, func(k string, delegatorOverride tezpay_configuration.DelegatorOverrideV0) (string, RuntimeDelegatorOverride) {
-				return k, RuntimeDelegatorOverride{
-					Recipient:      delegatorOverride.Recipient,
-					Fee:            delegatorOverride.Fee,
-					NoFee:          delegatorOverride.NoFee,
-					MinimumBalance: FloatAmountToMutez(delegatorOverride.MinimumBalance),
-				}
-			}),
-			Ignore: configuration.Delegators.Ignore,
+			Overrides: delegatorOverrides,
+			Ignore:    configuration.Delegators.Ignore,
 		},
 		IncomeRecipients: configuration.IncomeRecipients,
 		Network:          configuration.Network,
@@ -66,7 +94,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			}
 		}),
 		SourceBytes: []byte{},
-	}
+	}, nil
 }
 
 func Load() (*RuntimeConfiguration, error) {
@@ -96,7 +124,10 @@ func Load() (*RuntimeConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
-	runtime := ConfigurationToRuntimeConfiguration(configuration)
+	runtime, err := ConfigurationToRuntimeConfiguration(configuration)
+	if err != nil {
+		return nil, err
+	}
 	err = runtime.Validate()
 	return runtime, err
 }

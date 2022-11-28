@@ -173,7 +173,7 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		BlockRewards:       tezos.NewZ(tzktBakerCycleData.BlockRewards),
 		EndorsementRewards: tezos.NewZ(tzktBakerCycleData.EndorsementRewards),
 		NumDelegators:      tzktBakerCycleData.NumDelegators,
-		FrozenDeposit:      tezos.NewZ(tzktBakerData.FrozenDepositLimit),
+		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),
 		BlockFees:          tezos.NewZ(tzktBakerCycleData.BlockFees),
 		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) common.Delegator {
 			addr, err := tezos.ParseAddress(delegator.Address)

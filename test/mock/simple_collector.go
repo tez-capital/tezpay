@@ -63,7 +63,7 @@ func (engine *SimpleColletor) GetCycleData(baker tezos.Address, cycle int64) (*c
 		DelegatedBalance:   tezos.NewZ(1_000_000).Mul64(constants.MUTEZ_FACTOR),
 		BlockRewards:       tezos.NewZ(100).Mul64(constants.MUTEZ_FACTOR),
 		EndorsementRewards: tezos.NewZ(50).Mul64(constants.MUTEZ_FACTOR),
-		FrozenDeposit:      tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
+		FrozenDepositLimit: tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
 		NumDelegators:      2,
 		BlockFees:          tezos.NewZ(25).Mul64(constants.MUTEZ_FACTOR),
 		// TODO:
