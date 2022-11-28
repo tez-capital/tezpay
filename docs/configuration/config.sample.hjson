@@ -24,6 +24,15 @@
         minimum_balance: 2.5
       }
     }
+    fee_overrides: {
+      .5: [
+        ""
+      ]
+      1: [
+        tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU
+        tz1burnburnburnburnburnburnburjAYjjX
+      ]
+    }
   }
   income_recipients: {
     bonds: {
