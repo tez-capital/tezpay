@@ -42,7 +42,7 @@ func (validationContext *PayoutSimulatedValidationContext) Validate(validators .
 func ValidateSimulatedMinumumAmount(candidate *PayoutCandidateSimulated, configuration *configuration.RuntimeConfiguration, _ *configuration.RuntimeDelegatorOverride) {
 	treshhold := configuration.PayoutConfiguration.MinimumAmount
 	diff := candidate.BondsAmount.Sub(treshhold)
-	if diff.IsNeg() {
+	if diff.IsNeg() || diff.IsZero() {
 		candidate.IsInvalid = true
 		candidate.InvalidBecause = enums.INVALID_PAYOUT_BELLOW_MINIMUM
 	}

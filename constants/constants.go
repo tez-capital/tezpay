@@ -1,6 +1,8 @@
 package constants
 
 const (
+	TEZPAY_REPOSITORY = "tez-capital/tezpay"
+
 	MUTEZ_FACTOR = 1000000
 
 	DELEGATION_CAPACITY_FACTOR = 10

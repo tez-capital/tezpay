@@ -82,6 +82,11 @@ Copyright © %d alis.is
 				SignerOverride:  signerOverride,
 				Debug:           level == "trace" || level == "debug",
 			})
+
+			skipVersionCheck, _ := cmd.Flags().GetBool(SKIP_VERSION_CHECK_FLAG)
+			if !skipVersionCheck {
+				checkLatestVersion()
+			}
 		},
 	}
 )
@@ -95,5 +100,6 @@ func init() {
 	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets log level format (trace/debug/info/warn/error)")
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets output log format (json/text/auto)")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
+	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
 	RootCmd.PersistentFlags().SetInterspersed(false)
 }

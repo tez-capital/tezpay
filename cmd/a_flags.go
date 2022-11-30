@@ -7,6 +7,7 @@ const (
 	TO_FILE_FLAG                     = "to-file"
 	FROM_FILE_FLAG                   = "from-file"
 	SIGNER_FLAG                      = "signer"
+	SKIP_VERSION_CHECK_FLAG          = "skip-version-check"
 	REPORT_TO_STDOUT                 = "report-to-stdout"
 	DISABLE_SEPERATE_SC_PAYOUTS_FLAG = "no-separate-sc"
 	SILENT_FLAG                      = "silent"

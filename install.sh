@@ -8,13 +8,13 @@ if which curl > /dev/null; then
     fi
 
     set -- curl -L $PROGRESS -o "$TMP_NAME"
-    LATEST=$(curl -sL https://api.github.com/repos/alis-is/tezpay/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
+    LATEST=$(curl -sL https://api.github.com/repos/tez-capital/tezpay/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
 else
     if wget --help 2>&1 | grep "--show-progress" > /dev/null 2>&1; then
         PROGRESS="--show-progress"
     fi
     set -- wget -q $PROGRESS -O "$TMP_NAME"
-    LATEST=$(wget -qO- https://api.github.com/repos/alis-is/tezpay/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
+    LATEST=$(wget -qO- https://api.github.com/repos/tez-capital/tezpay/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
 fi
 
 if ./tezpay version | grep "$LATEST"; then
@@ -32,8 +32,8 @@ fi
 echo "Downloading tezpay-linux-$PLATFORM $LATEST..."
 
 
-printf "https://github.com/alis-is/tezpay/releases/download/$LATEST/tezpay-linux-$PLATFORM"
-if "$@" "https://github.com/alis-is/tezpay/releases/download/$LATEST/tezpay-linux-$PLATFORM" &&
+printf "https://github.com/tez-capital/tezpay/releases/download/$LATEST/tezpay-linux-$PLATFORM"
+if "$@" "https://github.com/tez-capital/tezpay/releases/download/$LATEST/tezpay-linux-$PLATFORM" &&
     mv "$TMP_NAME" ./tezpay &&
     chmod +x ./tezpay; then
     echo "tezpay $LATEST for $PLATFORM successfuly installed."
