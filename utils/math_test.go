@@ -16,6 +16,18 @@ func TestGetZPortion(t *testing.T) {
 	assert.Equal(GetZPortion(tezos.NewZ(2000), float64(0)).Int64(), int64(0))
 }
 
+func TestIsPortionWithin0n1(t *testing.T) {
+	assert := assert.New(t)
+	assert.Equal(true, IsPortionWithin0n1(1.00000064)) // we go only to 4 decimals
+	assert.Equal(false, IsPortionWithin0n1(1.00064))   // we go only to 4 decimals
+	assert.Equal(false, IsPortionWithin0n1(1.1))
+	assert.Equal(false, IsPortionWithin0n1(-0.1))
+	assert.Equal(true, IsPortionWithin0n1(0.1))
+	assert.Equal(true, IsPortionWithin0n1(0.5))
+	assert.Equal(true, IsPortionWithin0n1(0.))
+	assert.Equal(true, IsPortionWithin0n1(1.))
+}
+
 func TestMax(t *testing.T) {
 	assert := assert.New(t)
 	assert.Equal(Max(2, 1), 2)

@@ -6,6 +6,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/notifications"
+	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 )
 
@@ -27,16 +28,15 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 		}
 	}()
 
-	assert(configuration.PayoutConfiguration.Fee >= 0 && configuration.PayoutConfiguration.Fee <= 1,
+	assert(utils.IsPortionWithin0n1(configuration.PayoutConfiguration.Fee),
 		getPortionRangeError("configuration.payouts.fee", configuration.PayoutConfiguration.Fee))
-	assert(configuration.IncomeRecipients.Donate >= 0 && configuration.IncomeRecipients.Donate <= 1,
+	assert(utils.IsPortionWithin0n1(configuration.IncomeRecipients.Donate),
 		getPortionRangeError("configuration.income_recipients.donate", configuration.IncomeRecipients.Donate))
 
 	bondsPortions := lo.Reduce(lo.Values(configuration.IncomeRecipients.Bonds), func(agg float64, val float64, _ int) float64 {
 		return agg + val
 	}, float64(0))
-	assert(bondsPortions >= 0 && bondsPortions <= 1,
-		getPortionRangeError("configuration.income_recipients.bonds sum", bondsPortions))
+	assert(utils.IsPortionWithin0n1(bondsPortions), getPortionRangeError("configuration.income_recipients.bonds sum", bondsPortions))
 	for k := range configuration.IncomeRecipients.Bonds {
 		_, err := tezos.ParseAddress(k)
 		assert(err == nil, fmt.Sprintf("configuration.income_recipients.bonds.%s has to be valid PKH", k))
@@ -45,7 +45,7 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	feesPortions := lo.Reduce(lo.Values(configuration.IncomeRecipients.Fees), func(agg float64, val float64, _ int) float64 {
 		return agg + val
 	}, float64(0))
-	assert(feesPortions >= 0 && feesPortions <= 1,
+	assert(utils.IsPortionWithin0n1(feesPortions),
 		getPortionRangeError("configuration.income_recipients.fees sum", feesPortions))
 	for k := range configuration.IncomeRecipients.Fees {
 		_, err := tezos.ParseAddress(k)
@@ -55,7 +55,7 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	donatePortions := lo.Reduce(lo.Values(configuration.IncomeRecipients.Donations), func(agg float64, val float64, _ int) float64 {
 		return agg + val
 	}, float64(0))
-	assert(donatePortions >= 0 && donatePortions <= 1,
+	assert(utils.IsPortionWithin0n1(donatePortions),
 		getPortionRangeError("configuration.income_recipients.donations sum", donatePortions))
 	for k := range configuration.IncomeRecipients.Donations {
 		_, err := tezos.ParseAddress(k)
@@ -65,7 +65,7 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	for k, v := range configuration.Delegators.Overrides {
 		_, err := tezos.ParseAddress(k)
 		assert(err == nil, fmt.Sprintf("configuration.delegators.overrides.%s has to be valid PKH", k))
-		assert(v.Fee >= 0 && v.Fee <= 1,
+		assert(utils.IsPortionWithin0n1(v.Fee),
 			getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), v.Fee))
 	}
 
