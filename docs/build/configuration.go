@@ -5,6 +5,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/hjson/hjson-go/v4"
 )
@@ -39,8 +40,8 @@ func GenerateSample() {
 			Ignore: []tezos.Address{tezos.ZeroAddress, tezos.BurnAddress},
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
-			RpcUrl:                 "https://rpc.tez.capital/",
-			TzktUrl:                "https://api.tzkt.io/",
+			RpcUrl:                 constants.DEFAULT_RPC_URL,
+			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			Explorer:               "https://tzstats.com/",
 			DoNotPaySmartContracts: true,
 		},
