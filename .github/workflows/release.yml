@@ -30,9 +30,9 @@ jobs:
         run: env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o bin/tezpay-macos-amd64
 
       - name: Upload files to a GitHub release
-        uses: svenstaro/upload-release-action@2.2.1
+        uses: svenstaro/upload-release-action@2.3.0
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
+          # repo_token: ${{ secrets.GITHUB_TOKEN }}
+          # tag: ${{ github.ref }}
           file_glob: true
           file: bin/tezpay*
