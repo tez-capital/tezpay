@@ -123,7 +123,9 @@ func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int6
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
 	}
-
+	if resp.StatusCode == 204 {
+		return nil, fmt.Errorf("no cycle data available for baker '%s'", baker)
+	}
 	tzktBakerCycleData := &tzktBakersCycleData{}
 	err = unmarshallTzktResponse(resp, tzktBakerCycleData)
 	if err != nil {

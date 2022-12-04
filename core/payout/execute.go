@@ -15,12 +15,12 @@ const (
 	PAYOUT_EXECUTION_SUCCESS
 )
 
-func generatePayouts(payoutAddr tezos.Key, cycle int64, config *configuration.RuntimeConfiguration) (*common.CyclePayoutBlueprint, error) {
+func generatePayouts(payoutAddr tezos.Key, cycle int64, config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
 	if config == nil {
 		return nil, fmt.Errorf("configuration not specified")
 	}
 
-	ctx, err := stages.InitContext(payoutAddr, config, cycle)
+	ctx, err := stages.InitContext(payoutAddr, config, cycle, options)
 	if err != nil {
 		return nil, err
 	}
@@ -35,18 +35,18 @@ func generatePayouts(payoutAddr tezos.Key, cycle int64, config *configuration.Ru
 		stages.FinalizePayouts).ToCyclePayoutBlueprint()
 }
 
-func GeneratePayouts(cycle int64, config *configuration.RuntimeConfiguration) (*common.CyclePayoutBlueprint, error) {
-	return generatePayouts(tezos.InvalidKey, cycle, config)
+func GeneratePayouts(cycle int64, config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
+	return generatePayouts(tezos.InvalidKey, cycle, config, options)
 }
 
-func GeneratePayoutsForLastCycle(config *configuration.RuntimeConfiguration) (*common.CyclePayoutBlueprint, error) {
-	return generatePayouts(tezos.InvalidKey, 0, config)
+func GeneratePayoutsForLastCycle(config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
+	return generatePayouts(tezos.InvalidKey, 0, config, options)
 }
 
-func GeneratePayoutsWithPayoutAddress(payoutKey tezos.Key, cycle int64, config *configuration.RuntimeConfiguration) (*common.CyclePayoutBlueprint, error) {
-	return generatePayouts(payoutKey, cycle, config)
+func GeneratePayoutsWithPayoutAddress(payoutKey tezos.Key, cycle int64, config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
+	return generatePayouts(payoutKey, cycle, config, options)
 }
 
-func GeneratePayoutsWithPayoutAddressForLastCycle(payoutKey tezos.Key, config *configuration.RuntimeConfiguration) (*common.CyclePayoutBlueprint, error) {
-	return generatePayouts(payoutKey, 0, config)
+func GeneratePayoutsWithPayoutAddressForLastCycle(payoutKey tezos.Key, config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
+	return generatePayouts(payoutKey, 0, config, options)
 }

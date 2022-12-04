@@ -12,6 +12,10 @@ import (
 
 func checkSufficientBalance(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
+	if ctx.Options.SkipBalanceCheck { // skip
+		return ctx, nil
+	}
+
 	log.Debugf("checking for sufficient balance")
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
 

@@ -94,3 +94,7 @@ type CyclePayoutBlueprint struct {
 	Payouts []PayoutRecipe `json:"payouts,omitempty"`
 	Summary CyclePayoutSummary
 }
+
+type GeneratePayoutsOptions struct {
+	SkipBalanceCheck bool `json:"skip_balance_check,omitempty"`
+}

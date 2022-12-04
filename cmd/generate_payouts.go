@@ -14,10 +14,13 @@ var generatePayoutsCmd = &cobra.Command{
 	Long:  "generates payouts without further processing",
 	Run: func(cmd *cobra.Command, args []string) {
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
+		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		config, _, signerEngine, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 
 		payoutBlueprint := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
-			return payout.GeneratePayoutsWithPayoutAddress(signerEngine.GetKey(), cycle, config)
+			return payout.GeneratePayoutsWithPayoutAddress(signerEngine.GetKey(), cycle, config, common.GeneratePayoutsOptions{
+				SkipBalanceCheck: skipBalanceCheck,
+			})
 		}, EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
 
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
@@ -41,5 +44,6 @@ var generatePayoutsCmd = &cobra.Command{
 func init() {
 	generatePayoutsCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
 	generatePayoutsCmd.Flags().String(TO_FILE_FLAG, "", "saves generated payouts to specified file")
+	generatePayoutsCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
 	RootCmd.AddCommand(generatePayoutsCmd)
 }

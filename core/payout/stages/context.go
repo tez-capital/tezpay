@@ -32,9 +32,10 @@ type Context struct {
 	CycleData            *common.BakersCycleData
 	StageData            StageData
 	DistributableRewards tezos.Z
+	Options              common.GeneratePayoutsOptions
 }
 
-func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfiguration, cycle int64) (*Context, error) {
+func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfiguration, cycle int64, options common.GeneratePayoutsOptions) (*Context, error) {
 	log.Debug("tezpay engine initialization")
 	collector, err := clients.InitDefaultRpcAndTzktColletor(configuration.Network.RpcUrl, configuration.Network.TzktUrl)
 	if err != nil {
@@ -61,6 +62,7 @@ func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfig
 		Cycle:         cycle,
 		StageData:     StageData{},
 		PayoutKey:     payoutKey,
+		Options:       options,
 	}
 
 	return &ctx, nil

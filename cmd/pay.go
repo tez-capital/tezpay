@@ -23,6 +23,7 @@ var payCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
+		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 
@@ -34,7 +35,9 @@ var payCmd = &cobra.Command{
 			}, EXIT_PAYOUTS_READ_FAILURE)
 		} else {
 			payoutBlueprint = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
-				return payout.GeneratePayoutsWithPayoutAddress(signer.GetKey(), cycle, config)
+				return payout.GeneratePayoutsWithPayoutAddress(signer.GetKey(), cycle, config, common.GeneratePayoutsOptions{
+					SkipBalanceCheck: skipBalanceCheck,
+				})
 			}, EXIT_OPERTION_FAILED)
 		}
 		log.Info("checking past reports")
@@ -158,6 +161,7 @@ func init() {
 	payCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	payCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
 	payCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
+	payCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
 
 	RootCmd.AddCommand(payCmd)
 }
