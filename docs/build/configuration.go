@@ -63,6 +63,12 @@ func GenerateSample() {
 			},
 			{
 				"type":             "discord",
+				"webhook_url":      "https://my-admin-discord-webhook.com/",
+				"message_template": "my awesome message",
+				"admin":            true,
+			},
+			{
+				"type":             "discord",
 				"webhook_id":       "webhook id",
 				"webhook_token":    "webhook token",
 				"message_template": "my awesome message",
