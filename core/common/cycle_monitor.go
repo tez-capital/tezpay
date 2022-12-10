@@ -97,7 +97,7 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 			}
 			block, err := fetchBlock(ctx, monitor.rpc, h.Hash)
 			if err != nil {
-				log.Errorf("failed to fetch block n.%d - %s", block, err.Error())
+				log.Errorf("failed to fetch block %d - %s", h.Level, err.Error())
 				continue
 			}
 			cycle := block.GetCycle()
