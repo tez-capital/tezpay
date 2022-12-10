@@ -96,5 +96,7 @@ type CyclePayoutBlueprint struct {
 }
 
 type GeneratePayoutsOptions struct {
-	SkipBalanceCheck bool `json:"skip_balance_check,omitempty"`
+	SkipBalanceCheck         bool `json:"skip_balance_check,omitempty"`
+	WaitForSufficientBalance bool `json:"wait_for_sufficient_balance,omitempty"`
+	AdminNotify              func(msg string)
 }

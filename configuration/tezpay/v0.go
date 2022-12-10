@@ -51,10 +51,6 @@ type PayoutConfigurationV0 struct {
 	IgnoreEmptyAccounts     bool             `json:"ignore_empty_accounts,omitempty"`
 }
 
-type NotificatorConfigurationV0 struct {
-	Type string `json:"type"`
-}
-
 type ConfigurationV0 struct {
 	Version                    uint                          `json:"tezpay_config_version"`
 	BakerPKH                   tezos.Address                 `json:"baker"`

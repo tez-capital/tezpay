@@ -11,6 +11,7 @@ const (
 	SKIP_BALANCE_CHECK_FLAG          = "skip-balance-check"
 	REPORT_TO_STDOUT                 = "report-to-stdout"
 	DISABLE_SEPERATE_SC_PAYOUTS_FLAG = "no-separate-sc"
+	FORCE_CONFIRMATION_PROMPT_FLAG   = "force-confirmation-prompt"
 	SILENT_FLAG                      = "silent"
 	CYCLES_FLAG                      = "cycles"
 	FIRST_CYCLE_FLAG                 = "first-cycle"

@@ -32,6 +32,7 @@ type RuntimeNotificatorConfiguration struct {
 	Configuration []byte                        `json:"-"`
 	Options       map[string]interface{}        `json:"configuration,omitempty"`
 	IsValid       bool                          `json:"-"`
+	IsAdmin       bool                          `json:"admin"`
 }
 
 type RuntimePayoutConfiguration struct {

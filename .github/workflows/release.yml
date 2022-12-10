@@ -1,4 +1,4 @@
-name: build tezpay 
+name: release
 
 on:
   release:

@@ -2,6 +2,7 @@ package mock
 
 import (
 	"errors"
+	"fmt"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
@@ -73,6 +74,10 @@ func (engine *SimpleColletor) GetCycleData(baker tezos.Address, cycle int64) (*c
 
 func (engine *SimpleColletor) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {
 	return common.OPERATION_STATUS_APPLIED, nil
+}
+
+func (engine *SimpleColletor) MonitorCycles(notificationDelay int64) (*common.CycleMonitor, error) {
+	return nil, fmt.Errorf("not implemented")
 }
 
 func (engine *SimpleColletor) GetBranch(offset int64) (hash tezos.BlockHash, err error) {

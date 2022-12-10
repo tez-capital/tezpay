@@ -25,6 +25,7 @@ type CollectorEngine interface {
 	GetBranch(offset int64) (tezos.BlockHash, error)
 	Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error)
 	GetBalance(pkh tezos.Address) (tezos.Z, error)
+	MonitorCycles(notificationDelay int64) (*CycleMonitor, error)
 }
 
 type SignerEngine interface {

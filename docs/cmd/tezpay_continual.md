@@ -1,21 +1,21 @@
-## tezpay statistics
+## tezpay continual
 
-prints earning stats
+continual payout
 
 ### Synopsis
 
-prints out earning statiscs
+runs payout until stopped manually
 
 ```
-tezpay statistics [flags]
+tezpay continual [flags]
 ```
 
 ### Options
 
 ```
-      --cycles int       number of cycles to collect statistics from (default 10)
-  -h, --help             help for statistics
-      --last-cycle int   last cycle to collect statistics from (has priority over --cycles)
+  -c, --cycle int        initial cycle
+  -h, --help             help for continual
+      --no-separate-sc   disables smart contract separation (mixes txs and smart contract calls within batches)
 ```
 
 ### Options inherited from parent commands

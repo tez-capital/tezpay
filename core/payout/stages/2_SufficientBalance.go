@@ -2,6 +2,7 @@ package stages
 
 import (
 	"fmt"
+	"time"
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
@@ -19,11 +20,6 @@ func checkSufficientBalance(ctx Context) (Context, error) {
 	log.Debugf("checking for sufficient balance")
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
 
-	payableBalance, err := ctx.Collector.GetBalance(ctx.PayoutKey.Address())
-	if err != nil {
-		return ctx, err
-	}
-
 	totalPayouts := len(lo.Filter(candidates, func(candidate PayoutCandidateWithBondAmount, _ int) bool {
 		return !candidate.IsInvalid
 	}))
@@ -37,9 +33,29 @@ func checkSufficientBalance(ctx Context) (Context, error) {
 	requiredbalance = ctx.StageData.BakerBondsAmount.Add(requiredbalance)
 	requiredbalance = requiredbalance.Add(tezos.NewZ(constants.PAYOUT_FEE_BUFFER).Mul64(int64(totalPayouts)))
 
-	diff := payableBalance.Sub(requiredbalance)
-	if diff.IsNeg() || diff.IsZero() { // zero is probably too on edge so better to keep checking for zero
-		return ctx, fmt.Errorf("insufficient balance - needs at least %s but only has %s", utils.MutezToTezS(requiredbalance.Int64()), utils.MutezToTezS(payableBalance.Int64()))
+	checked := false
+	notificatorTrigger := 0
+	for !checked || ctx.Options.WaitForSufficientBalance {
+
+		payableBalance, err := ctx.Collector.GetBalance(ctx.PayoutKey.Address())
+		if err != nil {
+			return ctx, err
+		}
+
+		diff := payableBalance.Sub(requiredbalance)
+		if diff.IsNeg() || diff.IsZero() { // zero is probably too on edge so better to keep checking for zero
+			if ctx.Options.WaitForSufficientBalance {
+				log.Warnf("insufficient balance - needs at least %s but only has %s, waiting 5 minutes...", utils.MutezToTezS(requiredbalance.Int64()), utils.MutezToTezS(payableBalance.Int64()))
+				time.Sleep(time.Minute * 5)
+				if notificatorTrigger%12 == 0 { // every hour
+					ctx.Options.AdminNotify(fmt.Sprintf("insufficient balance - needs at least %s but only has %s", utils.MutezToTezS(requiredbalance.Int64()), utils.MutezToTezS(payableBalance.Int64())))
+				}
+				notificatorTrigger++
+				continue
+			}
+			return ctx, fmt.Errorf("insufficient balance - needs at least %s but only has %s", utils.MutezToTezS(requiredbalance.Int64()), utils.MutezToTezS(payableBalance.Int64()))
+		}
+		break
 	}
 
 	return ctx, nil
