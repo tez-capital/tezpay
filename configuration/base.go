@@ -83,11 +83,16 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			if notificatorType, isValid = item["type"].(string); !isValid {
 				log.Warnf("invalid notificator type %v", item["type"])
 			}
+			isAdmin := false
+			if admin, ok := item["admin"].(bool); ok {
+				isAdmin = admin
+			}
 
 			configuration, _ := json.Marshal(item)
 
 			return RuntimeNotificatorConfiguration{
 				Type:          notifications.NotificatorKind(notificatorType),
+				IsAdmin:       isAdmin,
 				Configuration: configuration,
 				Options:       item,
 				IsValid:       isValid,

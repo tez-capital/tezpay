@@ -140,6 +140,34 @@ func notifyPayoutsProcessedThroughAllNotificators(configuration *configuration.R
 	notifyPayoutsProcessed(configuration, summary, "")
 }
 
+func notifyAdmin(configuration *configuration.RuntimeConfiguration, msg string) {
+	for _, notificatorConfiguration := range configuration.NotificationConfigurations {
+		if !notificatorConfiguration.IsAdmin {
+			continue
+		}
+
+		log.Infof("sending admin notification with %s", notificatorConfiguration.Type)
+		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
+		if err != nil {
+			log.Warnf("failed to send notification - %s", err.Error())
+			continue
+		}
+
+		err = notificator.AdminNotify(msg)
+		if err != nil {
+			log.Warnf("failed to send notification - %s", err.Error())
+			continue
+		}
+	}
+	log.Info("admin notifications sent.")
+}
+
+func notifyAdminFactory(configuration *configuration.RuntimeConfiguration) func(string) {
+	return func(msg string) {
+		notifyAdmin(configuration, msg)
+	}
+}
+
 func printPayoutCycleReport(report *common.PayoutCycleReport) error {
 	data, err := json.Marshal(report)
 	if err != nil {

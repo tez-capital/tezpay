@@ -8,6 +8,8 @@ import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/clients/tzkt"
 	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 type DefaultRpcAndTzktColletor struct {
@@ -81,4 +83,16 @@ func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.K
 
 func (engine *DefaultRpcAndTzktColletor) GetBalance(addr tezos.Address) (tezos.Z, error) {
 	return engine.rpc.GetContractBalance(context.Background(), addr, rpc.Head)
+}
+
+func (engine *DefaultRpcAndTzktColletor) MonitorCycles(notificationDelay int64) (*common.CycleMonitor, error) {
+	ctx := context.Background()
+	monitor, err := common.NewCycleMonitor(ctx, engine.rpc, notificationDelay)
+	if err != nil {
+		return nil, err
+	}
+	utils.CallbackOnInterrupt(ctx, monitor.Cancel)
+	log.Info("tracking cycles... (cancel with Ctrl-C)\n\n")
+
+	return monitor, nil
 }
