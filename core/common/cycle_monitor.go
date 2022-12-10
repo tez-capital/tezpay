@@ -2,7 +2,6 @@ package common
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -24,7 +23,7 @@ type CycleMonitor struct {
 
 func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, notificationDelay int64) (*CycleMonitor, error) {
 	if notificationDelay == 0 {
-		notificationDelay = int64(rand.Intn(2880) + 10) // up to 1 day in lima, up to 12 hours in M
+		notificationDelay = int64(rand.Intn(2880)+20) /* up to 1 day in lima, up to 12 hours in M */ / 20 /* we check every 20 blocks - 10/5 mins */
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -52,8 +51,8 @@ func (monitor *CycleMonitor) Delay() int64 {
 	return monitor.delay
 }
 
-func fetchBlock(ctx context.Context, c *rpc.Client, blockID tezos.BlockHash) (*rpc.Block, error) {
-	b, err := c.GetBlock(ctx, blockID)
+func fetchBlock(ctx context.Context, c *rpc.Client, blockID tezos.BlockHash) (*rpc.BlockMetadata, error) {
+	b, err := c.GetBlockMetadata(ctx, blockID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,11 +74,12 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 	}
 	monitor.rpcMonitor = mon
 	go func() {
+		receivedHeads := int64(0)
 		for ctx.Err() == nil {
 			select {
 			case <-mon.Closed():
-			default:
 				return
+			default:
 			}
 			h, err := mon.Recv(ctx)
 			if err != nil {
@@ -95,22 +95,24 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 				}
 				return
 			}
-			block, err := fetchBlock(ctx, monitor.rpc, h.Hash)
-			if err != nil {
-				log.Errorf("failed to fetch block %d - %s", h.Level, err.Error())
-				continue
-			}
-			cycle := block.GetCycle()
-			fmt.Println(cycle)
-			if cycle > monitor.lastProcessedCycle {
-				log.Infof("new cycle %d, will be paid out in ~%d blocks", cycle, monitor.delay)
-				monitor.counter = 1
-			}
+			if receivedHeads%20 == 0 {
+				blockMetadata, err := fetchBlock(ctx, monitor.rpc, h.Hash)
+				if err != nil {
+					log.Errorf("failed to fetch block metadata %d - %s", h.Level, err.Error())
+					continue
+				}
+				cycle := blockMetadata.LevelInfo.Cycle
+				if cycle > monitor.lastProcessedCycle {
+					log.Debugf("new cycle %d found", cycle, monitor.delay)
+					monitor.counter = 1
+				}
 
-			if monitor.counter == monitor.delay {
-				monitor.Cycle <- cycle
+				if monitor.counter == monitor.delay {
+					monitor.Cycle <- cycle
+				}
+				monitor.counter++
 			}
-			monitor.counter++
+			receivedHeads++
 		}
 	}()
 	return nil
