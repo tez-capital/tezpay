@@ -25,10 +25,12 @@ var continualCmd = &cobra.Command{
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
+
 		assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
 
 		// TODO: remove
-		forceConfirmationPrompt = true
+		disableConfirmationPrompt, _ := cmd.Flags().GetBool("disable-confirmation-prompt")
+		forceConfirmationPrompt = true && !disableConfirmationPrompt
 
 		lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to fetch initial cycle")
 		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) { return collector.MonitorCycles(0) }, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
@@ -173,6 +175,9 @@ func init() {
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(FORCE_CONFIRMATION_PROMPT_FLAG, false, "forces confirmation prompts for each payout")
 	continualCmd.Flags().MarkHidden(FORCE_CONFIRMATION_PROMPT_FLAG)
+
+	continualCmd.Flags().Bool("disable-confirmation-prompt", false, "disables confirmation prompts for each payout")
+	continualCmd.Flags().MarkDeprecated("disable-confirmation-prompt", "this flag will be removed in the future")
 
 	RootCmd.AddCommand(continualCmd)
 }

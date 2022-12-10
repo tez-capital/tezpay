@@ -45,10 +45,10 @@ func checkSufficientBalance(ctx Context) (Context, error) {
 		diff := payableBalance.Sub(requiredbalance)
 		if diff.IsNeg() || diff.IsZero() { // zero is probably too on edge so better to keep checking for zero
 			if ctx.Options.WaitForSufficientBalance {
-				log.Infof("insufficient balance - needs at least %s but only has %s, waiting 5 minutes...")
+				log.Warnf("insufficient balance - needs at least %s but only has %s, waiting 5 minutes...")
 				time.Sleep(time.Minute * 5)
 				if notificatorTrigger%12 == 0 { // every hour
-					// TODO: notify
+					ctx.Options.AdminNotify("insufficient balance - needs at least %s but only has %s")
 				}
 				notificatorTrigger++
 				continue
