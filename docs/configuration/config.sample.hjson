@@ -65,6 +65,12 @@
       webhook_url: https://my-discord-webhook.com/
     }
     {
+      admin: true
+      message_template: my awesome message
+      type: discord
+      webhook_url: https://my-admin-discord-webhook.com/
+    }
+    {
       message_template: my awesome message
       type: discord
       webhook_id: webhook id
