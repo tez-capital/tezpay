@@ -86,6 +86,9 @@ var continualCmd = &cobra.Command{
 			}
 
 			if forceConfirmationPrompt {
+				utils.PrintInvalidPayoutRecipes(payoutBlueprint.Payouts, payoutBlueprint.Cycle)
+				utils.PrintReports(reportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", payoutBlueprint.Cycle), true)
+				utils.PrintValidPayoutRecipes(payouts, payoutBlueprint.Cycle)
 				assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 			}
 
