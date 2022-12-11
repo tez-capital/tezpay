@@ -112,6 +112,7 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 				}
 				monitor.counter++
 			}
+			log.Tracef("received new head %s", h.Hash)
 			receivedHeads++
 		}
 	}()

@@ -32,16 +32,17 @@ var continualCmd = &cobra.Command{
 		disableConfirmationPrompt, _ := cmd.Flags().GetBool("disable-confirmation-prompt")
 		forceConfirmationPrompt = true && !disableConfirmationPrompt
 
-		lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to fetch initial cycle")
+		lastCompletedCycleBeforeStart := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to fetch initial cycle")
 		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) { return collector.MonitorCycles(0) }, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
-		lastProcessedCycle := int64(lastCompletedCycle - 1)
+
+		lastProcessedCycle := int64(lastCompletedCycleBeforeStart - 1)
 		if initialCycle != 0 {
 			lastProcessedCycle = initialCycle - 1
 		}
 		var cycle int64
 
 		for {
-			if lastProcessedCycle >= lastCompletedCycle {
+			if lastProcessedCycle >= lastCompletedCycleBeforeStart {
 				log.Info("looking for next cycle to pay out")
 				currentCycle, ok := <-monitor.Cycle
 				if !ok {
@@ -52,8 +53,7 @@ var continualCmd = &cobra.Command{
 					continue
 				}
 			} else {
-				lastProcessedCycle++
-				cycle = lastProcessedCycle
+				cycle = lastProcessedCycle + 1
 			}
 
 			log.Infof("====================  CYCLE %d  ========================", cycle)
