@@ -103,7 +103,7 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 				}
 				cycle := blockMetadata.LevelInfo.Cycle
 				if cycle > monitor.lastProcessedCycle {
-					log.Debugf("new cycle %d found", cycle, monitor.delay)
+					log.Debugf("new cycle %d (delay: %d) found", cycle, monitor.delay)
 					monitor.counter = 1
 				}
 
