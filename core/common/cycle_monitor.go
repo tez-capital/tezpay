@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -95,23 +96,24 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 				}
 				return
 			}
-			if receivedHeads%20 == 0 {
-				blockMetadata, err := fetchBlock(ctx, monitor.rpc, h.Hash)
-				if err != nil {
-					log.Errorf("failed to fetch block metadata %d - %s", h.Level, err.Error())
-					continue
-				}
-				cycle := blockMetadata.LevelInfo.Cycle
-				if cycle > monitor.lastProcessedCycle {
-					log.Debugf("new cycle %d (delay: %d) found", cycle, monitor.delay)
-					monitor.counter = 1
-				}
-
-				if monitor.counter == monitor.delay {
-					monitor.Cycle <- cycle
-				}
-				monitor.counter++
+			//if receivedHeads%20 == 0 {
+			blockMetadata, err := fetchBlock(ctx, monitor.rpc, h.Hash)
+			if err != nil {
+				log.Errorf("failed to fetch block metadata %d - %s", h.Level, err.Error())
+				continue
 			}
+			cycle := blockMetadata.LevelInfo.Cycle
+			fmt.Println(blockMetadata.LevelInfo.CyclePosition)
+			if cycle > monitor.lastProcessedCycle {
+				log.Debugf("new cycle %d (delay: %d) found", cycle, monitor.delay)
+				monitor.counter = 1
+			}
+
+			if monitor.counter == monitor.delay {
+				monitor.Cycle <- cycle
+			}
+			monitor.counter++
+			//}
 			log.Tracef("received new head %s", h.Hash)
 			receivedHeads++
 		}

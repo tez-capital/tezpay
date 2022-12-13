@@ -35,7 +35,7 @@ func InitTelegramNotificator(configurationBytes []byte) (*TelegramNotificator, e
 	}
 	msgTemplate := configuration.MessageTemplate
 	if msgTemplate == "" {
-		msgTemplate = DEFAULT_DISCORD_MESSAGE_TEMPLATE
+		msgTemplate = DEFAULT_TELEGRAM_MESSAGE_TEMPLATE
 	}
 
 	session, err := telegram.New(configuration.Token)

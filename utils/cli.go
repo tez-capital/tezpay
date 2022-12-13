@@ -81,7 +81,7 @@ func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycle int64) {
 }
 
 func PrintPayoutsAsJson[T PayoutConstraint](payouts []T) {
-	fmt.Println(PayoutsToJson(payouts))
+	fmt.Println(string(PayoutsToJson(payouts)))
 }
 
 func IsTty() bool {

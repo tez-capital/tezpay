@@ -39,7 +39,7 @@ func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) 
 	}
 	msgTemplate := configuration.MessageTemplate
 	if msgTemplate == "" {
-		msgTemplate = DEFAULT_DISCORD_MESSAGE_TEMPLATE
+		msgTemplate = DEFAULT_EMAIL_MESSAGE_TEMPLATE
 	}
 
 	session := mail.New(configuration.Sender, configuration.SmtpServer)

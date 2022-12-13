@@ -136,3 +136,24 @@ func Load() (*RuntimeConfiguration, error) {
 	err = runtime.Validate()
 	return runtime, err
 }
+
+func LoadFromString(configurationBytes []byte) (*RuntimeConfiguration, error) {
+	log.Debug("loading version info")
+	versionInfo := migrations.ConfigurationVersionInfo{}
+	err := hjson.Unmarshal(configurationBytes, &versionInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Trace("migrating if required")
+	configuration, err := Migrate(configurationBytes, &versionInfo, false)
+	if err != nil {
+		return nil, err
+	}
+	runtime, err := ConfigurationToRuntimeConfiguration(configuration)
+	if err != nil {
+		return nil, err
+	}
+	err = runtime.Validate()
+	return runtime, err
+}

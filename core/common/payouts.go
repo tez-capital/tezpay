@@ -90,13 +90,13 @@ func (summary *CyclePayoutSummary) Add(another *CyclePayoutSummary) *CyclePayout
 }
 
 type CyclePayoutBlueprint struct {
-	Cycle   int64          `json:"cycle,omitempty"`
-	Payouts []PayoutRecipe `json:"payouts,omitempty"`
-	Summary CyclePayoutSummary
+	Cycle   int64              `json:"cycle,omitempty"`
+	Payouts []PayoutRecipe     `json:"payouts,omitempty"`
+	Summary CyclePayoutSummary `json:"summary,omitempty"`
 }
 
 type GeneratePayoutsOptions struct {
-	SkipBalanceCheck         bool `json:"skip_balance_check,omitempty"`
-	WaitForSufficientBalance bool `json:"wait_for_sufficient_balance,omitempty"`
-	AdminNotify              func(msg string)
+	SkipBalanceCheck         bool             `json:"skip_balance_check,omitempty"`
+	WaitForSufficientBalance bool             `json:"wait_for_sufficient_balance,omitempty"`
+	AdminNotify              func(msg string) `json:"-"`
 }

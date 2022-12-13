@@ -51,7 +51,3 @@ func warnIfFailedWithErrFmt(toExecute func() error, errorFormat string) bool {
 	}
 	return true
 }
-
-func assertRequireConfirmation(msg string) {
-	assertRunWithParam(requireConfirmation, msg, EXIT_OPERTION_CANCELED)
-}
