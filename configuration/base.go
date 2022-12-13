@@ -61,11 +61,12 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
-			WalletMode:          configuration.PayoutConfiguration.WalletMode,
-			Fee:                 configuration.PayoutConfiguration.Fee,
-			IsPayingTxFee:       configuration.PayoutConfiguration.IsPayingTxFee,
-			MinimumAmount:       FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
-			IgnoreEmptyAccounts: configuration.PayoutConfiguration.IgnoreEmptyAccounts,
+			WalletMode:              configuration.PayoutConfiguration.WalletMode,
+			Fee:                     configuration.PayoutConfiguration.Fee,
+			IsPayingTxFee:           configuration.PayoutConfiguration.IsPayingTxFee,
+			IsPayingAllocationTxFee: configuration.PayoutConfiguration.IsPayingAllocationTxFee,
+			MinimumAmount:           FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
+			IgnoreEmptyAccounts:     configuration.PayoutConfiguration.IgnoreEmptyAccounts,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{
