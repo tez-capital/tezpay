@@ -2,38 +2,46 @@ package common
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"time"
 
 	"blockwatch.cc/tzgo/rpc"
-	"blockwatch.cc/tzgo/tezos"
 	log "github.com/sirupsen/logrus"
 )
 
-type CycleMonitor struct {
-	Cycle              chan int64
-	lastProcessedCycle int64
-	delay              int64
-	counter            int64
-	ctx                context.Context
-	cancelContext      context.CancelFunc
-	rpc                *rpc.Client
-	rpcMonitor         *rpc.BlockHeaderMonitor
+type CycleMonitorOptions struct {
+	NotificationDelay int64
+	CheckFrequency    int64
 }
 
-func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, notificationDelay int64) (*CycleMonitor, error) {
-	if notificationDelay == 0 {
-		notificationDelay = int64(rand.Intn(2880)+20) /* up to 1 day in lima, up to 12 hours in M */ / 20 /* we check every 20 blocks - 10/5 mins */
+type CycleMonitor struct {
+	Cycle         chan int64
+	ctx           context.Context
+	cancelContext context.CancelFunc
+	rpc           *rpc.Client
+	options       CycleMonitorOptions
+}
+
+func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorOptions) (*CycleMonitor, error) {
+	if options.NotificationDelay == 0 {
+		options.NotificationDelay = int64(rand.Intn(120) + 5)
+	}
+
+	if options.CheckFrequency < 2 {
+		options.CheckFrequency = 2
+	}
+	if options.CheckFrequency > 120 {
+		options.CheckFrequency = 120
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
+	log.Infof("Initialized cycle monitor with ~%d blocks delay", options.NotificationDelay)
 	monitor := &CycleMonitor{
 		Cycle:         make(chan int64),
 		ctx:           ctx,
 		rpc:           rpc,
 		cancelContext: cancel,
-		delay:         notificationDelay,
+		options:       options,
 	}
 	return monitor, monitor.CreateBlockHeaderMonitor()
 }
@@ -45,77 +53,32 @@ func (monitor *CycleMonitor) Cancel() {
 func (monitor *CycleMonitor) Terminate() {
 	monitor.cancelContext()
 	close(monitor.Cycle)
-	monitor.rpcMonitor.Close()
-}
-
-func (monitor *CycleMonitor) Delay() int64 {
-	return monitor.delay
-}
-
-func fetchBlock(ctx context.Context, c *rpc.Client, blockID tezos.BlockHash) (*rpc.BlockMetadata, error) {
-	b, err := c.GetBlockMetadata(ctx, blockID)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
 }
 
 func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 	ctx := monitor.ctx
-	if monitor.rpcMonitor != nil {
-		select {
-		case <-monitor.rpcMonitor.Closed():
-		default:
-			monitor.rpcMonitor.Close()
-		}
-	}
-	mon := rpc.NewBlockHeaderMonitor()
-	if err := monitor.rpc.MonitorBlockHeader(ctx, mon); err != nil {
-		return err
-	}
-	monitor.rpcMonitor = mon
-	go func() {
-		receivedHeads := int64(0)
-		for ctx.Err() == nil {
-			select {
-			case <-mon.Closed():
-				return
-			default:
-			}
-			h, err := mon.Recv(ctx)
-			if err != nil {
-				attempt := 1
 
-				for err = monitor.CreateBlockHeaderMonitor(); attempt < 5 && err != nil; attempt++ {
-					log.Warnf("failed to recreate block header monitor")
-					time.Sleep(time.Second * 60)
-				}
-				if err != nil {
-					log.Fatalf("failed to monitor blocks %s", err.Error())
-					monitor.Terminate()
-				}
-				return
-			}
-			//if receivedHeads%20 == 0 {
-			blockMetadata, err := fetchBlock(ctx, monitor.rpc, h.Hash)
+	go func() {
+		var lastProcessedCycle int64
+
+		for ctx.Err() == nil {
+			metadata, err := monitor.rpc.GetBlockMetadata(ctx, rpc.Head)
 			if err != nil {
-				log.Errorf("failed to fetch block metadata %d - %s", h.Level, err.Error())
+				log.Error("failed to fetch head metadata")
 				continue
 			}
-			cycle := blockMetadata.LevelInfo.Cycle
-			fmt.Println(blockMetadata.LevelInfo.CyclePosition)
-			if cycle > monitor.lastProcessedCycle {
-				log.Debugf("new cycle %d (delay: %d) found", cycle, monitor.delay)
-				monitor.counter = 1
+			cycle := metadata.LevelInfo.Cycle
+
+			if metadata.LevelInfo.CyclePosition >= monitor.options.NotificationDelay && lastProcessedCycle < cycle {
+				monitor.Cycle <- cycle
+				lastProcessedCycle = cycle
 			}
 
-			if monitor.counter == monitor.delay {
-				monitor.Cycle <- cycle
+			log.Tracef("received new head %d", metadata.LevelInfo.Level)
+			select {
+			case <-ctx.Done():
+			case <-time.After(time.Second * time.Duration(monitor.options.CheckFrequency) * 30):
 			}
-			monitor.counter++
-			//}
-			log.Tracef("received new head %s", h.Hash)
-			receivedHeads++
 		}
 	}()
 	return nil
