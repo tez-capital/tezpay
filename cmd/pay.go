@@ -35,8 +35,12 @@ var payCmd = &cobra.Command{
 			}, EXIT_PAYOUTS_READ_FAILURE)
 		} else {
 			payoutBlueprint = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
-				return payout.GeneratePayoutsWithPayoutAddress(signer.GetKey(), cycle, config, common.GeneratePayoutsOptions{
+				return payout.GeneratePayouts(signer.GetKey(), config, common.GeneratePayoutsOptions{
+					Cycle:            cycle,
 					SkipBalanceCheck: skipBalanceCheck,
+					Engines: common.GeneratePayoutsEngines{
+						Collector: collector,
+					},
 				})
 			}, EXIT_OPERTION_FAILED)
 		}

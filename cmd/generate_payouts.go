@@ -15,11 +15,15 @@ var generatePayoutsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
-		config, _, signerEngine, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signerEngine, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 
 		payoutBlueprint := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
-			return payout.GeneratePayoutsWithPayoutAddress(signerEngine.GetKey(), cycle, config, common.GeneratePayoutsOptions{
+			return payout.GeneratePayouts(signerEngine.GetKey(), config, common.GeneratePayoutsOptions{
+				Cycle:            cycle,
 				SkipBalanceCheck: skipBalanceCheck,
+				Engines: common.GeneratePayoutsEngines{
+					Collector: collector,
+				},
 			})
 		}, EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
 

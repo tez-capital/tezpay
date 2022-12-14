@@ -32,8 +32,12 @@ var continualCmd = &cobra.Command{
 		disableConfirmationPrompt, _ := cmd.Flags().GetBool("disable-confirmation-prompt")
 		forceConfirmationPrompt = true && !disableConfirmationPrompt
 
-		lastCompletedCycleBeforeStart := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to fetch initial cycle")
-		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) { return collector.MonitorCycles(0) }, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
+		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) {
+			return collector.MonitorCycles(common.CycleMonitorOptions{
+				CheckFrequency: 10,
+			})
+		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
+		lastCompletedCycleBeforeStart := <-monitor.Cycle
 
 		lastProcessedCycle := int64(lastCompletedCycleBeforeStart - 1)
 		if initialCycle != 0 {
@@ -58,9 +62,13 @@ var continualCmd = &cobra.Command{
 
 			log.Infof("====================  CYCLE %d  ========================", cycle)
 
-			payoutBlueprint, err := payout.GeneratePayoutsWithPayoutAddress(signer.GetKey(), cycle, config, common.GeneratePayoutsOptions{
+			payoutBlueprint, err := payout.GeneratePayouts(signer.GetKey(), config, common.GeneratePayoutsOptions{
+				Cycle:                    cycle,
 				WaitForSufficientBalance: true,
 				AdminNotify:              notifyAdminFactory(config),
+				Engines: common.GeneratePayoutsEngines{
+					Collector: collector,
+				},
 			})
 			if err != nil {
 				log.Errorf("failed to generate payout - %s, retries in 5 minutes", err.Error())

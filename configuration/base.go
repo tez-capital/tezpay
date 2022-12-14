@@ -61,11 +61,12 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
-			WalletMode:          configuration.PayoutConfiguration.WalletMode,
-			Fee:                 configuration.PayoutConfiguration.Fee,
-			IsPayingTxFee:       configuration.PayoutConfiguration.IsPayingTxFee,
-			MinimumAmount:       FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
-			IgnoreEmptyAccounts: configuration.PayoutConfiguration.IgnoreEmptyAccounts,
+			WalletMode:              configuration.PayoutConfiguration.WalletMode,
+			Fee:                     configuration.PayoutConfiguration.Fee,
+			IsPayingTxFee:           configuration.PayoutConfiguration.IsPayingTxFee,
+			IsPayingAllocationTxFee: configuration.PayoutConfiguration.IsPayingAllocationTxFee,
+			MinimumAmount:           FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
+			IgnoreEmptyAccounts:     configuration.PayoutConfiguration.IgnoreEmptyAccounts,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{
@@ -126,6 +127,27 @@ func Load() (*RuntimeConfiguration, error) {
 
 	log.Trace("migrating if required")
 	configuration, err := Migrate(configurationBytes, &versionInfo, !hasInjectedConfiguration)
+	if err != nil {
+		return nil, err
+	}
+	runtime, err := ConfigurationToRuntimeConfiguration(configuration)
+	if err != nil {
+		return nil, err
+	}
+	err = runtime.Validate()
+	return runtime, err
+}
+
+func LoadFromString(configurationBytes []byte) (*RuntimeConfiguration, error) {
+	log.Debug("loading version info")
+	versionInfo := migrations.ConfigurationVersionInfo{}
+	err := hjson.Unmarshal(configurationBytes, &versionInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Trace("migrating if required")
+	configuration, err := Migrate(configurationBytes, &versionInfo, false)
 	if err != nil {
 		return nil, err
 	}

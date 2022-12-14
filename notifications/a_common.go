@@ -19,6 +19,16 @@ const (
 	TEXT_NOTIFICATION           NotificationKind = "text"
 )
 
+type NotificatorKind string
+
+const (
+	TELEGRAM_NOTIFICATOR NotificatorKind = "telegram"
+	TWITTER_NOTIFICATOR  NotificatorKind = "twitter"
+	DISCORD_NOTIFICATOR  NotificatorKind = "discord"
+	EMAIL_NOTIFICATOR    NotificatorKind = "email"
+	EXTERNAL_NOTIFICATOR NotificatorKind = "external"
+)
+
 func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary) string {
 	v := reflect.ValueOf(*summary)
 	typeOfS := v.Type()

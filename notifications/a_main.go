@@ -6,16 +6,6 @@ import (
 	"github.com/alis-is/tezpay/core/common"
 )
 
-type NotificatorKind string
-
-const (
-	TELEGRAM_NOTIFICATOR NotificatorKind = "telegram"
-	TWITTER_NOTIFICATOR  NotificatorKind = "twitter"
-	DISCORD_NOTIFICATOR  NotificatorKind = "discord"
-	EMAIL_NOTIFICATOR    NotificatorKind = "email"
-	EXTERNAL_NOTIFICATOR NotificatorKind = "external"
-)
-
 func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.NotificatorEngine, error) {
 	switch kind {
 	case TWITTER_NOTIFICATOR:

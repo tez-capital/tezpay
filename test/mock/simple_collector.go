@@ -76,7 +76,7 @@ func (engine *SimpleColletor) WasOperationApplied(op tezos.OpHash) (common.Opera
 	return common.OPERATION_STATUS_APPLIED, nil
 }
 
-func (engine *SimpleColletor) MonitorCycles(notificationDelay int64) (*common.CycleMonitor, error) {
+func (engine *SimpleColletor) MonitorCycles(options common.CycleMonitorOptions) (*common.CycleMonitor, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
