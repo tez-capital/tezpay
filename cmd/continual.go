@@ -62,9 +62,13 @@ var continualCmd = &cobra.Command{
 
 			log.Infof("====================  CYCLE %d  ========================", cycle)
 
-			payoutBlueprint, err := payout.GeneratePayoutsWithPayoutAddress(signer.GetKey(), cycle, config, common.GeneratePayoutsOptions{
+			payoutBlueprint, err := payout.GeneratePayouts(signer.GetKey(), config, common.GeneratePayoutsOptions{
+				Cycle:                    cycle,
 				WaitForSufficientBalance: true,
 				AdminNotify:              notifyAdminFactory(config),
+				Engines: common.GeneratePayoutsEngines{
+					Collector: collector,
+				},
 			})
 			if err != nil {
 				log.Errorf("failed to generate payout - %s, retries in 5 minutes", err.Error())

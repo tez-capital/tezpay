@@ -95,8 +95,14 @@ type CyclePayoutBlueprint struct {
 	Summary CyclePayoutSummary `json:"summary,omitempty"`
 }
 
+type GeneratePayoutsEngines struct {
+	Collector CollectorEngine
+}
+
 type GeneratePayoutsOptions struct {
-	SkipBalanceCheck         bool             `json:"skip_balance_check,omitempty"`
-	WaitForSufficientBalance bool             `json:"wait_for_sufficient_balance,omitempty"`
-	AdminNotify              func(msg string) `json:"-"`
+	Cycle                    int64                  `json:"cycle,omitempty"`
+	SkipBalanceCheck         bool                   `json:"skip_balance_check,omitempty"`
+	WaitForSufficientBalance bool                   `json:"wait_for_sufficient_balance,omitempty"`
+	AdminNotify              func(msg string)       `json:"-"`
+	Engines                  GeneratePayoutsEngines `json:"-"`
 }

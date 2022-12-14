@@ -1,10 +1,10 @@
 package stages
 
 import (
+	"errors"
 	"fmt"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/clients"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/common"
 	log "github.com/sirupsen/logrus"
@@ -35,22 +35,23 @@ type Context struct {
 	Options              common.GeneratePayoutsOptions
 }
 
-func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfiguration, cycle int64, options common.GeneratePayoutsOptions) (*Context, error) {
+func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*Context, error) {
 	log.Debug("tezpay engine initialization")
-	collector, err := clients.InitDefaultRpcAndTzktColletor(configuration.Network.RpcUrl, configuration.Network.TzktUrl)
-	if err != nil {
-		return nil, err
+	if options.Engines.Collector == nil {
+		return nil, errors.New("udefined collector engine")
 	}
+	collector := options.Engines.Collector
 
-	if cycle == 0 {
-		cycle, err = collector.GetLastCompletedCycle()
+	if options.Cycle == 0 {
+		cycle, err := collector.GetLastCompletedCycle()
 		if err != nil {
 			return nil, err
 		}
+		options.Cycle = cycle
 	}
 
 	log.Infof("collecting rewards split through %s collector", collector.GetId())
-	cycleData, err := collector.GetCycleData(configuration.BakerPKH, cycle)
+	cycleData, err := collector.GetCycleData(configuration.BakerPKH, options.Cycle)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect cycle data through collector %s - %s", collector.GetId(), err.Error())
 	}
@@ -59,7 +60,7 @@ func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfig
 		configuration: configuration,
 		Collector:     collector,
 		CycleData:     cycleData,
-		Cycle:         cycle,
+		Cycle:         options.Cycle,
 		StageData:     StageData{},
 		PayoutKey:     payoutKey,
 		Options:       options,

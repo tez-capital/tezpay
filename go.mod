@@ -3,7 +3,7 @@ module github.com/alis-is/tezpay
 go 1.19
 
 require (
-	blockwatch.cc/tzgo v1.15.1-0.20221210135543-47d9f9ed0a6b
+	blockwatch.cc/tzgo v1.15.1-0.20221214143603-9928b4f5aa64
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/bwmarrin/discordgo v0.26.1
 	github.com/dghubble/oauth1 v0.7.1
