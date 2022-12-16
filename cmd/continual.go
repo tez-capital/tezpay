@@ -37,30 +37,37 @@ var continualCmd = &cobra.Command{
 				CheckFrequency: 10,
 			})
 		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
-		lastCompletedCycleBeforeStart := <-monitor.Cycle
 
-		lastProcessedCycle := int64(lastCompletedCycleBeforeStart - 1)
+		currentCycle := <-monitor.Cycle
+		lastProcessedCycle := int64(currentCycle - 1)
 		if initialCycle != 0 {
 			lastProcessedCycle = initialCycle - 1
 		}
 		var cycle int64
 
+		completeCycle := func() {
+			lastProcessedCycle = cycle
+			log.Infof("================  CYCLE %d PROCESSED ===============", cycle)
+		}
+
 		for {
-			if lastProcessedCycle >= lastCompletedCycleBeforeStart {
+			if lastProcessedCycle >= currentCycle-1 {
 				log.Info("looking for next cycle to pay out")
 				currentCycle, ok := <-monitor.Cycle
 				if !ok {
 					os.Exit(0)
 				}
-				cycle = currentCycle - 1
-				if lastProcessedCycle >= cycle {
+				log.Infof("new cycle detected - %d", currentCycle)
+				log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCycle)
+				if lastProcessedCycle >= currentCycle {
 					continue
 				}
+				cycle = currentCycle - 1
 			} else {
 				cycle = lastProcessedCycle + 1
 			}
 
-			log.Infof("====================  CYCLE %d  ========================", cycle)
+			log.Infof("====================  CYCLE %d  ====================", cycle)
 
 			payoutBlueprint, err := payout.GeneratePayouts(signer.GetKey(), config, common.GeneratePayoutsOptions{
 				Cycle:                    cycle,
@@ -89,7 +96,7 @@ var continualCmd = &cobra.Command{
 
 			if len(payouts) == 0 {
 				log.Info("nothing to pay out, skipping")
-				lastProcessedCycle = cycle
+				completeCycle()
 				continue
 			}
 
@@ -176,7 +183,7 @@ var continualCmd = &cobra.Command{
 			if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 				notifyPayoutsProcessedThroughAllNotificators(config, &payoutBlueprint.Summary)
 			}
-			lastProcessedCycle = cycle
+			completeCycle()
 		}
 	},
 }

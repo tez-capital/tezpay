@@ -36,7 +36,7 @@ type Context struct {
 }
 
 func InitContext(payoutKey tezos.Key, configuration *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*Context, error) {
-	log.Debug("tezpay engine initialization")
+	log.Trace("tezpay payout context initialization")
 	if options.Engines.Collector == nil {
 		return nil, errors.New("udefined collector engine")
 	}
