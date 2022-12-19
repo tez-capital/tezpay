@@ -28,10 +28,6 @@ var continualCmd = &cobra.Command{
 
 		assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
 
-		// TODO: remove
-		disableConfirmationPrompt, _ := cmd.Flags().GetBool("disable-confirmation-prompt")
-		forceConfirmationPrompt = true && !disableConfirmationPrompt
-
 		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) {
 			return collector.MonitorCycles(common.CycleMonitorOptions{
 				CheckFrequency: 10,
@@ -55,7 +51,7 @@ var continualCmd = &cobra.Command{
 				log.Info("looking for next cycle to pay out")
 				currentCycle, ok := <-monitor.Cycle
 				if !ok {
-					os.Exit(0)
+					os.Exit(1)
 				}
 				log.Infof("new cycle detected - %d", currentCycle)
 				log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCycle)

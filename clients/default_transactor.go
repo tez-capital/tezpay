@@ -39,10 +39,9 @@ func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 	})
 	appliedChan := make(chan common.OperationStatus, 1)
 	go func() {
-		utils.SleepContext(ctx, 100*time.Second) //give monitor 3 blocks before fallback kicks in
+		utils.SleepContext(ctx, 130*time.Second) //give monitor 4 blocks before fallback kicks in
 		if ctx.Err() != context.Canceled {
-			log.Info(`failed to confirm with live monitoring. falling back to polling...
-NOTE: Please report this event to tezpay developers.`)
+			log.Debug(`failed to confirm with live monitoring, falling back to polling...`)
 		}
 		for ctx.Err() != context.Canceled {
 			applied, _ := result.tzkt.WasOperationApplied(ctx, result.opHash)

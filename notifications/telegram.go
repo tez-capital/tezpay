@@ -39,11 +39,11 @@ func InitTelegramNotificator(configurationBytes []byte) (*TelegramNotificator, e
 	}
 
 	session, err := telegram.New(configuration.Token)
-	for _, v := range configuration.Receivers {
-		session.AddReceivers(v)
-	}
 	if err != nil {
 		return nil, err
+	}
+	for _, v := range configuration.Receivers {
+		session.AddReceivers(v)
 	}
 
 	log.Trace("telegram notificator initialized")
