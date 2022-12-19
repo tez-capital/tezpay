@@ -13,9 +13,10 @@ tezpay continual [flags]
 ### Options
 
 ```
-  -c, --cycle int        initial cycle
-  -h, --help             help for continual
-      --no-separate-sc   disables smart contract separation (mixes txs and smart contract calls within batches)
+  -c, --cycle int                   initial cycle
+      --force-confirmation-prompt   forces confirmation prompts for each payout
+  -h, --help                        help for continual
+      --no-separate-sc              disables smart contract separation (mixes txs and smart contract calls within batches)
 ```
 
 ### Options inherited from parent commands
