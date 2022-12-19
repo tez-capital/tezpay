@@ -188,10 +188,6 @@ func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(FORCE_CONFIRMATION_PROMPT_FLAG, false, "forces confirmation prompts for each payout")
-	continualCmd.Flags().MarkHidden(FORCE_CONFIRMATION_PROMPT_FLAG)
-
-	continualCmd.Flags().Bool("disable-confirmation-prompt", false, "disables confirmation prompts for each payout")
-	continualCmd.Flags().MarkDeprecated("disable-confirmation-prompt", "this flag will be removed in the future")
 
 	RootCmd.AddCommand(continualCmd)
 }
