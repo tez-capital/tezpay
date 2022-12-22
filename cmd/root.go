@@ -85,7 +85,7 @@ Copyright © %d alis.is
 
 			skipVersionCheck, _ := cmd.Flags().GetBool(SKIP_VERSION_CHECK_FLAG)
 			if !skipVersionCheck {
-				checkLatestVersion()
+				promptIfNewVersionAvailable()
 			}
 		},
 	}

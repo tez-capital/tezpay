@@ -27,6 +27,9 @@ var continualCmd = &cobra.Command{
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
 
 		assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
+		if forceConfirmationPrompt {
+			log.Info("you will be prompted for confirmation before each payout")
+		}
 
 		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) {
 			return collector.MonitorCycles(common.CycleMonitorOptions{
@@ -46,6 +49,8 @@ var continualCmd = &cobra.Command{
 			log.Infof("================  CYCLE %d PROCESSED ===============", cycle)
 		}
 
+		notifiedNewVersionAvailable := false
+
 		for {
 			if lastProcessedCycle >= currentCycle-1 {
 				log.Info("looking for next cycle to pay out")
@@ -61,6 +66,10 @@ var continualCmd = &cobra.Command{
 				cycle = currentCycle - 1
 			} else {
 				cycle = lastProcessedCycle + 1
+			}
+			if available, latest := checkForNewVersionAvailable(); available && !notifiedNewVersionAvailable {
+				notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
+				notifiedNewVersionAvailable = true
 			}
 
 			log.Infof("====================  CYCLE %d  ====================", cycle)

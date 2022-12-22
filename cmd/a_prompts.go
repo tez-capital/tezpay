@@ -33,49 +33,56 @@ func assertRequireConfirmation(msg string) {
 	assertRunWithParam(requireConfirmation, msg, EXIT_OPERTION_CANCELED)
 }
 
-func checkLatestVersion() {
+func checkForNewVersionAvailable() (bool, string) {
 	log.Info("checking for new version")
 	// https://api.github.com/repos/tez-capital/tezpay/releases/latest
 	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", constants.TEZPAY_REPOSITORY))
 	if err != nil {
 		log.Warnf("Failed to check latest version!")
-		return
+		return false, ""
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Warnf("Failed to check latest version!")
-		return
+		return false, ""
 	}
 	var info versionInfo
 	err = json.Unmarshal(body, &info)
 	if err != nil {
 		log.Warnf("Failed to check latest version!")
-		return
+		return false, ""
 	}
 	latestVersion := info.Version
 	if latestVersion == "" {
 		log.Warnf("failed to check latest version - empty tag!")
-		return
+		return false, ""
 	}
-	currentVersion := constants.VERSION
+
 	lv, err := version.NewVersion(latestVersion)
 	if err != nil {
 		log.Warnf("failed to check latest version - invalid version from remote!")
-		return
+		return false, ""
 	}
-	cv, err := version.NewVersion(currentVersion)
+	cv, err := version.NewVersion(constants.VERSION)
 	if err != nil {
 		log.Warnf("failed to check latest version - invalid binary version!")
-		return
+		return false, ""
 	}
 
 	if cv.GreaterThanOrEqual(lv) {
 		log.Info("you are running latest version")
-		return
+		return false, ""
 	}
-	err = requireConfirmation(fmt.Sprintf("You are not running latest version of tezpay (new version : '%s', current version: '%s').\n Do you want to continue anyway?", latestVersion, currentVersion))
-	if err != nil && err.Error() == "not confirmed" {
-		log.Infof("You can download new version here:\n\nhttps://github.com/%s/releases\n", constants.TEZPAY_REPOSITORY)
-		os.Exit(1)
+	log.Infof("new version available: %s", latestVersion)
+	return true, latestVersion
+}
+
+func promptIfNewVersionAvailable() {
+	if available, latestVersion := checkForNewVersionAvailable(); available {
+		err := requireConfirmation(fmt.Sprintf("You are not running latest version of tezpay (new version : '%s', current version: '%s').\n Do you want to continue anyway?", latestVersion, constants.VERSION))
+		if err != nil && err.Error() == "not confirmed" {
+			log.Infof("You can download new version here:\n\nhttps://github.com/%s/releases\n", constants.TEZPAY_REPOSITORY)
+			os.Exit(1)
+		}
 	}
 }
