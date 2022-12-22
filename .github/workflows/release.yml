@@ -36,3 +36,11 @@ jobs:
           # tag: ${{ github.ref }}
           file_glob: true
           file: bin/tezpay*
+
+      - name: Notify new version available
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+            severity: info
+            details: Test Succeeded!
+            webhookUrl: ${{ secrets.PB_DISCORD_WEBHOOK }}
+            text: New tezpay ${{ github.ref }} released. (<https://github.com/tez-capital/tezpay/releases/tag/${{ github.ref }}>)

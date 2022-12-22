@@ -59,7 +59,7 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 	ctx := monitor.ctx
 
 	go func() {
-		var lastProcessedCycle int64
+		// var lastProcessedCycle int64
 
 		for ctx.Err() == nil {
 			metadata, err := monitor.rpc.GetBlockMetadata(ctx, rpc.Head)
@@ -70,9 +70,9 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 			}
 			cycle := metadata.LevelInfo.Cycle
 
-			if metadata.LevelInfo.CyclePosition >= monitor.options.NotificationDelay && lastProcessedCycle < cycle {
+			if metadata.LevelInfo.CyclePosition >= monitor.options.NotificationDelay /* && lastProcessedCycle < cycle */ {
 				monitor.Cycle <- cycle
-				lastProcessedCycle = cycle
+				// lastProcessedCycle = cycle
 			}
 
 			log.Tracef("received new head %d", metadata.LevelInfo.Level)
