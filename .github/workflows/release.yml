@@ -38,8 +38,8 @@ jobs:
           file: bin/tezpay*
 
       - name: Notify new version available
-        uses: rjstone/discord-webhook-notify@v1
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.PB_DISCORD_WEBHOOK }}
         with:
-            severity: info
-            webhookUrl: ${{ secrets.PB_DISCORD_WEBHOOK }}
-            text: New tezpay ${{ github.ref_name }} released. (<https://github.com/tez-capital/tezpay/releases/tag/${{ github.ref_name }}>)
+            args: "New tezpay ${{ github.ref_name }} released. (<https://github.com/tez-capital/tezpay/releases/tag/${{ github.ref_name }}>)"
