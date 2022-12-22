@@ -39,6 +39,11 @@ func checkSufficientBalance(ctx Context) (Context, error) {
 
 		payableBalance, err := ctx.Collector.GetBalance(ctx.PayoutKey.Address())
 		if err != nil {
+			if ctx.Options.WaitForSufficientBalance {
+				log.Errorf("failed to check balance - %s, waiting 5 minutes...", err.Error())
+				time.Sleep(time.Minute * 5)
+				continue
+			}
 			return ctx, err
 		}
 

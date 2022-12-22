@@ -53,7 +53,7 @@ var continualCmd = &cobra.Command{
 
 		for {
 			if lastProcessedCycle >= currentCycle-1 {
-				log.Info("looking for next cycle to pay out")
+				log.Info("looking for cycle to pay out")
 				currentCycle, ok := <-monitor.Cycle
 				if !ok {
 					os.Exit(1)
