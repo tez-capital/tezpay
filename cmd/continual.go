@@ -58,7 +58,6 @@ var continualCmd = &cobra.Command{
 				if !ok {
 					os.Exit(1)
 				}
-				log.Infof("new cycle detected - %d", currentCycle)
 				log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCycle)
 				if lastProcessedCycle >= currentCycle-1 {
 					continue
