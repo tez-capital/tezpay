@@ -17,6 +17,11 @@ var generatePayoutsCmd = &cobra.Command{
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		config, collector, signerEngine, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 
+		if cycle <= 0 {
+			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+			cycle = lastCompletedCycle + cycle
+		}
+
 		payoutBlueprint := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
 			return payout.GeneratePayouts(signerEngine.GetKey(), config, common.GeneratePayoutsOptions{
 				Cycle:            cycle,

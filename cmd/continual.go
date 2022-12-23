@@ -40,7 +40,11 @@ var continualCmd = &cobra.Command{
 		currentCycle := <-monitor.Cycle
 		lastProcessedCycle := int64(currentCycle - 1)
 		if initialCycle != 0 {
-			lastProcessedCycle = initialCycle - 1
+			if initialCycle > 0 {
+				lastProcessedCycle = initialCycle - 1
+			} else {
+				lastProcessedCycle = currentCycle + initialCycle - 1
+			}
 		}
 		var cycle int64
 
@@ -54,13 +58,13 @@ var continualCmd = &cobra.Command{
 		for {
 			if lastProcessedCycle >= currentCycle-1 {
 				log.Info("looking for cycle to pay out")
-				currentCycle, ok := <-monitor.Cycle
-				if !ok {
-					os.Exit(1)
-				}
-				log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCycle)
-				if lastProcessedCycle >= currentCycle-1 {
-					continue
+				for lastProcessedCycle >= currentCycle-1 {
+					currentCycle, ok := <-monitor.Cycle
+					if !ok {
+						// monitoring canceled
+						os.Exit(1)
+					}
+					log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCycle)
 				}
 				cycle = currentCycle - 1
 			} else {

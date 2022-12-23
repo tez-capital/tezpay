@@ -27,6 +27,11 @@ var payCmd = &cobra.Command{
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 
+		if cycle <= 0 {
+			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+			cycle = lastCompletedCycle + cycle
+		}
+
 		var payoutBlueprint *common.CyclePayoutBlueprint
 		fromFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
 		if fromFile != "" {
