@@ -86,7 +86,7 @@ func InitDefaultTransactor(rpcUrl string, tzktUrl string) (*DefaultRpcTransactor
 	if err != nil {
 		return nil, err
 	}
-	tzktClient, err := tzkt.InitClient(tzktUrl)
+	tzktClient, err := tzkt.InitClient(tzktUrl, nil)
 	if err != nil {
 		return nil, err
 	}

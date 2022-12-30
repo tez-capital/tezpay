@@ -2,6 +2,8 @@ package clients
 
 import (
 	"context"
+	"net/http"
+	"time"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
@@ -22,7 +24,10 @@ var (
 )
 
 func InitDefaultRpcAndTzktColletor(rpcUrl string, tzktUrl string) (*DefaultRpcAndTzktColletor, error) {
-	rpcClient, err := rpc.NewClient(rpcUrl, nil)
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+	rpcClient, err := rpc.NewClient(rpcUrl, &client)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +36,7 @@ func InitDefaultRpcAndTzktColletor(rpcUrl string, tzktUrl string) (*DefaultRpcAn
 		return nil, err
 	}
 	rpcClient.ChainId = chainId
-	tzktClient, err := tzkt.InitClient(tzktUrl)
+	tzktClient, err := tzkt.InitClient(tzktUrl, &client)
 	if err != nil {
 		return nil, err
 	}

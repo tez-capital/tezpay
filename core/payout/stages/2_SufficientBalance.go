@@ -11,6 +11,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+/*
+Technically we could calculate real required balance by checking all payouts and fees and donations in final stage
+but because of potential changes of transaction fees (on-chain state changes) it would not be accurate anyway.
+So we just try to estimate with a buffer which should be enough for most cases.
+*/
+
 func checkSufficientBalance(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
 	if ctx.Options.SkipBalanceCheck { // skip

@@ -73,6 +73,8 @@ func (monitor *CycleMonitor) CreateBlockHeaderMonitor() error {
 			if metadata.LevelInfo.CyclePosition >= monitor.options.NotificationDelay /* && lastProcessedCycle < cycle */ {
 				monitor.Cycle <- cycle
 				// lastProcessedCycle = cycle
+			} else {
+				monitor.Cycle <- cycle - 1
 			}
 
 			log.Tracef("received new head %d", metadata.LevelInfo.Level)

@@ -41,17 +41,23 @@ type bakerData struct {
 }
 
 type Client struct {
-	rootUrl *url.URL
+	rootUrl    *url.URL
+	httpClient *http.Client
 }
 
-func InitClient(rootUrl string) (*Client, error) {
+func InitClient(rootUrl string, httpClient *http.Client) (*Client, error) {
 	root, err := url.Parse(rootUrl)
 	if err != nil {
 		return nil, err
 	}
 
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+
 	return &Client{
-		rootUrl: root,
+		rootUrl:    root,
+		httpClient: httpClient,
 	}, nil
 }
 
@@ -65,7 +71,7 @@ func (client *Client) Get(ctx context.Context, path string) (*http.Response, err
 	}
 	request, _ := http.NewRequestWithContext(ctx, "GET", client.rootUrl.ResolveReference(rel).String(), nil)
 
-	resp, err := http.DefaultClient.Do(request)
+	resp, err := client.httpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
