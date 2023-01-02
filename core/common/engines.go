@@ -25,7 +25,7 @@ type CollectorEngine interface {
 	GetBranch(offset int64) (tezos.BlockHash, error)
 	Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error)
 	GetBalance(pkh tezos.Address) (tezos.Z, error)
-	MonitorCycles(options CycleMonitorOptions) (*CycleMonitor, error)
+	CreateCycleMonitor(options CycleMonitorOptions) (CycleMonitor, error)
 }
 
 type SignerEngine interface {
@@ -55,4 +55,12 @@ type NotificatorEngine interface {
 	PayoutSummaryNotify(summary *CyclePayoutSummary) error
 	AdminNotify(msg string) error
 	TestNotify() error
+}
+
+type CycleMonitor interface {
+	GetCycleChannel() chan int64
+	Cancel()
+	Terminate()
+	CreateBlockHeaderMonitor() error
+	WaitForNextCompletedCycle(lastProcessedCycle int64) int64
 }

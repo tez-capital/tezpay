@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -31,54 +30,47 @@ var continualCmd = &cobra.Command{
 			log.Info("you will be prompted for confirmation before each payout")
 		}
 
-		monitor := assertRunWithResultAndErrFmt(func() (*common.CycleMonitor, error) {
-			return collector.MonitorCycles(common.CycleMonitorOptions{
+		monitor := assertRunWithResultAndErrFmt(func() (common.CycleMonitor, error) {
+			return collector.CreateCycleMonitor(common.CycleMonitorOptions{
 				CheckFrequency: 10,
 			})
 		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 
-		currentCycle := <-monitor.Cycle
-		lastProcessedCycle := int64(currentCycle - 1)
+		// last completed cycle at the time we started continual mode on
+		onchainCompletedCycleAtStartup := monitor.WaitForNextCompletedCycle(0)
+		lastProcessedCycle := int64(onchainCompletedCycleAtStartup)
 		if initialCycle != 0 {
 			if initialCycle > 0 {
 				lastProcessedCycle = initialCycle - 1
 			} else {
-				lastProcessedCycle = currentCycle + initialCycle - 1
+				lastProcessedCycle = onchainCompletedCycleAtStartup + initialCycle
 			}
 		}
-		var cycle int64
+		var cycleToProcess int64
 
 		completeCycle := func() {
-			lastProcessedCycle = cycle
-			log.Infof("================  CYCLE %d PROCESSED ===============", cycle)
+			lastProcessedCycle = cycleToProcess
+			log.Infof("================  CYCLE %d PROCESSED ===============", cycleToProcess)
 		}
 
 		notifiedNewVersionAvailable := false
 
 		for {
-			if lastProcessedCycle >= currentCycle-1 {
+			if lastProcessedCycle >= onchainCompletedCycleAtStartup {
 				log.Info("looking for cycle to pay out")
-				for lastProcessedCycle >= currentCycle-1 {
-					currentCycle, ok := <-monitor.Cycle
-					if !ok {
-						// monitoring canceled
-						os.Exit(1)
-					}
-					log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCycle)
-				}
-				cycle = currentCycle - 1
+				cycleToProcess = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 			} else {
-				cycle = lastProcessedCycle + 1
+				cycleToProcess = lastProcessedCycle + 1
 			}
 			if available, latest := checkForNewVersionAvailable(); available && !notifiedNewVersionAvailable {
 				notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
 				notifiedNewVersionAvailable = true
 			}
 
-			log.Infof("====================  CYCLE %d  ====================", cycle)
+			log.Infof("====================  CYCLE %d  ====================", cycleToProcess)
 
 			payoutBlueprint, err := payout.GeneratePayouts(signer.GetKey(), config, common.GeneratePayoutsOptions{
-				Cycle:                    cycle,
+				Cycle:                    cycleToProcess,
 				WaitForSufficientBalance: true,
 				AdminNotify:              notifyAdminFactory(config),
 				Engines: common.GeneratePayoutsEngines{
@@ -94,7 +86,7 @@ var continualCmd = &cobra.Command{
 			log.Info("checking past reports")
 			reportResidues, err := loadPastPayoutReports(config.BakerPKH, payoutBlueprint.Cycle)
 			if err != nil {
-				log.Errorf("failed to read old payout reports from cycle #%d - %s, retries in 5 minutes", cycle, err.Error())
+				log.Errorf("failed to read old payout reports from cycle #%d - %s, retries in 5 minutes", cycleToProcess, err.Error())
 				time.Sleep(time.Minute * 5)
 				continue
 			}

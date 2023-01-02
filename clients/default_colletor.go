@@ -90,7 +90,7 @@ func (engine *DefaultRpcAndTzktColletor) GetBalance(addr tezos.Address) (tezos.Z
 	return engine.rpc.GetContractBalance(context.Background(), addr, rpc.Head)
 }
 
-func (engine *DefaultRpcAndTzktColletor) MonitorCycles(options common.CycleMonitorOptions) (*common.CycleMonitor, error) {
+func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.CycleMonitorOptions) (common.CycleMonitor, error) {
 	ctx := context.Background()
 	monitor, err := common.NewCycleMonitor(ctx, engine.rpc, options)
 	if err != nil {
