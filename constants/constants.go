@@ -21,8 +21,6 @@ const (
 	MAX_OPERATION_TTL      = 12   // 12 blocks
 	ALLOCATION_STORAGE     = 257
 
-	PRIVATE_KEY_FILE_NAME    = "payout_wallet_private.key"
-	REMOTE_SPECS_FILE_NAME   = "remote-signer.hjson"
 	PAYOUT_REPORT_FILE_NAME  = "payouts.csv"
 	INVALID_REPORT_FILE_NAME = "invalid.csv"
 	REPORT_SUMMARY_FILE_NAME = "summary.json"

@@ -3,11 +3,9 @@ package signer
 import (
 	"fmt"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/alis-is/tezpay/clients"
-	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/state"
@@ -16,11 +14,10 @@ import (
 )
 
 func Load(kind string) (common.SignerEngine, error) {
-	wotkingDirectory := state.Global.GetWorkingDirectory()
 	switch kind {
 	case string(enums.WALLET_MODE_LOCAL_PRIVATE_KEY):
 		logrus.Debug("creating InMemorySigner")
-		privateKeyFile := path.Join(wotkingDirectory, constants.PRIVATE_KEY_FILE_NAME)
+		privateKeyFile := state.Global.GetPrivateKeyFilePath()
 		logrus.Debugf("Loading private key from file '%s'", privateKeyFile)
 		keyBytes, err := os.ReadFile(privateKeyFile)
 		if err != nil {
@@ -29,7 +26,7 @@ func Load(kind string) (common.SignerEngine, error) {
 		return clients.InitInMemorySigner(strings.TrimSpace(string(keyBytes)))
 	case string(enums.WALLET_MODE_REMOTE_SIGNER):
 		logrus.Debug("creating RemoteSigner")
-		remoteSpecsFile := path.Join(wotkingDirectory, constants.REMOTE_SPECS_FILE_NAME)
+		remoteSpecsFile := state.Global.GetRemoteSpecsFilePath()
 		logrus.Debugf("Loading remote specification from file '%s'", remoteSpecsFile)
 		remoteSpecsBytes, err := os.ReadFile(remoteSpecsFile)
 		if err != nil {

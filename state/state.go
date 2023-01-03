@@ -8,8 +8,10 @@ import (
 )
 
 var (
-	Global           State
-	CONFIG_FILE_NAME = "config.hjson"
+	Global                 State
+	CONFIG_FILE_NAME       = "config.hjson"
+	PRIVATE_KEY_FILE_NAME  = "payout_wallet_private.key"
+	REMOTE_SPECS_FILE_NAME = "remote-signer.hjson"
 )
 
 type StateInitOptions struct {
@@ -60,7 +62,7 @@ func (state *State) GetConfigurationFilePath() string {
 	if configurationFilePath != "" {
 		return configurationFilePath
 	}
-	return path.Join(state.GetWorkingDirectory() + CONFIG_FILE_NAME)
+	return path.Join(state.GetWorkingDirectory(), CONFIG_FILE_NAME)
 }
 
 func (state *State) GetConfigurationFileBackupPath() string {
@@ -68,6 +70,22 @@ func (state *State) GetConfigurationFileBackupPath() string {
 	extension := path.Ext(configurationFilePath)
 
 	return configurationFilePath[0:len(configurationFilePath)-len(extension)] + ".backup" + extension
+}
+
+func (state *State) GetPrivateKeyFilePath() string {
+	privateKeyFilePath := os.Getenv("PRIVATE_KEY_FILE")
+	if privateKeyFilePath != "" {
+		return privateKeyFilePath
+	}
+	return path.Join(state.GetWorkingDirectory(), PRIVATE_KEY_FILE_NAME)
+}
+
+func (state *State) GetRemoteSpecsFilePath() string {
+	remoteSpecsConfigurationFile := os.Getenv("REMOTE_SIGNER_CONFIGURATION_FILE")
+	if remoteSpecsConfigurationFile != "" {
+		return remoteSpecsConfigurationFile
+	}
+	return path.Join(state.GetWorkingDirectory(), REMOTE_SPECS_FILE_NAME)
 }
 
 func (state *State) GetIsInDebugMode() bool {
