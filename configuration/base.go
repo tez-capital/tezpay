@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math"
 	"os"
-	"path"
 	"strconv"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -104,13 +103,12 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 }
 
 func Load() (*RuntimeConfiguration, error) {
-	workingDirectory := state.Global.GetWorkingDirectory()
 	hasInjectedConfiguration, configurationBytes := state.Global.GetInjectedConfiguration()
 	if !hasInjectedConfiguration {
-		log.Debugf("loading configuration from '%s'", constants.CONFIG_FILE_NAME)
+		log.Debugf("loading configuration from '%s'", state.Global.GetConfigurationFilePath())
 		// we load configuration from file if it wasnt injected
 		var err error
-		configurationBytes, err = os.ReadFile(path.Join(workingDirectory, "config.hjson"))
+		configurationBytes, err = os.ReadFile(state.Global.GetConfigurationFilePath())
 		if err != nil {
 			return nil, err
 		}

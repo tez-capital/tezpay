@@ -6,9 +6,9 @@ import (
 	"os"
 
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
+	"github.com/alis-is/tezpay/state"
 
 	"github.com/alis-is/tezpay/configuration/migrations"
-	"github.com/alis-is/tezpay/constants"
 	"github.com/hjson/hjson-go/v4"
 )
 
@@ -21,7 +21,7 @@ func WriteMigratedConfiguration(configuration LatestConfigurationType) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(constants.CONFIG_FILE_NAME, marshaled, 0644)
+	err = os.WriteFile(state.Global.GetConfigurationFilePath(), marshaled, 0644)
 	return err
 }
 
@@ -50,7 +50,7 @@ func Migrate(sourceBytes []byte, versionInfo *migrations.ConfigurationVersionInf
 	// persist migrated config
 	isMigrated := !bytes.Equal(originalSourceBytes, sourceBytes)
 	if isMigrated && persist {
-		os.Rename(constants.CONFIG_FILE_NAME, constants.BACKUP_CONFIG_FILE_NAME)
+		os.Rename(state.Global.GetConfigurationFilePath(), state.Global.GetConfigurationFileBackupPath())
 		err := WriteMigratedConfiguration(configuration)
 		if err != nil {
 			return nil, fmt.Errorf("failed to write migrated configuration - %s", err.Error())

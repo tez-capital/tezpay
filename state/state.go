@@ -1,11 +1,15 @@
 package state
 
 import (
+	"os"
+	"path"
+
 	"github.com/alis-is/tezpay/core/common"
 )
 
 var (
-	Global State
+	Global           State
+	CONFIG_FILE_NAME = "config.hjson"
 )
 
 type StateInitOptions struct {
@@ -49,6 +53,21 @@ func (state *State) GetWantsOutputJson() bool {
 
 func (state *State) GetInjectedConfiguration() (bool, []byte) {
 	return state.hasInjectedConfiguration, state.injectedConfiguration
+}
+
+func (state *State) GetConfigurationFilePath() string {
+	configurationFilePath := os.Getenv("CONFIGURATION_FILE")
+	if configurationFilePath != "" {
+		return configurationFilePath
+	}
+	return path.Join(state.GetWorkingDirectory() + CONFIG_FILE_NAME)
+}
+
+func (state *State) GetConfigurationFileBackupPath() string {
+	configurationFilePath := state.GetConfigurationFilePath()
+	extension := path.Ext(configurationFilePath)
+
+	return configurationFilePath[0:len(configurationFilePath)-len(extension)] + ".backup" + extension
 }
 
 func (state *State) GetIsInDebugMode() bool {
