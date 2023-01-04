@@ -28,7 +28,7 @@ var payCmd = &cobra.Command{
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 
 		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
-			assertRequireConfirmation("With your current configuration you are not going to donate to Tez Capital. Do you want to proceed?")
+			assertRequireConfirmation("With your current configuration you are not going to donate to tez.capital. Do you want to proceed?")
 		}
 
 		if cycle <= 0 {

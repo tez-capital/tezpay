@@ -38,7 +38,7 @@ var continualCmd = &cobra.Command{
 		}
 
 		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
-			assertRequireConfirmation("With your current configuration you are not going to donate to Tez Capital. Do you want to proceed?")
+			assertRequireConfirmation("With your current configuration you are not going to donate to tez.capital. Do you want to proceed?")
 		}
 
 		monitor := assertRunWithResultAndErrFmt(func() (common.CycleMonitor, error) {
