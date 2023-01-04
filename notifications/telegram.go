@@ -24,7 +24,7 @@ type TelegramNotificator struct {
 }
 
 const (
-	DEFAULT_TELEGRAM_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle <Cycle> to <Delegators> delegators using #tezpay on the #tezos blockchain."
+	DEFAULT_TELEGRAM_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle <Cycle> to <Delegators> delegators and donated <DonatedTotal> using #tezpay on the #tezos blockchain."
 )
 
 func InitTelegramNotificator(configurationBytes []byte) (*TelegramNotificator, error) {

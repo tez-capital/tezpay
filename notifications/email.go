@@ -28,7 +28,7 @@ type EmailNotificator struct {
 }
 
 const (
-	DEFAULT_EMAIL_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle <Cycle> to <Delegators> delegators using #tezpay on the #tezos blockchain."
+	DEFAULT_EMAIL_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle <Cycle> to <Delegators> delegators and donated <DonatedTotal> using #tezpay on the #tezos blockchain."
 )
 
 func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) {
