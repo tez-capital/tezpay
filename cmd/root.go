@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	LOG_LEVEL_FLAG     = "log-level"
-	PATH_FLAG          = "path"
-	OUTPUT_FORMAT_FLAG = "output-format"
+	LOG_LEVEL_FLAG               = "log-level"
+	PATH_FLAG                    = "path"
+	DISABLE_DONATION_PROMPT_FLAG = "disable-donation-prompt"
+	OUTPUT_FORMAT_FLAG           = "output-format"
 )
 
 var (
@@ -39,6 +40,7 @@ Copyright © %d alis.is
 `, constants.VERSION, time.Now().Year()),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			format, _ := cmd.Flags().GetString(OUTPUT_FORMAT_FLAG)
+			disableDonationPrompt, _ := cmd.Flags().GetBool(DISABLE_DONATION_PROMPT_FLAG)
 			outputJson := false
 
 			switch format {
@@ -78,9 +80,10 @@ Copyright © %d alis.is
 			}
 
 			state.Init(workingDirectory, state.StateInitOptions{
-				WantsJsonOutput: outputJson,
-				SignerOverride:  signerOverride,
-				Debug:           level == "trace" || level == "debug",
+				WantsJsonOutput:       outputJson,
+				SignerOverride:        signerOverride,
+				Debug:                 level == "trace" || level == "debug",
+				DisableDonationPrompt: disableDonationPrompt,
 			})
 
 			skipVersionCheck, _ := cmd.Flags().GetBool(SKIP_VERSION_CHECK_FLAG)
@@ -101,5 +104,6 @@ func init() {
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets output log format (json/text/auto)")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
 	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
+	RootCmd.PersistentFlags().Bool(DISABLE_DONATION_PROMPT_FLAG, false, "Disable donation prompt")
 	RootCmd.PersistentFlags().SetInterspersed(false)
 }

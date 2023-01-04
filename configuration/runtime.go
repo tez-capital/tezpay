@@ -1,6 +1,8 @@
 package configuration
 
 import (
+	"math"
+
 	"blockwatch.cc/tzgo/tezos"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
 	"github.com/alis-is/tezpay/constants"
@@ -89,4 +91,16 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 
 func (configuration *RuntimeConfiguration) LoadSigner() (common.SignerEngine, error) {
 	return signer.Load(string(configuration.PayoutConfiguration.WalletMode))
+}
+
+func (configuration *RuntimeConfiguration) IsDonatingToTezCapital() bool {
+	total := float64(0)
+	for k, v := range configuration.IncomeRecipients.Donations {
+		if constants.DEFAULT_DONATION_ADDRESS == k {
+			continue
+		}
+		total += v
+	}
+	portion := int64(math.Floor(float64(total) * 10000))
+	return portion < 10000 && configuration.IncomeRecipients.Donate > 0
 }

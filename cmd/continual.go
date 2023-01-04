@@ -9,6 +9,7 @@ import (
 	"github.com/alis-is/tezpay/core/ops"
 	"github.com/alis-is/tezpay/core/payout"
 	"github.com/alis-is/tezpay/core/reports"
+	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -25,9 +26,19 @@ var continualCmd = &cobra.Command{
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
 
-		assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
+		if utils.IsTty() {
+			assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
+		}
 		if forceConfirmationPrompt {
-			log.Info("you will be prompted for confirmation before each payout")
+			if utils.IsTty() {
+				log.Info("you will be prompted for confirmation before each payout")
+			} else {
+				log.Warn("force confirmation mode is not supported in non-interactive mode")
+			}
+		}
+
+		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
+			assertRequireConfirmation("With your current configuration you are not going to donate to Tez Capital. Do you want to proceed?")
 		}
 
 		monitor := assertRunWithResultAndErrFmt(func() (common.CycleMonitor, error) {
@@ -100,7 +111,7 @@ var continualCmd = &cobra.Command{
 				continue
 			}
 
-			if forceConfirmationPrompt {
+			if forceConfirmationPrompt && utils.IsTty() {
 				utils.PrintInvalidPayoutRecipes(payoutBlueprint.Payouts, payoutBlueprint.Cycle)
 				utils.PrintReports(reportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", payoutBlueprint.Cycle), true)
 				utils.PrintValidPayoutRecipes(payouts, payoutBlueprint.Cycle)

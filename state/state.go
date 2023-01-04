@@ -19,6 +19,7 @@ type StateInitOptions struct {
 	InjectedConfiguration *string
 	SignerOverride        common.SignerEngine
 	Debug                 bool
+	DisableDonationPrompt bool
 }
 
 type State struct {
@@ -28,6 +29,7 @@ type State struct {
 	hasInjectedConfiguration bool
 	SignerOverride           common.SignerEngine
 	debug                    bool
+	disableDonationPrompt    bool
 }
 
 func Init(workingDirectory string, options StateInitOptions) {
@@ -42,6 +44,7 @@ func Init(workingDirectory string, options StateInitOptions) {
 		hasInjectedConfiguration: hasInjectedConfiguration,
 		SignerOverride:           options.SignerOverride,
 		debug:                    options.Debug,
+		disableDonationPrompt:    options.DisableDonationPrompt,
 	}
 }
 
@@ -90,4 +93,8 @@ func (state *State) GetRemoteSpecsFilePath() string {
 
 func (state *State) GetIsInDebugMode() bool {
 	return state.debug
+}
+
+func (state *State) IsDonationPromptDisabled() bool {
+	return state.disableDonationPrompt
 }

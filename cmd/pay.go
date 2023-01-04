@@ -27,6 +27,10 @@ var payCmd = &cobra.Command{
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 
+		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
+			assertRequireConfirmation("With your current configuration you are not going to donate to Tez Capital. Do you want to proceed?")
+		}
+
 		if cycle <= 0 {
 			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 			cycle = lastCompletedCycle + cycle
