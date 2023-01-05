@@ -15,7 +15,7 @@ func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.Notifi
 	case TELEGRAM_NOTIFICATOR:
 		return InitTelegramNotificator(configuration)
 	case EMAIL_NOTIFICATOR:
-		return InitExternalNotificator(configuration)
+		return InitEmailNotificator(configuration)
 	case EXTERNAL_NOTIFICATOR:
 		return InitExternalNotificator(configuration)
 	default:

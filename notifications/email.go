@@ -44,7 +44,9 @@ func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) 
 
 	session := mail.New(configuration.Sender, configuration.SmtpServer)
 	session.AddReceivers(configuration.Recipients...)
-	session.AuthenticateSMTP(configuration.SmtpIdentity, configuration.SmtpUser, configuration.SmtpPass, configuration.SmtpServer)
+	if configuration.SmtpUser != "" && configuration.SmtpPass != "" {
+		session.AuthenticateSMTP(configuration.SmtpIdentity, configuration.SmtpUser, configuration.SmtpPass, configuration.SmtpServer)
+	}
 
 	log.Trace("email notificator initialized")
 
