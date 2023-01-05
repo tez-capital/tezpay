@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 
 	"github.com/alis-is/tezpay/core/common"
 	"github.com/nikoksr/notify/service/mail"
@@ -44,8 +45,14 @@ func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) 
 
 	session := mail.New(configuration.Sender, configuration.SmtpServer)
 	session.AddReceivers(configuration.Recipients...)
+
+	smtpHost, _, err := net.SplitHostPort(configuration.SmtpServer)
+	if err != nil {
+		return nil, err
+	}
+
 	if configuration.SmtpUser != "" && configuration.SmtpPass != "" {
-		session.AuthenticateSMTP(configuration.SmtpIdentity, configuration.SmtpUser, configuration.SmtpPass, configuration.SmtpServer)
+		session.AuthenticateSMTP(configuration.SmtpIdentity, configuration.SmtpUser, configuration.SmtpPass, smtpHost)
 	}
 
 	log.Trace("email notificator initialized")
