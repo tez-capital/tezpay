@@ -90,7 +90,7 @@ func GenerateSample() {
 			{
 				"type":             "email",
 				"sender":           "my@email.is",
-				"smtp_server":      "smtp.gmail.com",
+				"smtp_server":      "smtp.gmail.com:443",
 				"smtp_identity":    "",
 				"smtp_username":    "my@email.is",
 				"smtp_password":    "password123",
