@@ -102,7 +102,7 @@
       sender: my@email.is
       smtp_identity: ""
       smtp_password: password123
-      smtp_server: smtp.gmail.com
+      smtp_server: smtp.gmail.com:443
       smtp_username: my@email.is
       type: email
     }
