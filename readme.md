@@ -19,3 +19,7 @@ To contribute to TEZPAY please read [CONTRIBUTING.md](docs/CONTRIBUTING.md)
 3. Create and adjust configuration file `config.hjson`  See our configuration examples for all available options.
 4. ...
 5. Run `tezpay pay` to pay latest cycle
+
+## Credits
+
+- TEZPAY [default data collector](https://github.com/tez-capital/tezpay/blob/main/clients/default_colletor.go#L39) - only available right now - is **Powered by [TzKT API](https://api.tzkt.io/)**
