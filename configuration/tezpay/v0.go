@@ -51,6 +51,14 @@ type PayoutConfigurationV0 struct {
 	IgnoreEmptyAccounts     bool             `json:"ignore_empty_accounts,omitempty"`
 }
 
+// type ExtensionConfigurationV0 struct {
+// 	Enabled bool                   `json:"enabled,omitempty"`
+// 	Hooks   []enums.EExtensionHook `json:"hooks,omitempty"`
+// 	Kind    enums.EExtensionKind   `json:"kind,omitempty"`
+// 	Command string                 `json:"command,omitempty"`
+// 	Options map[string]interface{} `json:"options,omitempty"`
+// }
+
 type ConfigurationV0 struct {
 	Version                    uint                          `json:"tezpay_config_version"`
 	BakerPKH                   tezos.Address                 `json:"baker"`

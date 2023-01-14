@@ -5,6 +5,7 @@ import (
 	"github.com/alis-is/tezpay/core/payout"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +21,10 @@ var generatePayoutsCmd = &cobra.Command{
 		if cycle <= 0 {
 			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 			cycle = lastCompletedCycle + cycle
+		}
+
+		if !config.IsDonatingToTezCapital() {
+			log.Warn("With your current configuration you are not going to donate to tez.capital")
 		}
 
 		payoutBlueprint := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {

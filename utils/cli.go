@@ -21,6 +21,9 @@ func shortenAddress(taddr tezos.Address) string {
 	}
 	addr := taddr.String()
 	total := len(addr)
+	if total <= 13 {
+		return addr
+	}
 	return fmt.Sprintf("%s...%s", addr[:5], addr[total-5:])
 }
 

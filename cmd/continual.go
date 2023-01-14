@@ -48,13 +48,13 @@ var continualCmd = &cobra.Command{
 		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 
 		// last completed cycle at the time we started continual mode on
-		onchainCompletedCycleAtStartup := monitor.WaitForNextCompletedCycle(0)
-		lastProcessedCycle := int64(onchainCompletedCycleAtStartup)
+		onchainCompletedCycle := monitor.WaitForNextCompletedCycle(0)
+		lastProcessedCycle := int64(onchainCompletedCycle)
 		if initialCycle != 0 {
 			if initialCycle > 0 {
 				lastProcessedCycle = initialCycle - 1
 			} else {
-				lastProcessedCycle = onchainCompletedCycleAtStartup + initialCycle
+				lastProcessedCycle = onchainCompletedCycle + initialCycle
 			}
 		}
 		var cycleToProcess int64
@@ -67,12 +67,13 @@ var continualCmd = &cobra.Command{
 		notifiedNewVersionAvailable := false
 
 		for {
-			if lastProcessedCycle >= onchainCompletedCycleAtStartup {
+			if lastProcessedCycle >= onchainCompletedCycle {
 				log.Info("looking for cycle to pay out")
-				cycleToProcess = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
-			} else {
-				cycleToProcess = lastProcessedCycle + 1
+				onchainCompletedCycle = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 			}
+
+			cycleToProcess = lastProcessedCycle + 1
+
 			if available, latest := checkForNewVersionAvailable(); available && !notifiedNewVersionAvailable {
 				notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
 				notifiedNewVersionAvailable = true

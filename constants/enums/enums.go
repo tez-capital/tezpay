@@ -31,3 +31,16 @@ const (
 	PAYOUT_KIND_FEE_INCOME       EPayoutKind = "fee income"
 	PAYOUT_KIND_INVALID          EPayoutKind = "invalid"
 )
+
+type EExtensionKind string
+
+const (
+	EXTENSION_KIND_EXTERNAL EExtensionKind = "external"
+	EXTENSION_KIND_ELI      EExtensionKind = "eli"
+)
+
+type EExtensionHook string
+
+const (
+	EXTENSION_HOOK_ON_CANDIDATE_GENERATION EExtensionHook = "on_candidate_generation"
+)

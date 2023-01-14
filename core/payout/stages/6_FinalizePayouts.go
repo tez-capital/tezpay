@@ -20,16 +20,44 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 	if totalPercentage > 100 {
 		return []common.PayoutRecipe{}, fmt.Errorf("expects <= 100%% but only has %f", totalPercentage)
 	}
-	i := 0
-	result := make([]common.PayoutRecipe, len(distributionDefinition))
+
+	result := make([]common.PayoutRecipe, 0)
 	for recipient, portion := range distributionDefinition {
 		recipient, err := tezos.ParseAddress(recipient)
 		if err != nil {
-			return []common.PayoutRecipe{}, err
+			result = append(result, common.PayoutRecipe{
+				Baker:            ctx.GetConfiguration().BakerPKH,
+				Cycle:            ctx.Cycle,
+				Kind:             kind,
+				Delegator:        tezos.ZeroAddress,
+				Recipient:        recipient,
+				DelegatedBalance: tezos.Zero,
+				Amount:           tezos.Zero,
+				FeeRate:          0,
+				Fee:              tezos.Zero,
+				OpLimits:         nil,
+				Note:             string(enums.INVALID_INVALID_ADDRESS),
+				IsValid:          false,
+			})
+			continue
 		}
 
 		recipientPortion := utils.GetZPortion(amount, portion)
 		if recipientPortion.IsZero() {
+			result = append(result, common.PayoutRecipe{
+				Baker:            ctx.GetConfiguration().BakerPKH,
+				Cycle:            ctx.Cycle,
+				Kind:             kind,
+				Delegator:        tezos.ZeroAddress,
+				Recipient:        recipient,
+				DelegatedBalance: tezos.Zero,
+				Amount:           recipientPortion,
+				FeeRate:          0, ///
+				Fee:              tezos.Zero,
+				OpLimits:         nil,
+				Note:             string(enums.INVALID_PAYOUT_ZERO),
+				IsValid:          false,
+			})
 			continue
 		}
 
@@ -44,7 +72,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		}
 		costs := receipt.TotalCosts()
 
-		result[i] = common.PayoutRecipe{
+		result = append(result, common.PayoutRecipe{
 			Baker:            ctx.GetConfiguration().BakerPKH,
 			Cycle:            ctx.Cycle,
 			Kind:             kind,
@@ -61,8 +89,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 			},
 			Note:    "",
 			IsValid: true,
-		}
-		i += 1
+		})
 	}
 	return result, nil
 }

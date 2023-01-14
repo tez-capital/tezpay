@@ -6,6 +6,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// func AdjustThroughExtensions(ctx Context, extensions []common.Extension) Context {
+// 	for _, extension := range extensions {
+// 		ctx = extension.AdjustPayoutCandidates(ctx)
+// 	}
+// 	return ctx
+// }
+
 func generatePayoutCandidates(ctx Context) (Context, error) {
 	configuration := ctx.GetConfiguration()
 
