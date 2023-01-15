@@ -31,7 +31,7 @@ func (validationContext *PayoutValidationContext) Validate(validators ...PayoutC
 	for _, validator := range validators {
 		log.Tracef("validating payout to %s with %s", validationContext.Payout.Recipient, validator.Id)
 		validator.Validate(validationContext.Payout, validationContext.Configuration, validationContext.Overrides, validationContext.Ctx)
-		log.Tracef("payout to %s validation result: %t", validationContext.Payout.Recipient, validationContext.Payout.IsInvalid)
+		log.Tracef("payout to %s validation result: %t", validationContext.Payout.Recipient, !validationContext.Payout.IsInvalid)
 		if validationContext.Payout.IsInvalid {
 			break
 		}

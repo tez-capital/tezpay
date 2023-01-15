@@ -23,41 +23,33 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 
 	result := make([]common.PayoutRecipe, 0)
 	for recipient, portion := range distributionDefinition {
+		recipe := common.PayoutRecipe{
+			Baker:   ctx.GetConfiguration().BakerPKH,
+			Cycle:   ctx.Cycle,
+			Kind:    kind,
+			IsValid: true,
+		}
 		recipient, err := tezos.ParseAddress(recipient)
 		if err != nil {
-			result = append(result, common.PayoutRecipe{
-				Baker:            ctx.GetConfiguration().BakerPKH,
-				Cycle:            ctx.Cycle,
-				Kind:             kind,
-				Delegator:        tezos.ZeroAddress,
-				Recipient:        recipient,
-				DelegatedBalance: tezos.Zero,
-				Amount:           tezos.Zero,
-				FeeRate:          0,
-				Fee:              tezos.Zero,
-				OpLimits:         nil,
-				Note:             string(enums.INVALID_INVALID_ADDRESS),
-				IsValid:          false,
-			})
+			recipe.IsValid = false
+			recipe.Note = string(enums.INVALID_INVALID_ADDRESS)
+			result = append(result, recipe)
+			continue
+		}
+		recipe.Recipient = recipient
+		if recipient.Equal(ctx.PayoutKey.Address()) {
+			recipe.IsValid = false
+			recipe.Note = string(enums.INVALID_RECIPIENT_TARGETS_PAYOUT)
+			result = append(result, recipe)
 			continue
 		}
 
 		recipientPortion := utils.GetZPortion(amount, portion)
+		recipe.Amount = recipientPortion
 		if recipientPortion.IsZero() {
-			result = append(result, common.PayoutRecipe{
-				Baker:            ctx.GetConfiguration().BakerPKH,
-				Cycle:            ctx.Cycle,
-				Kind:             kind,
-				Delegator:        tezos.ZeroAddress,
-				Recipient:        recipient,
-				DelegatedBalance: tezos.Zero,
-				Amount:           recipientPortion,
-				FeeRate:          0, ///
-				Fee:              tezos.Zero,
-				OpLimits:         nil,
-				Note:             string(enums.INVALID_PAYOUT_ZERO),
-				IsValid:          false,
-			})
+			recipe.IsValid = false
+			recipe.Note = string(enums.INVALID_PAYOUT_ZERO)
+			result = append(result, recipe)
 			continue
 		}
 
@@ -72,24 +64,12 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		}
 		costs := receipt.TotalCosts()
 
-		result = append(result, common.PayoutRecipe{
-			Baker:            ctx.GetConfiguration().BakerPKH,
-			Cycle:            ctx.Cycle,
-			Kind:             kind,
-			Delegator:        tezos.ZeroAddress,
-			Recipient:        recipient,
-			DelegatedBalance: tezos.Zero,
-			Amount:           recipientPortion,
-			FeeRate:          0,
-			Fee:              tezos.Zero,
-			OpLimits: &common.OpLimits{
-				GasLimit:       costs.GasUsed + constants.GAS_LIMIT_BUFFER,
-				StorageLimit:   utils.CalculateStorageLimit(costs),
-				TransactionFee: utils.EstimateTransactionFee(op, receipt.Costs()),
-			},
-			Note:    "",
-			IsValid: true,
-		})
+		recipe.OpLimits = &common.OpLimits{
+			GasLimit:       costs.GasUsed + constants.GAS_LIMIT_BUFFER,
+			StorageLimit:   utils.CalculateStorageLimit(costs),
+			TransactionFee: utils.EstimateTransactionFee(op, receipt.Costs()),
+		}
+		result = append(result, recipe)
 	}
 	return result, nil
 }

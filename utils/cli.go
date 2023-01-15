@@ -16,7 +16,7 @@ const (
 )
 
 func shortenAddress(taddr tezos.Address) string {
-	if taddr.Equal(tezos.ZeroAddress) {
+	if taddr.Equal(tezos.ZeroAddress) || taddr.Equal(tezos.InvalidAddress) {
 		return "-"
 	}
 	addr := taddr.String()
