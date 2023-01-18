@@ -12,7 +12,7 @@ NOTE: *During BC migration `tezpay` injects 5% donation to your new `config.hjso
 
 ## If you operate remote signer
 
-`tezpay` does not touch configuration of your signers. To use remote signer with `tezpay` you have to change `public_key` to `pkh` in your `remote-signer.hjson`
+`tezpay` does not touch configuration of your signers. To use remote signer with `tezpay` you have to change `public_key` to `pkh` in your `remote_signer.hjson`
 
 For example:
 ```hjson

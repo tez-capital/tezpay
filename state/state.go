@@ -11,7 +11,7 @@ var (
 	Global                 State
 	CONFIG_FILE_NAME       = "config.hjson"
 	PRIVATE_KEY_FILE_NAME  = "payout_wallet_private.key"
-	REMOTE_SPECS_FILE_NAME = "remote-signer.hjson"
+	REMOTE_SPECS_FILE_NAME = "remote_signer.hjson"
 )
 
 type StateInitOptions struct {

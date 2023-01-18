@@ -19,7 +19,7 @@
 config.hjson
 config.backup.hjson
 payout_wallet_private.key
-remote-signer.hjson
+remote_signer.hjson
 reports/*
 archive/*
 bin/*

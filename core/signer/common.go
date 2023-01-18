@@ -15,6 +15,8 @@ import (
 
 func Load(kind string) (common.SignerEngine, error) {
 	switch kind {
+	case string(enums.WALLET_MODE_LOCAL_PRIVATE_KEY2):
+		fallthrough
 	case string(enums.WALLET_MODE_LOCAL_PRIVATE_KEY):
 		logrus.Debug("creating InMemorySigner")
 		privateKeyFile := state.Global.GetPrivateKeyFilePath()
@@ -24,6 +26,8 @@ func Load(kind string) (common.SignerEngine, error) {
 			return nil, err
 		}
 		return clients.InitInMemorySigner(strings.TrimSpace(string(keyBytes)))
+	case string(enums.WALLET_MODE_REMOTE_SIGNER2):
+		fallthrough
 	case string(enums.WALLET_MODE_REMOTE_SIGNER):
 		logrus.Debug("creating RemoteSigner")
 		remoteSpecsFile := state.Global.GetRemoteSpecsFilePath()
