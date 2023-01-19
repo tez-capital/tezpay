@@ -138,11 +138,16 @@ var continualCmd = &cobra.Command{
 			batchCount := len(batches)
 			batchesResults := make(common.BatchResults, batchCount)
 
+			protectedSection := utils.StartNewProtectedSection("executing payouts, job will be terminated after next batch")
 			log.Infof("paying out in %d batches", batchCount)
 			for i, batch := range batches {
-				// write past succesfuly
+				// write past results
 				warnIfFailedWithErrFmt(func() error { return reports.WritePayoutsReport(batchesResults.ToReports()) },
 					"failed to write partial report of payouts - %s")
+				if protectedSection.Signaled() {
+					batchesResults[i] = *common.NewFailedBatchResult(batch, fmt.Errorf("terminated by user"))
+					continue
+				}
 
 				log.Infof("creating batch n.%d of %d (%d transactions)", i+1, batchCount, len(batch))
 				opExecCtx, err := batch.ToOpExecutionContext(signer, transactor)
@@ -158,9 +163,10 @@ var continualCmd = &cobra.Command{
 					batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to broadcast - %s", err.Error()))
 					continue
 				}
-
+				protectedSection.Pause() // pause protected section to allow confirmation canceling
 				log.Infof("waiting for confirmation of batch n.%d (%s)", i+1, utils.GetOpReference(opExecCtx.GetOpHash(), config.Network.Explorer))
 				err = opExecCtx.WaitForApply()
+				protectedSection.Resume() // resume protected section
 				if err != nil {
 					log.Warnf("batch n.%d - %s", i+1, err.Error())
 					batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to confirm - %s", err.Error()))
@@ -184,6 +190,7 @@ var continualCmd = &cobra.Command{
 			if !failureDetected {
 				log.Info("all payouts reports written successfully")
 			}
+			protectedSection.Stop()
 
 			// notify
 			failedCount := lo.CountBy(batchesResults, func(br common.BatchResult) bool { return !br.IsSuccess })

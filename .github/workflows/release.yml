@@ -43,3 +43,11 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.PB_DISCORD_WEBHOOK }}
         with:
             args: "New tezpay ${{ github.ref_name }} released. (<https://github.com/tez-capital/tezpay/releases/tag/${{ github.ref_name }}>)"
+
+      - name: Ami Tezpay Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.AMI_TEZPAY_ACCESS_TOKEN }}
+          repository: alis-is/air
+          event-type: tezpay-release
+          client-payload: '{ "id": "${{ steps.repository_info.outputs.ID }}", "repository": "${{github.repository}}", "version": "${{github.ref_name}}" }'

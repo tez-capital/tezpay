@@ -97,7 +97,7 @@ func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.Cycle
 		return nil, err
 	}
 	utils.CallbackOnInterrupt(ctx, monitor.Cancel)
-	log.Info("tracking cycles... (cancel with Ctrl-C)\n\n")
+	log.Info("tracking cycles... (cancel with Ctrl-C/SIGINT)\n\n")
 
 	return monitor, nil
 }
