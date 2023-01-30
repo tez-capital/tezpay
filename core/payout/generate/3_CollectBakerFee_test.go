@@ -44,7 +44,7 @@ func TestCollectBakerFees(t *testing.T) {
 
 	ctx := &PayoutGenerationContext{
 		GeneratePayoutsEngineContext: *common.NewGeneratePayoutsEngines(collector, nil, nil),
-		StageData:                    StageData{PayoutCandidatesWithBondAmount: payoutCandidatesWithBondAmount},
+		StageData:                    &StageData{PayoutCandidatesWithBondAmount: payoutCandidatesWithBondAmount},
 		configuration:                &config,
 	}
 

@@ -32,5 +32,6 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.ValidateSimulatedPayouts,
 		generate.FinalizePayouts,
 		generate.CreateBlueprint).Unwrap()
+	fmt.Println(ctx.StageData.PayoutBlueprint)
 	return ctx.StageData.PayoutBlueprint, err
 }

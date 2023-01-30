@@ -42,7 +42,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	assert := assert.New(t)
 	ctx := &PayoutGenerationContext{
 		GeneratePayoutsEngineContext: *common.NewGeneratePayoutsEngines(collector, nil, nil),
-		StageData:                    StageData{PayoutCandidatesWithBondAmountAndFees: payoutCandidatesWithBondAmountAndFees},
+		StageData:                    &StageData{PayoutCandidatesWithBondAmountAndFees: payoutCandidatesWithBondAmountAndFees},
 		configuration:                &config,
 	}
 

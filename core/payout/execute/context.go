@@ -17,7 +17,7 @@ type PayoutExecutionContext struct {
 	common.ExecutePayoutsOptions
 	common.ExecutePayoutsEngineContext
 
-	StageData StageData
+	StageData *StageData
 
 	Payouts          []common.PayoutRecipe
 	PayoutBlueprint  *common.CyclePayoutBlueprint

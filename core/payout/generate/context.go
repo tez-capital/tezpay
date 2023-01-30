@@ -27,7 +27,7 @@ type PayoutGenerationContext struct {
 	common.GeneratePayoutsEngineContext
 	PayoutKey            tezos.Key
 	configuration        *configuration.RuntimeConfiguration
-	StageData            StageData
+	StageData            *StageData
 	DistributableRewards tezos.Z
 }
 
@@ -40,7 +40,7 @@ func NewPayoutGenerationContext(configuration *configuration.RuntimeConfiguratio
 	ctx := PayoutGenerationContext{
 		GeneratePayoutsEngineContext: *engineContext,
 		configuration:                configuration,
-		StageData:                    StageData{},
+		StageData:                    &StageData{},
 		PayoutKey:                    engineContext.GetSigner().GetKey(),
 	}
 

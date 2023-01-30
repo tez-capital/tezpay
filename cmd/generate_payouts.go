@@ -27,7 +27,7 @@ var generatePayoutsCmd = &cobra.Command{
 			log.Warn("With your current configuration you are not going to donate to tez.capital")
 		}
 
-		payoutBlueprint := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
+		generationResult := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
 			return payout.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 				&common.GeneratePayoutsOptions{
 					Cycle:            cycle,
@@ -38,18 +38,18 @@ var generatePayoutsCmd = &cobra.Command{
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
 		if targetFile != "" {
 			assertRun(func() error {
-				return writePayoutBlueprintToFile(targetFile, payoutBlueprint)
+				return writePayoutBlueprintToFile(targetFile, generationResult)
 			}, EXIT_PAYOUT_WRITE_FAILURE)
 			return
 		}
 
 		if state.Global.GetWantsOutputJson() {
-			utils.PrintPayoutsAsJson(payoutBlueprint.Payouts)
+			utils.PrintPayoutsAsJson(generationResult.Payouts)
 			return
 		}
 
-		utils.PrintInvalidPayoutRecipes(payoutBlueprint.Payouts, payoutBlueprint.Cycle)
-		utils.PrintValidPayoutRecipes(payoutBlueprint.Payouts, payoutBlueprint.Cycle)
+		utils.PrintInvalidPayoutRecipes(generationResult.Payouts, generationResult.Cycle)
+		utils.PrintValidPayoutRecipes(generationResult.Payouts, generationResult.Cycle)
 	},
 }
 

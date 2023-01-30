@@ -14,7 +14,7 @@ type PayoutPrepareContext struct {
 	common.PreparePayoutsOptions
 	common.PreparePayoutsEngineContext
 
-	StageData StageData
+	StageData *StageData
 
 	PayoutBlueprint *common.CyclePayoutBlueprint
 	configuration   *configuration.RuntimeConfiguration
