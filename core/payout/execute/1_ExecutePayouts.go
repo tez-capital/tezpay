@@ -50,6 +50,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 
 		if ctx.protectedSection.Signaled() {
 			batchesResults[i] = *common.NewFailedBatchResult(batch, fmt.Errorf("terminated by user"))
+			ctx.AdminNotify("Payouts execution terminated by user")
 			continue
 		}
 
