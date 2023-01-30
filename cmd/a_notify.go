@@ -42,7 +42,7 @@ func notifyAdmin(configuration *configuration.RuntimeConfiguration, msg string) 
 			continue
 		}
 
-		log.Infof("sending admin notification with %s", notificatorConfiguration.Type)
+		log.Debugf("sending admin notification with %s", notificatorConfiguration.Type)
 		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
 			log.Warnf("failed to send notification - %s", err.Error())
@@ -55,7 +55,7 @@ func notifyAdmin(configuration *configuration.RuntimeConfiguration, msg string) 
 			continue
 		}
 	}
-	log.Info("admin notifications sent.")
+	log.Debug("admin notifications sent.")
 }
 
 func notifyAdminFactory(configuration *configuration.RuntimeConfiguration) func(string) {
