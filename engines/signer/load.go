@@ -1,4 +1,4 @@
-package signer
+package signer_engines
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core/common"
-	signer_engines "github.com/alis-is/tezpay/engines/signer"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/sirupsen/logrus"
@@ -25,7 +24,7 @@ func Load(kind string) (common.SignerEngine, error) {
 		if err != nil {
 			return nil, err
 		}
-		return signer_engines.InitInMemorySigner(strings.TrimSpace(string(keyBytes)))
+		return InitInMemorySigner(strings.TrimSpace(string(keyBytes)))
 	case string(enums.WALLET_MODE_REMOTE_SIGNER2):
 		fallthrough
 	case string(enums.WALLET_MODE_REMOTE_SIGNER):
@@ -36,17 +35,17 @@ func Load(kind string) (common.SignerEngine, error) {
 		if err != nil {
 			return nil, err
 		}
-		remoteSpecs := signer_engines.RemoteSignerSpecs{}
+		remoteSpecs := RemoteSignerSpecs{}
 		err = hjson.Unmarshal(remoteSpecsBytes, &remoteSpecs)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal remote specs - %s", err.Error())
 		}
-		return signer_engines.InitRemoteSignerFromSpecs(remoteSpecs)
+		return InitRemoteSignerFromSpecs(remoteSpecs)
 	}
 
 	if strings.HasPrefix(kind, "key:") {
 		logrus.Debug("creating InMemorySigner from parameters")
-		return signer_engines.InitInMemorySigner(strings.TrimPrefix(kind, "key:"))
+		return InitInMemorySigner(strings.TrimPrefix(kind, "key:"))
 	}
 
 	if strings.HasPrefix(kind, "remote:") {
@@ -56,7 +55,7 @@ func Load(kind string) (common.SignerEngine, error) {
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid remote specs '%s' from paramters", specs)
 		}
-		return signer_engines.InitRemoteSigner(parts[0], parts[1])
+		return InitRemoteSigner(parts[0], parts[1])
 	}
 
 	return nil, fmt.Errorf("invalid payout wallet specification: '%s'", kind)

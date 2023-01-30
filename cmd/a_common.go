@@ -7,8 +7,8 @@ import (
 
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/signer"
 	collector_engines "github.com/alis-is/tezpay/engines/collector"
+	signer_engines "github.com/alis-is/tezpay/engines/signer"
 	transactor_engines "github.com/alis-is/tezpay/engines/transactor"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
@@ -34,7 +34,7 @@ func loadConfigurationAndEngines() (*configurationAndEngines, error) {
 
 	signerEngine := state.Global.SignerOverride
 	if signerEngine == nil {
-		signerEngine, err = signer.Load(string(config.PayoutConfiguration.WalletMode))
+		signerEngine, err = signer_engines.Load(string(config.PayoutConfiguration.WalletMode))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load signer - %s", err.Error())
 		}

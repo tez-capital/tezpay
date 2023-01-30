@@ -7,7 +7,8 @@ import (
 
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/signer"
+	signer_engines "github.com/alis-is/tezpay/engines/signer"
+
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
@@ -72,7 +73,7 @@ Copyright © %d alis.is
 			var signerOverride common.SignerEngine
 			if singerFlagData != "" {
 				log.Debug("trying to load signer override")
-				if loadedSigner, err := signer.Load(singerFlagData); err != nil {
+				if loadedSigner, err := signer_engines.Load(singerFlagData); err != nil {
 					log.Warnf("Failed to load signer from parameters (%s)", singerFlagData)
 				} else {
 					signerOverride = loadedSigner
