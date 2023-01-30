@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/reports"
+	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,16 +18,17 @@ var statisticsCmd = &cobra.Command{
 		n, _ := cmd.Flags().GetInt(CYCLES_FLAG)
 		lastCycle, _ := cmd.Flags().GetInt64(LAST_CYCLE_FLAG)
 
+		config, collector, _, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		if lastCycle == 0 {
-			_, collector, _, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 			lastCycle = assertRunWithResult(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED)
 		}
+		fsReporter := reporter_engines.NewFileSystemReporter(config)
 
 		var total common.CyclePayoutSummary
 		ok := 0
 		for i := 0; i < n; i++ {
 			cycle := lastCycle - int64(i)
-			summary, err := reports.ReadCycleSummary(cycle)
+			summary, err := fsReporter.GetExistingCycleSummary(cycle)
 			if err != nil {
 				log.Warnf("failed to read report of #%d, skipping...", cycle)
 				continue

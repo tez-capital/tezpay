@@ -22,4 +22,4 @@ To contribute to TEZPAY please read [CONTRIBUTING.md](docs/CONTRIBUTING.md)
 
 ## Credits
 
-- TEZPAY [default data collector](https://github.com/tez-capital/tezpay/blob/main/clients/default_colletor.go#L39) - only available right now - is **Powered by [TzKT API](https://api.tzkt.io/)**
+- TEZPAY [default data collector](https://github.com/tez-capital/tezpay/blob/main/engines/colletor/default.go#L39) and [default transactor](https://github.com/tez-capital/tezpay/blob/main/engines/transactor/default.go#L39) (*only available right now*) are **Powered by [TzKT API](https://api.tzkt.io/)**

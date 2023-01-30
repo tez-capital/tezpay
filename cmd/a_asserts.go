@@ -42,12 +42,3 @@ func assertRunWithResultAndErrFmt[T interface{}](toExecute func() (T, error), ex
 func assertRunWithResult[T interface{}](toExecute func() (T, error), exitCode int) T {
 	return assertRunWithResultAndErrFmt(toExecute, exitCode, "%s")
 }
-
-func warnIfFailedWithErrFmt(toExecute func() error, errorFormat string) bool {
-	err := toExecute()
-	if err != nil {
-		log.Warnf(errorFormat, err.Error())
-		return false
-	}
-	return true
-}

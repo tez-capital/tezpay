@@ -64,3 +64,11 @@ type CycleMonitor interface {
 	CreateBlockHeaderMonitor() error
 	WaitForNextCompletedCycle(lastProcessedCycle int64) int64
 }
+
+type ReporterEngine interface {
+	GetExistingReports(cycle int64) ([]PayoutReport, error)
+	ReportPayouts(reports []PayoutReport) error
+	ReportInvalidPayouts(reports []PayoutRecipe) error
+	ReportCycleSummary(summary CyclePayoutSummary) error
+	GetExistingCycleSummary(cycle int64) (*CyclePayoutSummary, error)
+}

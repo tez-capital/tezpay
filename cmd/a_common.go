@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alis-is/tezpay/clients"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/core/signer"
+	collector_engines "github.com/alis-is/tezpay/engines/collector"
+	transactor_engines "github.com/alis-is/tezpay/engines/transactor"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
@@ -32,19 +34,19 @@ func loadConfigurationAndEngines() (*configurationAndEngines, error) {
 
 	signerEngine := state.Global.SignerOverride
 	if signerEngine == nil {
-		signerEngine, err = config.LoadSigner()
+		signerEngine, err = signer.Load(string(config.PayoutConfiguration.WalletMode))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load signer - %s", err.Error())
 		}
 	}
 	// for testing point transactor to testnet
 	// transactorEngine, err := clients.InitDefaultTransactor("https://rpc.tzkt.io/ghostnet/", "https://api.ghostnet.tzkt.io/") // (config.Network.RpcUrl, config.Network.TzktUrl)
-	transactorEngine, err := clients.InitDefaultTransactor(config.Network.RpcUrl, config.Network.TzktUrl)
+	transactorEngine, err := transactor_engines.InitDefaultTransactor(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load transactor - %s", err.Error())
 	}
 
-	collector, err := clients.InitDefaultRpcAndTzktColletor(config.Network.RpcUrl, config.Network.TzktUrl)
+	collector, err := collector_engines.InitDefaultRpcAndTzktColletor(config)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +64,7 @@ func loadConfigurationAndEngines() (*configurationAndEngines, error) {
 	}, nil
 }
 
-func loadPayoutBlueprintFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
+func loadGeneratePayoutsResultFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
 	log.Infof("reading payouts from '%s'", fromFile)
 	data, err := os.ReadFile(fromFile)
 	if err != nil {
@@ -81,15 +83,6 @@ func writePayoutBlueprintToFile(toFile string, blueprint *common.CyclePayoutBlue
 	if err != nil {
 		return fmt.Errorf("failed to write generated payouts to file - %s", err.Error())
 	}
-	return nil
-}
-
-func printPayoutCycleReport(report *common.PayoutCycleReport) error {
-	data, err := json.Marshal(report)
-	if err != nil {
-		return err
-	}
-	fmt.Println("REPORT:", string(data))
 	return nil
 }
 

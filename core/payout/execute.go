@@ -3,38 +3,23 @@ package payout
 import (
 	"fmt"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/payout/stages"
-	log "github.com/sirupsen/logrus"
+	"github.com/alis-is/tezpay/core/payout/execute"
 )
 
-const (
-	PAYOUT_EXECUTION_FAILURE = iota
-	PAYOUT_EXECUTION_SUCCESS
-)
-
-func generatePayouts(payoutAddr tezos.Key, config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
+func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *configuration.RuntimeConfiguration, engineContext *common.ExecutePayoutsEngineContext, options *common.ExecutePayoutsOptions) (common.ExecutePayoutsResult, error) {
 	if config == nil {
 		return nil, fmt.Errorf("configuration not specified")
 	}
 
-	ctx, err := stages.InitContext(payoutAddr, config, options)
+	ctx, err := execute.NewPayoutExecutionContext(preparationResult, config, engineContext, options)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("generating payouts for cycle %d (baker: '%s')", ctx.GetCycle(), config.BakerPKH)
-	return ctx.Wrap().ExecuteStages(stages.GeneratePayoutCandidates,
-		stages.DistributeBonds,
-		stages.CheckSufficientBalance,
-		stages.CollectBakerFee,
-		stages.CollectTransactionFees,
-		stages.ValidateSimulatedPayouts,
-		stages.FinalizePayouts).ToCyclePayoutBlueprint()
-}
-
-func GeneratePayouts(payoutKey tezos.Key, config *configuration.RuntimeConfiguration, options common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
-	return generatePayouts(payoutKey, config, options)
+	ctx, err = WrapContext[*execute.PayoutExecutionContext, *common.ExecutePayoutsOptions](ctx).ExecuteStages(options,
+		execute.SplitIntoBatches,
+		execute.ExecutePayouts).Unwrap()
+	return ctx.StageData.BatchResults, err
 }

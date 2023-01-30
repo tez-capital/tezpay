@@ -7,8 +7,6 @@ import (
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/signer"
 	"github.com/alis-is/tezpay/notifications"
 )
 
@@ -87,10 +85,6 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 		NotificationConfigurations: make([]RuntimeNotificatorConfiguration, 0),
 		SourceBytes:                []byte{},
 	}
-}
-
-func (configuration *RuntimeConfiguration) LoadSigner() (common.SignerEngine, error) {
-	return signer.Load(string(configuration.PayoutConfiguration.WalletMode))
 }
 
 func (configuration *RuntimeConfiguration) IsDonatingToTezCapital() bool {

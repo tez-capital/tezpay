@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/ops"
 	"github.com/alis-is/tezpay/core/payout"
-	"github.com/alis-is/tezpay/core/reports"
+	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
@@ -23,8 +21,10 @@ var continualCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
-		mixinContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
+		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
+
+		fsReporter := reporter_engines.NewFileSystemReporter(config)
 
 		if utils.IsTty() {
 			assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
@@ -66,6 +66,7 @@ var continualCmd = &cobra.Command{
 
 		notifiedNewVersionAvailable := false
 
+		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d", lastProcessedCycle+1))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
 				log.Info("looking for cycle to pay out")
@@ -81,14 +82,11 @@ var continualCmd = &cobra.Command{
 
 			log.Infof("====================  CYCLE %d  ====================", cycleToProcess)
 
-			payoutBlueprint, err := payout.GeneratePayouts(signer.GetKey(), config, common.GeneratePayoutsOptions{
-				Cycle:                    cycleToProcess,
-				WaitForSufficientBalance: true,
-				AdminNotify:              notifyAdminFactory(config),
-				Engines: common.GeneratePayoutsEngines{
-					Collector: collector,
-				},
-			})
+			generationResult, err := payout.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+				&common.GeneratePayoutsOptions{
+					Cycle:                    cycleToProcess,
+					WaitForSufficientBalance: true,
+				})
 			if err != nil {
 				log.Errorf("failed to generate payout - %s, retries in 5 minutes", err.Error())
 				time.Sleep(time.Minute * 5)
@@ -96,111 +94,40 @@ var continualCmd = &cobra.Command{
 			}
 
 			log.Info("checking past reports")
-			reportResidues, err := loadPastPayoutReports(config.BakerPKH, payoutBlueprint.Cycle)
-			if err != nil {
-				log.Errorf("failed to read old payout reports from cycle #%d - %s, retries in 5 minutes", cycleToProcess, err.Error())
-				time.Sleep(time.Minute * 5)
-				continue
-			}
-			payouts, reportsOfPastSuccesfulPayouts := utils.FilterRecipesByReports(utils.OnlyValidPayouts(payoutBlueprint.Payouts), reportResidues, collector)
+			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
+				return payout.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			}, EXIT_OPERTION_FAILED)
 
-			log.Infof("processing %d valid payouts", len(payouts))
-
-			if len(payouts) == 0 {
+			if len(preparationResult.Payouts) == 0 {
 				log.Info("nothing to pay out, skipping")
 				completeCycle()
 				continue
 			}
+			log.Infof("processing %d valid payouts", len(preparationResult.Payouts))
 
 			if forceConfirmationPrompt && utils.IsTty() {
-				utils.PrintInvalidPayoutRecipes(payoutBlueprint.Payouts, payoutBlueprint.Cycle)
-				utils.PrintReports(reportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", payoutBlueprint.Cycle), true)
-				utils.PrintValidPayoutRecipes(payouts, payoutBlueprint.Cycle)
+				utils.PrintInvalidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
+				utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", generationResult.Cycle), true)
+				utils.PrintValidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
 				assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 			}
 
-			limits, err := transactor.GetLimits()
-			if err != nil {
-				log.Errorf("ailed to get tezos chain limits - %s, retries in 5 minutes", err.Error())
-				time.Sleep(time.Minute * 5)
-				continue
-			}
-
-			var batches []ops.Batch
-			if mixinContractCalls {
-				batches = ops.SplitIntoBatches(payouts, limits)
-			} else {
-				contractBatches := ops.SplitIntoBatches(utils.FilterPayoutsByType(payouts, tezos.AddressTypeContract), limits)
-				classicBatches := ops.SplitIntoBatches(utils.RejectPayoutsByType(payouts, tezos.AddressTypeContract), limits)
-				batches = append(classicBatches, contractBatches...)
-			}
-
-			batchCount := len(batches)
-			batchesResults := make(common.BatchResults, batchCount)
-
-			protectedSection := utils.StartNewProtectedSection("executing payouts, job will be terminated after next batch")
-			log.Infof("paying out in %d batches", batchCount)
-			for i, batch := range batches {
-				// write past results
-				warnIfFailedWithErrFmt(func() error { return reports.WritePayoutsReport(batchesResults.ToReports()) },
-					"failed to write partial report of payouts - %s")
-				if protectedSection.Signaled() {
-					batchesResults[i] = *common.NewFailedBatchResult(batch, fmt.Errorf("terminated by user"))
-					continue
-				}
-
-				log.Infof("creating batch n.%d of %d (%d transactions)", i+1, batchCount, len(batch))
-				opExecCtx, err := batch.ToOpExecutionContext(signer, transactor)
-				if err != nil {
-					log.Warnf("batch n.%d - %s", i+1, err.Error())
-					batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to create operation context - %s", err.Error()))
-					continue
-				}
-				log.Infof("broadcasting batch n.%d", i+1)
-				err = opExecCtx.Dispatch(nil)
-				if err != nil {
-					log.Warnf("batch n.%d - %s", i+1, err.Error())
-					batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to broadcast - %s", err.Error()))
-					continue
-				}
-				protectedSection.Pause() // pause protected section to allow confirmation canceling
-				log.Infof("waiting for confirmation of batch n.%d (%s)", i+1, utils.GetOpReference(opExecCtx.GetOpHash(), config.Network.Explorer))
-				err = opExecCtx.WaitForApply()
-				protectedSection.Resume() // resume protected section
-				if err != nil {
-					log.Warnf("batch n.%d - %s", i+1, err.Error())
-					batchesResults[i] = *common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to confirm - %s", err.Error()))
-					continue
-				}
-
-				log.Infof("batch n.%d - success", i+1)
-				batchesResults[i] = *common.NewSuccessBatchResult(batch, opExecCtx.GetOpHash())
-			}
-
-			finalPayoutReports := batchesResults.ToReports()
-			finalPayoutReports = append(finalPayoutReports, reportsOfPastSuccesfulPayouts...)
-
-			failureDetected := false
-			failureDetected = warnIfFailedWithErrFmt(func() error { return reports.WriteInvalidPayoutRecipesReport(payoutBlueprint.Payouts) },
-				"failed to write report of invalid payout recipes - %s")
-			failureDetected = warnIfFailedWithErrFmt(func() error { return reports.WritePayoutsReport(finalPayoutReports) },
-				"failed to write report of payouts - %s") || failureDetected
-			failureDetected = warnIfFailedWithErrFmt(func() error { return reports.WriteCycleSummary(payoutBlueprint.Summary) },
-				"failed to write cycle summary - %s") || failureDetected
-			if !failureDetected {
-				log.Info("all payouts reports written successfully")
-			}
-			protectedSection.Stop()
+			log.Info("executing payout")
+			executionResult := assertRunWithResult(func() (common.ExecutePayoutsResult, error) {
+				return payout.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
+					MixInContractCalls: mixInContractCalls,
+				})
+			}, EXIT_OPERTION_FAILED)
 
 			// notify
-			failedCount := lo.CountBy(batchesResults, func(br common.BatchResult) bool { return !br.IsSuccess })
-			if len(batchesResults) > 0 && failedCount > 0 {
+			failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })
+			if len(executionResult) > 0 && failedCount > 0 {
 				log.Errorf("%d of operations failed, retries in 5 minutes", failedCount)
 				time.Sleep(time.Minute * 5)
 				continue
 			}
 			if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
-				notifyPayoutsProcessedThroughAllNotificators(config, &payoutBlueprint.Summary)
+				notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
 			}
 			completeCycle()
 		}

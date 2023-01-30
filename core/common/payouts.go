@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -52,11 +53,6 @@ func (pr *PayoutRecipe) PayoutRecipeToPayoutReport() PayoutReport {
 	}
 }
 
-type PayoutContext struct {
-	Payouts           []PayoutRecipe
-	InvalidCandidates []PayoutRecipe
-}
-
 type CyclePayoutSummary struct {
 	Cycle              int64     `json:"cycle"`
 	Delegators         int       `json:"delegators"`
@@ -95,14 +91,148 @@ type CyclePayoutBlueprint struct {
 	Summary CyclePayoutSummary `json:"summary,omitempty"`
 }
 
-type GeneratePayoutsEngines struct {
-	Collector CollectorEngine
+type GeneratePayoutsEngineContext struct {
+	collector   CollectorEngine
+	signer      SignerEngine
+	adminNotify func(msg string)
+}
+
+func NewGeneratePayoutsEngines(collector CollectorEngine, signer SignerEngine, adminNotify func(msg string)) *GeneratePayoutsEngineContext {
+	return &GeneratePayoutsEngineContext{
+		collector:   collector,
+		signer:      signer,
+		adminNotify: adminNotify,
+	}
+}
+
+func (engines *GeneratePayoutsEngineContext) GetSigner() SignerEngine {
+	return engines.signer
+}
+
+func (engines *GeneratePayoutsEngineContext) GetCollector() CollectorEngine {
+	return engines.collector
+}
+
+func (engines *GeneratePayoutsEngineContext) AdminNotify(msg string) {
+	if engines.adminNotify != nil {
+		engines.adminNotify(msg)
+	}
+}
+
+func (engines *GeneratePayoutsEngineContext) Validate() error {
+	if engines.signer == nil {
+		return fmt.Errorf("signer engine is not set")
+	}
+	if engines.collector == nil {
+		return fmt.Errorf("collector engine is not set")
+	}
+	return nil
 }
 
 type GeneratePayoutsOptions struct {
-	Cycle                    int64                  `json:"cycle,omitempty"`
-	SkipBalanceCheck         bool                   `json:"skip_balance_check,omitempty"`
-	WaitForSufficientBalance bool                   `json:"wait_for_sufficient_balance,omitempty"`
-	AdminNotify              func(msg string)       `json:"-"`
-	Engines                  GeneratePayoutsEngines `json:"-"`
+	Cycle                    int64 `json:"cycle,omitempty"`
+	SkipBalanceCheck         bool  `json:"skip_balance_check,omitempty"`
+	WaitForSufficientBalance bool  `json:"wait_for_sufficient_balance,omitempty"`
 }
+
+type GeneratePayoutsResult = CyclePayoutBlueprint
+
+type PreparePayoutsEngineContext struct {
+	collector   CollectorEngine
+	reporter    ReporterEngine
+	adminNotify func(msg string)
+}
+
+func NewPreparePayoutsEngineContext(collector CollectorEngine, reporter ReporterEngine, adminNotify func(msg string)) *PreparePayoutsEngineContext {
+	return &PreparePayoutsEngineContext{
+		collector:   collector,
+		adminNotify: adminNotify,
+		reporter:    reporter,
+	}
+}
+
+func (engines *PreparePayoutsEngineContext) GetCollector() CollectorEngine {
+	return engines.collector
+}
+
+func (engines *PreparePayoutsEngineContext) GetReporter() ReporterEngine {
+	return engines.reporter
+}
+
+func (engines *PreparePayoutsEngineContext) AdminNotify(msg string) {
+	if engines.adminNotify != nil {
+		engines.adminNotify(msg)
+	}
+}
+
+func (engines *PreparePayoutsEngineContext) Validate() error {
+	if engines.collector == nil {
+		return fmt.Errorf("collector engine is not set")
+	}
+	if engines.reporter == nil {
+		return fmt.Errorf("reporter engine is not set")
+	}
+	return nil
+}
+
+type PreparePayoutsOptions struct {
+}
+
+type PreparePayoutsResult struct {
+	Blueprint                     *CyclePayoutBlueprint `json:"blueprint,omitempty"`
+	Payouts                       []PayoutRecipe        `json:"payouts,omitempty"`
+	ReportsOfPastSuccesfulPayouts []PayoutReport        `json:"reports_of_past_succesful_payouts,omitempty"`
+}
+
+type ExecutePayoutsEngineContext struct {
+	signer      SignerEngine
+	transactor  TransactorEngine
+	reporter    ReporterEngine
+	adminNotify func(msg string)
+}
+
+func NewExecutePayoutsEngineContext(signer SignerEngine, transactor TransactorEngine, reporter ReporterEngine, adminNotify func(msg string)) *ExecutePayoutsEngineContext {
+	return &ExecutePayoutsEngineContext{
+		signer:      signer,
+		transactor:  transactor,
+		reporter:    reporter,
+		adminNotify: adminNotify,
+	}
+}
+
+func (engines *ExecutePayoutsEngineContext) GetSigner() SignerEngine {
+	return engines.signer
+}
+
+func (engines *ExecutePayoutsEngineContext) GetTransactor() TransactorEngine {
+	return engines.transactor
+}
+
+func (engines *ExecutePayoutsEngineContext) GetReporter() ReporterEngine {
+	return engines.reporter
+}
+
+func (engines *ExecutePayoutsEngineContext) AdminNotify(msg string) {
+	if engines.adminNotify != nil {
+		engines.adminNotify(msg)
+	}
+}
+
+func (engines *ExecutePayoutsEngineContext) Validate() error {
+	if engines.signer == nil {
+		return fmt.Errorf("signer engine is not set")
+	}
+	if engines.transactor == nil {
+		return fmt.Errorf("transactor engine is not set")
+	}
+	if engines.reporter == nil {
+		return fmt.Errorf("reporter engine is not set")
+	}
+	return nil
+}
+
+type ExecutePayoutsOptions struct {
+	MixInContractCalls bool `json:"mix_in_contract_calls,omitempty"`
+}
+
+type ExecutePayoutsResult = BatchResults
