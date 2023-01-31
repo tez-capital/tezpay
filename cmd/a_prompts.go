@@ -34,43 +34,43 @@ func assertRequireConfirmation(msg string) {
 }
 
 func checkForNewVersionAvailable() (bool, string) {
-	log.Info("checking for new version")
+	log.Debugf("checking for new version")
 	// https://api.github.com/repos/tez-capital/tezpay/releases/latest
 	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", constants.TEZPAY_REPOSITORY))
 	if err != nil {
-		log.Warnf("Failed to check latest version!")
+		log.Debugf("Failed to check latest version!")
 		return false, ""
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Warnf("Failed to check latest version!")
+		log.Debugf("Failed to check latest version!")
 		return false, ""
 	}
 	var info versionInfo
 	err = json.Unmarshal(body, &info)
 	if err != nil {
-		log.Warnf("Failed to check latest version!")
+		log.Debugf("Failed to check latest version!")
 		return false, ""
 	}
 	latestVersion := info.Version
 	if latestVersion == "" {
-		log.Warnf("failed to check latest version - empty tag!")
+		log.Debugf("failed to check latest version - empty tag!")
 		return false, ""
 	}
 
 	lv, err := version.NewVersion(latestVersion)
 	if err != nil {
-		log.Warnf("failed to check latest version - invalid version from remote!")
+		log.Debugf("failed to check latest version - invalid version from remote!")
 		return false, ""
 	}
 	cv, err := version.NewVersion(constants.VERSION)
 	if err != nil {
-		log.Warnf("failed to check latest version - invalid binary version!")
+		log.Debugf("failed to check latest version - invalid binary version!")
 		return false, ""
 	}
 
 	if cv.GreaterThanOrEqual(lv) {
-		log.Info("you are running latest version")
+		log.Debugf("you are running latest version")
 		return false, ""
 	}
 	log.Infof("new version available: %s", latestVersion)

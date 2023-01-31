@@ -14,15 +14,14 @@ type StageData struct {
 }
 
 type PayoutExecutionContext struct {
-	common.ExecutePayoutsOptions
 	common.ExecutePayoutsEngineContext
+	configuration *configuration.RuntimeConfiguration
 
-	StageData *StageData
-
-	Payouts          []common.PayoutRecipe
-	PayoutBlueprint  *common.CyclePayoutBlueprint
-	configuration    *configuration.RuntimeConfiguration
 	protectedSection *utils.ProtectedSection
+	StageData        *StageData
+
+	Payouts         []common.PayoutRecipe
+	PayoutBlueprint *common.CyclePayoutBlueprint
 }
 
 func (ctx *PayoutExecutionContext) GetConfiguration() *configuration.RuntimeConfiguration {
@@ -35,11 +34,13 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 	}
 
 	return &PayoutExecutionContext{
-		PayoutBlueprint:             preparationResult.Blueprint,
-		Payouts:                     preparationResult.Payouts,
-		ExecutePayoutsOptions:       *options,
 		ExecutePayoutsEngineContext: *engineContext,
 		configuration:               configuration,
-		protectedSection:            utils.NewProtectedSection("executing payouts, job will be terminated after next batch"),
+
+		protectedSection: utils.NewProtectedSection("executing payouts, job will be terminated after next batch"),
+		StageData:        &StageData{},
+
+		Payouts:         preparationResult.Payouts,
+		PayoutBlueprint: preparationResult.Blueprint,
 	}, nil
 }

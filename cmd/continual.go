@@ -48,7 +48,10 @@ var continualCmd = &cobra.Command{
 		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 
 		// last completed cycle at the time we started continual mode on
-		onchainCompletedCycle := monitor.WaitForNextCompletedCycle(0)
+		onchainCompletedCycle := assertRunWithResultAndErrFmt(func() (int64, error) {
+			return monitor.WaitForNextCompletedCycle(0)
+		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+
 		lastProcessedCycle := int64(onchainCompletedCycle)
 		if initialCycle != 0 {
 			if initialCycle > 0 {
@@ -66,12 +69,23 @@ var continualCmd = &cobra.Command{
 
 		notifiedNewVersionAvailable := false
 
-		defer notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle))
+		defer notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
 		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d", lastProcessedCycle+1))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
-				log.Info("looking for cycle to pay out")
-				onchainCompletedCycle = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
+				log.Info("looking for next cycle to pay out")
+				var err error
+				onchainCompletedCycle, err = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
+				if err != nil {
+					if err.Error() == "canceled" {
+						log.Info("cycle monitoring canceled")
+						notifyAdmin(config, "Cycle monitoring canceled.")
+					} else {
+						log.Errorf("failed to wait for next completed cycle - %s", err.Error())
+						notifyAdmin(config, "Failed to wait for next completed cycle.")
+					}
+					return
+				}
 			}
 
 			cycleToProcess = lastProcessedCycle + 1

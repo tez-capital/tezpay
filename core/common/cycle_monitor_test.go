@@ -1,10 +1,9 @@
 package common
 
 import (
-	"os"
+	"fmt"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,20 +42,19 @@ func (monitor *dummyCycleMonitor) GetCycleChannel() chan int64 {
 	return monitor.Cycle
 }
 
-func (monitor *dummyCycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) int64 {
+func (monitor *dummyCycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error) {
 	cycle, ok := waitForNextCompletedCycle(lastProcessedCycle, monitor)
 	if !ok {
-		log.Warn("cycle monitoring canceled")
-		os.Exit(0)
+		return 0, fmt.Errorf("canceled")
 	}
-	return cycle
+	return cycle, nil
 }
 
 func runMonitoringTest(t *testing.T, start int64, end int64, lastProcessedCycle int64, expectedCycle int64) {
 	assert := assert.New(t)
 	monitor := NewDumyCycleMonitor(start, end)
 	assert.Nil(monitor.CreateBlockHeaderMonitor())
-	cycle := monitor.WaitForNextCompletedCycle(lastProcessedCycle)
+	cycle, _ := monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 	assert.Equal(expectedCycle, cycle)
 }
 

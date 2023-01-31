@@ -11,13 +11,12 @@ type StageData struct {
 }
 
 type PayoutPrepareContext struct {
-	common.PreparePayoutsOptions
 	common.PreparePayoutsEngineContext
+	configuration *configuration.RuntimeConfiguration
 
 	StageData *StageData
 
 	PayoutBlueprint *common.CyclePayoutBlueprint
-	configuration   *configuration.RuntimeConfiguration
 }
 
 func (ctx *PayoutPrepareContext) GetConfiguration() *configuration.RuntimeConfiguration {
@@ -30,9 +29,11 @@ func NewPayoutPreparationContext(blueprint *common.CyclePayoutBlueprint, configu
 	}
 
 	return &PayoutPrepareContext{
-		PayoutBlueprint:             blueprint,
-		PreparePayoutsOptions:       *options,
 		PreparePayoutsEngineContext: *engineContext,
 		configuration:               configuration,
+
+		StageData: &StageData{},
+
+		PayoutBlueprint: blueprint,
 	}, nil
 }

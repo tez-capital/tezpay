@@ -2,8 +2,8 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
-	"os"
 	"time"
 
 	"blockwatch.cc/tzgo/rpc"
@@ -49,7 +49,7 @@ func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorO
 }
 
 func (monitor *cycleMonitor) Cancel() {
-	log.Warn("cycle monitoring canceled")
+	log.Debugf("cycle monitoring canceled")
 	monitor.Terminate()
 }
 func (monitor *cycleMonitor) Terminate() {
@@ -98,18 +98,18 @@ func waitForNextCompletedCycle(lastProcessedCompletedCycle int64, monitor CycleM
 		}
 		currentCycle, ok = <-monitor.GetCycleChannel()
 		if !ok {
-			return -1, false
+			return -1, ok
 		}
 	}
-	return currentCycle - 1, true
+	return currentCycle - 1, ok
 }
 
-func (monitor *cycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) int64 {
+func (monitor *cycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error) {
 	cycle, ok := waitForNextCompletedCycle(lastProcessedCycle, monitor)
 	if !ok {
-		os.Exit(0)
+		return -1, fmt.Errorf("canceled")
 	}
-	return cycle
+	return cycle, nil
 }
 
 func (monitor *cycleMonitor) GetCycleChannel() chan int64 {

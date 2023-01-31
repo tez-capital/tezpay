@@ -62,7 +62,7 @@ type CycleMonitor interface {
 	Cancel()
 	Terminate()
 	CreateBlockHeaderMonitor() error
-	WaitForNextCompletedCycle(lastProcessedCycle int64) int64
+	WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error)
 }
 
 type ReporterEngine interface {
