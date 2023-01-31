@@ -90,9 +90,11 @@ var continualCmd = &cobra.Command{
 
 			cycleToProcess = lastProcessedCycle + 1
 
-			if available, latest := checkForNewVersionAvailable(); available && !notifiedNewVersionAvailable {
-				notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
-				notifiedNewVersionAvailable = true
+			if !notifiedNewVersionAvailable {
+				if available, latest := checkForNewVersionAvailable(); available {
+					notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
+					notifiedNewVersionAvailable = true
+				}
 			}
 
 			log.Infof("====================  CYCLE %d  ====================", cycleToProcess)
