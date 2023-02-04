@@ -10,6 +10,7 @@ import (
 	"github.com/alis-is/tezpay/configuration/migrations"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
@@ -57,11 +58,20 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		}
 	}
 
+	walletMode := configuration.PayoutConfiguration.WalletMode
+	if walletMode == "" {
+		walletMode = enums.WALLET_MODE_LOCAL_PRIVATE_KEY
+	}
+	payoutMode := configuration.PayoutConfiguration.PayoutMode
+	if payoutMode == "" {
+		payoutMode = enums.PAYOUT_MODE_ACTUAL
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
-			WalletMode:              configuration.PayoutConfiguration.WalletMode,
-			PayoutMode:              configuration.PayoutConfiguration.PayoutMode,
+			WalletMode:              walletMode,
+			PayoutMode:              payoutMode,
 			Fee:                     configuration.PayoutConfiguration.Fee,
 			IsPayingTxFee:           configuration.PayoutConfiguration.IsPayingTxFee,
 			IsPayingAllocationTxFee: configuration.PayoutConfiguration.IsPayingAllocationTxFee,
