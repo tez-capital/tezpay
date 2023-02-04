@@ -2,6 +2,7 @@ package generate
 
 import (
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core/common"
@@ -11,9 +12,9 @@ import (
 	"github.com/samber/lo"
 )
 
-func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, overdelegationProtection bool) tezos.Z {
+func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {
 	bakerBalance := cycleData.GetBakerBalance()
-	totalRewards := cycleData.GetTotalRewards()
+	totalRewards := cycleData.GetTotalRewards(configuration.PayoutConfiguration.PayoutMode)
 
 	overdelegationLimit := cycleData.FrozenDepositLimit
 	if overdelegationLimit.IsZero() {
@@ -21,7 +22,7 @@ func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsS
 	}
 	bakerAmount := totalRewards.Div64(constants.DELEGATION_CAPACITY_FACTOR)
 	stakingBalance := effectiveDelegatorsStakingBalance.Add(bakerBalance)
-	if !overdelegationLimit.Mul64(constants.DELEGATION_CAPACITY_FACTOR).Sub(stakingBalance).IsNeg() || !overdelegationProtection { // not overdelegated
+	if !overdelegationLimit.Mul64(constants.DELEGATION_CAPACITY_FACTOR).Sub(stakingBalance).IsNeg() || !configuration.Overdelegation.IsProtectionEnabled { // not overdelegated
 		bakerAmount = totalRewards.Mul(bakerBalance).Div(stakingBalance)
 	}
 	return bakerAmount
@@ -40,8 +41,8 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		return total.Add(candidate.Balance)
 	}, tezos.NewZ(0))
 
-	bakerBonds := getBakerBondsAmount(ctx.StageData.CycleData, effectiveStakingBalance, configuration.Overdelegation.IsProtectionEnabled)
-	availableRewards := ctx.StageData.CycleData.GetTotalRewards().Sub(bakerBonds)
+	bakerBonds := getBakerBondsAmount(ctx.StageData.CycleData, effectiveStakingBalance, configuration)
+	availableRewards := ctx.StageData.CycleData.GetTotalRewards(configuration.PayoutConfiguration.PayoutMode).Sub(bakerBonds)
 
 	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(candidates, func(candidate PayoutCandidate, _ int) PayoutCandidateWithBondAmount {
 		if candidate.IsInvalid {

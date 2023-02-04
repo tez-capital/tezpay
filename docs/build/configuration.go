@@ -50,6 +50,7 @@ func GenerateSample() {
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
 			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:              enums.PAYOUT_MODE_IDEAL,
 			Fee:                     .075,
 			IsPayingTxFee:           true,
 			IsPayingAllocationTxFee: true,

@@ -27,13 +27,15 @@ type splitDelegator struct {
 }
 
 type tzktBakersCycleData struct {
-	StakingBalance     int64            `json:"stakingBalance"`
-	DelegatedBalance   int64            `json:"delegatedBalance"`
-	BlockRewards       int64            `json:"blockRewards"`
-	EndorsementRewards int64            `json:"endorsementRewards"`
-	NumDelegators      int32            `json:"numDelegators"`
-	BlockFees          int64            `json:"blockFees"`
-	Delegators         []splitDelegator `json:"delegators"`
+	StakingBalance           int64            `json:"stakingBalance"`
+	DelegatedBalance         int64            `json:"delegatedBalance"`
+	BlockRewards             int64            `json:"blockRewards"`
+	MissedBlockRewards       int64            `json:"missedBlockRewards"`
+	EndorsementRewards       int64            `json:"endorsementRewards"`
+	MissedEndorsementRewards int64            `json:"missedEndorsementRewards"`
+	NumDelegators            int32            `json:"numDelegators"`
+	BlockFees                int64            `json:"blockFees"`
+	Delegators               []splitDelegator `json:"delegators"`
 }
 
 type bakerData struct {
@@ -176,13 +178,15 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 	log.Tracef("fetched baker data with %d delegators", len(collectedDelegators))
 
 	return &common.BakersCycleData{
-		StakingBalance:     tezos.NewZ(tzktBakerCycleData.StakingBalance),
-		DelegatedBalance:   tezos.NewZ(tzktBakerCycleData.DelegatedBalance),
-		BlockRewards:       tezos.NewZ(tzktBakerCycleData.BlockRewards),
-		EndorsementRewards: tezos.NewZ(tzktBakerCycleData.EndorsementRewards),
-		NumDelegators:      tzktBakerCycleData.NumDelegators,
-		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),
-		BlockFees:          tezos.NewZ(tzktBakerCycleData.BlockFees),
+		StakingBalance:          tezos.NewZ(tzktBakerCycleData.StakingBalance),
+		DelegatedBalance:        tezos.NewZ(tzktBakerCycleData.DelegatedBalance),
+		BlockRewards:            tezos.NewZ(tzktBakerCycleData.BlockRewards),
+		IdealBlockRewards:       tezos.NewZ(tzktBakerCycleData.BlockRewards).Add64(tzktBakerCycleData.MissedBlockRewards),
+		EndorsementRewards:      tezos.NewZ(tzktBakerCycleData.EndorsementRewards),
+		IdealEndorsementRewards: tezos.NewZ(tzktBakerCycleData.EndorsementRewards).Add64(tzktBakerCycleData.MissedEndorsementRewards),
+		NumDelegators:           tzktBakerCycleData.NumDelegators,
+		FrozenDepositLimit:      tezos.NewZ(tzktBakerData.FrozenDepositLimit),
+		BlockFees:               tezos.NewZ(tzktBakerCycleData.BlockFees),
 		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) common.Delegator {
 			addr, err := tezos.ParseAddress(delegator.Address)
 			if err != nil {

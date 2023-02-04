@@ -108,7 +108,8 @@ func MigrateBcToTPv0(sourceBytes []byte) ([]byte, *ConfigurationVersionInfo, err
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
 			Fee:           configuration.Fee / 100,
 			IsPayingTxFee: configuration.PaymentRequirements.IsPayingTxFee,
-			WalletMode:    enums.WalletMode(configuration.WalletMode),
+			WalletMode:    enums.EWalletMode(configuration.WalletMode),
+			PayoutMode:    enums.PAYOUT_MODE_ACTUAL,
 			MinimumAmount: configuration.PaymentRequirements.MinimumAmount,
 		},
 		NotificationConfigurations: configuration.NotificationConfigurations,

@@ -1,12 +1,19 @@
 package enums
 
-type WalletMode string
+type EWalletMode string
 
 const (
-	WALLET_MODE_LOCAL_PRIVATE_KEY  WalletMode = "local-private-key"
-	WALLET_MODE_LOCAL_PRIVATE_KEY2 WalletMode = "local_private_key"
-	WALLET_MODE_REMOTE_SIGNER      WalletMode = "remote-signer"
-	WALLET_MODE_REMOTE_SIGNER2     WalletMode = "remote_signer"
+	WALLET_MODE_LOCAL_PRIVATE_KEY  EWalletMode = "local-private-key"
+	WALLET_MODE_LOCAL_PRIVATE_KEY2 EWalletMode = "local_private_key"
+	WALLET_MODE_REMOTE_SIGNER      EWalletMode = "remote-signer"
+	WALLET_MODE_REMOTE_SIGNER2     EWalletMode = "remote_signer"
+)
+
+type EPayoutMode string
+
+const (
+	PAYOUT_MODE_ACTUAL EPayoutMode = "actual"
+	PAYOUT_MODE_IDEAL  EPayoutMode = "ideal"
 )
 
 type EPayoutInvalidReason string

@@ -61,6 +61,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
 			WalletMode:              configuration.PayoutConfiguration.WalletMode,
+			PayoutMode:              configuration.PayoutConfiguration.PayoutMode,
 			Fee:                     configuration.PayoutConfiguration.Fee,
 			IsPayingTxFee:           configuration.PayoutConfiguration.IsPayingTxFee,
 			IsPayingAllocationTxFee: configuration.PayoutConfiguration.IsPayingAllocationTxFee,
