@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
@@ -27,6 +28,12 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 			err = errors.New(msg)
 		}
 	}()
+
+	_assert(configuration != nil, "configuration is nil")
+	_assert(lo.Contains(enums.VALID_WALLET_MODES, configuration.PayoutConfiguration.WalletMode),
+		fmt.Sprintf("configuration.payouts.wallet_mode - '%s' not supported", configuration.PayoutConfiguration.WalletMode))
+	_assert(lo.Contains(enums.VALID_PAYOUT_MODES, configuration.PayoutConfiguration.PayoutMode),
+		fmt.Sprintf("configuration.payouts.payout_mode - '%s' not supported", configuration.PayoutConfiguration.PayoutMode))
 
 	_assert(utils.IsPortionWithin0n1(configuration.PayoutConfiguration.Fee),
 		getPortionRangeError("configuration.payouts.fee", configuration.PayoutConfiguration.Fee))

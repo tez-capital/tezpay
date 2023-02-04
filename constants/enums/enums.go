@@ -9,11 +9,27 @@ const (
 	WALLET_MODE_REMOTE_SIGNER2     EWalletMode = "remote_signer"
 )
 
+var (
+	VALID_WALLET_MODES = []EWalletMode{
+		WALLET_MODE_LOCAL_PRIVATE_KEY,
+		WALLET_MODE_LOCAL_PRIVATE_KEY2,
+		WALLET_MODE_REMOTE_SIGNER,
+		WALLET_MODE_REMOTE_SIGNER2,
+	}
+)
+
 type EPayoutMode string
 
 const (
 	PAYOUT_MODE_ACTUAL EPayoutMode = "actual"
 	PAYOUT_MODE_IDEAL  EPayoutMode = "ideal"
+)
+
+var (
+	VALID_PAYOUT_MODES = []EPayoutMode{
+		PAYOUT_MODE_ACTUAL,
+		PAYOUT_MODE_IDEAL,
+	}
 )
 
 type EPayoutInvalidReason string
