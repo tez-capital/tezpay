@@ -3,6 +3,7 @@
   baker: ""
   payouts: {
     wallet_mode: local-private-key
+    payout_mode: ideal
     fee: 0.075
     baker_pays_transaction_fee: true
     baker_pays_allocation_fee: true

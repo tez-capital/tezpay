@@ -3,6 +3,7 @@
   baker: ""
   payouts: {
     wallet_mode: local-private-key
+    payout_mode: actual
     fee: 0.05
   }
   delegators: {
