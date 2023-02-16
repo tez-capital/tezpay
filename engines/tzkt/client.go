@@ -43,8 +43,8 @@ type bakerData struct {
 }
 
 type Client struct {
-	rootUrl    *url.URL
-	httpClient *http.Client
+	*http.Client
+	rootUrl *url.URL
 }
 
 func InitClient(rootUrl string, httpClient *http.Client) (*Client, error) {
@@ -58,8 +58,8 @@ func InitClient(rootUrl string, httpClient *http.Client) (*Client, error) {
 	}
 
 	return &Client{
-		rootUrl:    root,
-		httpClient: httpClient,
+		Client:  httpClient,
+		rootUrl: root,
 	}, nil
 }
 
@@ -73,7 +73,7 @@ func (client *Client) Get(ctx context.Context, path string) (*http.Response, err
 	}
 	request, _ := http.NewRequestWithContext(ctx, "GET", client.rootUrl.ResolveReference(rel).String(), nil)
 
-	resp, err := client.httpClient.Do(request)
+	resp, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
