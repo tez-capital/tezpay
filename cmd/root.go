@@ -101,8 +101,8 @@ func Execute() error {
 
 func init() {
 	RootCmd.PersistentFlags().StringP(PATH_FLAG, "p", ".", "path to working directory")
-	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets log level format (trace/debug/info/warn/error)")
-	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets output log format (json/text/auto)")
+	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets output log format (json/text/auto)")
+	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
 	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
 	RootCmd.PersistentFlags().Bool(DISABLE_DONATION_PROMPT_FLAG, false, "Disable donation prompt")
