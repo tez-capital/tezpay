@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
+	"github.com/cryi/go-shellwords"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/samber/lo"
@@ -44,7 +45,7 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	payoutTable.SetOutputMirror(os.Stdout)
 	payoutTable.SetTitle(header)
 	payoutTable.Style().Title.Align = text.AlignCenter
-	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Delegated Balance", "Kind", "Amount", "Fee Rate", "Baker Fee", "Transaction Fee", "Note"}, table.RowConfig{AutoMerge: true})
+	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Delegated Balance", "Kind", "TxKind", "Contract", "Amount", "Fee Rate", "Baker Fee", "Transaction Fee", "Note"}, table.RowConfig{AutoMerge: true})
 	for _, payout := range payouts {
 		note := payout.Note
 		if note == "" {
@@ -55,7 +56,7 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 			txFee = payout.OpLimits.TransactionFee
 		}
 
-		payoutTable.AppendRow(table.Row{shortenAddress(payout.Delegator), shortenAddress(payout.Recipient), MutezToTezS(payout.DelegatedBalance.Int64()), payout.Kind, MutezToTezS(payout.Amount.Int64()), toPercentage(payout.FeeRate), MutezToTezS(payout.Fee.Int64()), MutezToTezS(txFee), note}, table.RowConfig{AutoMerge: false})
+		payoutTable.AppendRow(table.Row{shortenAddress(payout.Delegator), shortenAddress(payout.Recipient), MutezToTezS(payout.DelegatedBalance.Int64()), payout.Kind, payout.TxKind, shortenAddress(payout.FAContract), MutezToTezS(payout.Amount.Int64()), toPercentage(payout.FeeRate), MutezToTezS(payout.Fee.Int64()), MutezToTezS(txFee), note}, table.RowConfig{AutoMerge: false})
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
@@ -68,7 +69,7 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 		transactionFees := lo.Reduce(payouts, func(agg int64, payout common.PayoutRecipe, _ int) int64 {
 			return agg + payout.OpLimits.TransactionFee
 		}, 0)
-		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), "-", MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
+		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), "-", MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
 	}
 	payoutTable.Render()
 }
@@ -105,7 +106,7 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 	payoutTable.SetOutputMirror(os.Stdout)
 	payoutTable.SetTitle(header)
 	payoutTable.Style().Title.Align = text.AlignCenter
-	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Kind", "Amount", "Baker Fee", "Transaction Fee", "OpHash"}, table.RowConfig{AutoMerge: true})
+	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Kind", "TxKind", "Contract", "Amount", "Baker Fee", "Transaction Fee", "OpHash"}, table.RowConfig{AutoMerge: true})
 	for _, payout := range payouts {
 		note := payout.Note
 		if note == "" {
@@ -113,7 +114,7 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 		}
 		txFee := int64(0)
 
-		payoutTable.AppendRow(table.Row{shortenAddress(payout.Delegator), shortenAddress(payout.Recipient), payout.Kind, MutezToTezS(payout.Amount.Int64()), MutezToTezS(payout.Fee.Int64()), MutezToTezS(txFee), payout.OpHash}, table.RowConfig{AutoMerge: false})
+		payoutTable.AppendRow(table.Row{shortenAddress(payout.Delegator), shortenAddress(payout.Recipient), payout.Kind, payout.TxKind, shortenAddress(payout.Contract), MutezToTezS(payout.Amount.Int64()), MutezToTezS(payout.Fee.Int64()), MutezToTezS(txFee), payout.OpHash}, table.RowConfig{AutoMerge: false})
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
@@ -126,7 +127,7 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 		transactionFees := lo.Reduce(payouts, func(agg int64, payout common.PayoutReport, _ int) int64 {
 			return agg + payout.TransactionFee
 		}, 0)
-		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
+		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
 	}
 	payoutTable.Render()
 }
@@ -167,4 +168,12 @@ func PrintBatchResults(results []common.BatchResult, header string, explorerUrl 
 		resultsTable.AppendRow(table.Row{i + 1, len(result.Payouts), result.IsSuccess, GetOpReference(result.OpHash, explorerUrl)}, table.RowConfig{AutoMerge: false})
 	}
 	resultsTable.Render()
+}
+
+func SplitStringToArgs(s string) ([]string, error) {
+	p := shellwords.NewParser()
+	p.ParseEnv = true
+	p.ParseBacktick = true
+	args, err := p.Parse(s)
+	return args, err
 }

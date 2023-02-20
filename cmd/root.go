@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/common"
 	signer_engines "github.com/alis-is/tezpay/engines/signer"
 
 	"github.com/alis-is/tezpay/state"

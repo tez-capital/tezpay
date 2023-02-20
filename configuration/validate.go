@@ -30,9 +30,9 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	}()
 
 	_assert(configuration != nil, "configuration is nil")
-	_assert(lo.Contains(enums.VALID_WALLET_MODES, configuration.PayoutConfiguration.WalletMode),
+	_assert(lo.Contains(enums.SUPPORTED_WALLET_MODES, configuration.PayoutConfiguration.WalletMode),
 		fmt.Sprintf("configuration.payouts.wallet_mode - '%s' not supported", configuration.PayoutConfiguration.WalletMode))
-	_assert(lo.Contains(enums.VALID_PAYOUT_MODES, configuration.PayoutConfiguration.PayoutMode),
+	_assert(lo.Contains(enums.SUPPORTED_PAYOUT_MODES, configuration.PayoutConfiguration.PayoutMode),
 		fmt.Sprintf("configuration.payouts.payout_mode - '%s' not supported", configuration.PayoutConfiguration.PayoutMode))
 
 	_assert(utils.IsPortionWithin0n1(configuration.PayoutConfiguration.Fee),
@@ -72,8 +72,8 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	for k, v := range configuration.Delegators.Overrides {
 		_, err := tezos.ParseAddress(k)
 		_assert(err == nil, fmt.Sprintf("configuration.delegators.overrides.%s has to be valid PKH", k))
-		_assert(utils.IsPortionWithin0n1(v.Fee),
-			getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), v.Fee))
+		_assert(v.Fee == nil || utils.IsPortionWithin0n1(*v.Fee),
+			getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), *v.Fee))
 	}
 
 	for _, v := range configuration.NotificationConfigurations {

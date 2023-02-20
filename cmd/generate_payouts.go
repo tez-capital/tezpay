@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/payout"
+	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/core"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
@@ -28,7 +28,7 @@ var generatePayoutsCmd = &cobra.Command{
 		}
 
 		generationResult := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
-			return payout.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+			return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 				&common.GeneratePayoutsOptions{
 					Cycle:            cycle,
 					SkipBalanceCheck: skipBalanceCheck,

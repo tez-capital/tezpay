@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 	"github.com/nikoksr/notify/service/telegram"
 	log "github.com/sirupsen/logrus"
 )

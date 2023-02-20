@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/payout"
+	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
@@ -24,6 +24,7 @@ var payCmd = &cobra.Command{
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
+		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
 
 		fsReporter := reporter_engines.NewFileSystemReporter(config)
 		stdioReporter := reporter_engines.NewStdioReporter(config)
@@ -45,7 +46,7 @@ var payCmd = &cobra.Command{
 			}, EXIT_PAYOUTS_READ_FAILURE)
 		} else {
 			generationResult = assertRunWithResult(func() (*common.GeneratePayoutsResult, error) {
-				return payout.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+				return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 					&common.GeneratePayoutsOptions{
 						Cycle:            cycle,
 						SkipBalanceCheck: skipBalanceCheck,
@@ -54,7 +55,7 @@ var payCmd = &cobra.Command{
 		}
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return payout.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 		}, EXIT_OPERTION_FAILED)
 
 		if state.Global.GetWantsOutputJson() {
@@ -86,8 +87,9 @@ var payCmd = &cobra.Command{
 			if reportToStdout, _ := cmd.Flags().GetBool(REPORT_TO_STDOUT); reportToStdout {
 				reporter = stdioReporter
 			}
-			return payout.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, reporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
+			return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, reporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 				MixInContractCalls: mixInContractCalls,
+				MixInFATransfers:   mixInFATransfers,
 			})
 		}, EXIT_OPERTION_FAILED)
 
@@ -110,6 +112,7 @@ func init() {
 	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
 	payCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
+	payCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	payCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
 	payCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
 	payCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")

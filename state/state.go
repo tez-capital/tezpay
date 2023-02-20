@@ -4,7 +4,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 )
 
 var (
@@ -66,13 +66,6 @@ func (state *State) GetConfigurationFilePath() string {
 		return configurationFilePath
 	}
 	return path.Join(state.GetWorkingDirectory(), CONFIG_FILE_NAME)
-}
-
-func (state *State) GetConfigurationFileBackupPath() string {
-	configurationFilePath := state.GetConfigurationFilePath()
-	extension := path.Ext(configurationFilePath)
-
-	return configurationFilePath[0:len(configurationFilePath)-len(extension)] + ".backup" + extension
 }
 
 func (state *State) GetPrivateKeyFilePath() string {

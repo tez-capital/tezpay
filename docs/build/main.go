@@ -14,6 +14,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	GenerateDefault()
-	GenerateSample()
+	GenerateDefaultHJson()
+	GenerateSampleHJson()
 }

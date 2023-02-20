@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/common"
 	collector_engines "github.com/alis-is/tezpay/engines/collector"
 	signer_engines "github.com/alis-is/tezpay/engines/signer"
 	transactor_engines "github.com/alis-is/tezpay/engines/transactor"

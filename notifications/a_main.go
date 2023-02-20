@@ -3,7 +3,7 @@ package notifications
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 )
 
 func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.NotificatorEngine, error) {

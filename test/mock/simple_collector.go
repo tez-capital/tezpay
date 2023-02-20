@@ -7,8 +7,8 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 )

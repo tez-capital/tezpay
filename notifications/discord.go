@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"

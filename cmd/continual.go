@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/payout"
+	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
@@ -22,6 +23,7 @@ var continualCmd = &cobra.Command{
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
+		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
 
 		fsReporter := reporter_engines.NewFileSystemReporter(config)
@@ -70,7 +72,7 @@ var continualCmd = &cobra.Command{
 		notifiedNewVersionAvailable := false
 
 		defer notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
-		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d", lastProcessedCycle+1))
+		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s)", lastProcessedCycle+1, constants.VERSION))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
 				log.Info("looking for next cycle to pay out")
@@ -99,7 +101,7 @@ var continualCmd = &cobra.Command{
 
 			log.Infof("====================  CYCLE %d  ====================", cycleToProcess)
 
-			generationResult, err := payout.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+			generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 				&common.GeneratePayoutsOptions{
 					Cycle:                    cycleToProcess,
 					WaitForSufficientBalance: true,
@@ -112,7 +114,7 @@ var continualCmd = &cobra.Command{
 
 			log.Info("checking past reports")
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-				return payout.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+				return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 			}, EXIT_OPERTION_FAILED)
 
 			if len(preparationResult.Payouts) == 0 {
@@ -131,8 +133,9 @@ var continualCmd = &cobra.Command{
 
 			log.Info("executing payout")
 			executionResult := assertRunWithResult(func() (common.ExecutePayoutsResult, error) {
-				return payout.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
+				return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 					MixInContractCalls: mixInContractCalls,
+					MixInFATransfers:   mixInFATransfers,
 				})
 			}, EXIT_OPERTION_FAILED)
 
@@ -154,6 +157,7 @@ var continualCmd = &cobra.Command{
 func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
+	continualCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().Bool(FORCE_CONFIRMATION_PROMPT_FLAG, false, "forces confirmation prompts for each payout")
 
 	RootCmd.AddCommand(continualCmd)

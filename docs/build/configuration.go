@@ -1,24 +1,29 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 
 	"blockwatch.cc/tzgo/tezos"
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
+	"github.com/alis-is/tezpay/common"
+	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/hjson/hjson-go/v4"
 )
 
-func GenerateDefault() {
+func GenerateDefaultHJson() {
 	config := tezpay_configuration.GetDefaultV0()
 
 	sample, _ := hjson.Marshal(config)
 	_ = os.WriteFile("docs/configuration/config.default.hjson", sample, 0644)
 }
+func genrateSample() *tezpay_configuration.ConfigurationV0 {
+	logExtensionConfiguration := json.RawMessage(`{"LOG_FILE": "path/to/my/extension.log"}`)
+	feeExtensionConfiguration := json.RawMessage(`{"FEE": 0, "TOKEN": "1", "CONTRACT": "KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV"}`)
 
-func GenerateSample() {
-	config := tezpay_configuration.ConfigurationV0{
+	fee := 0.0
+	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidAddress,
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
@@ -28,8 +33,7 @@ func GenerateSample() {
 			Overrides: map[string]tezpay_configuration.DelegatorOverrideV0{
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": {
 					Recipient:      tezos.InvalidAddress,
-					Fee:            0.005,
-					NoFee:          true,
+					Fee:            &fee,
 					MinimumBalance: 2.5,
 				},
 			},
@@ -119,7 +123,33 @@ func GenerateSample() {
 				"tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv": 0.90,
 			},
 		},
+		Extensions: []tezpay_configuration.ExtensionConfigurationV0{
+			common.ExtensionDefinition{
+				Id:      "log-extension",
+				Command: "python3 path/to/my/extension.py",
+				Kind:    enums.EXTENSION_STDIO_RPC,
+				Hooks: []common.ExtensionHook{{
+					Id:   enums.EXTENSION_HOOK_ALL,
+					Mode: enums.EXTENSION_HOOK_MODE_READ_ONLY,
+				}},
+				Configuration: &logExtensionConfiguration,
+			},
+			common.ExtensionDefinition{
+				Id:      "fee-extension",
+				Command: `/path/to/my/extension.bin`,
+				Kind:    enums.EXTENSION_STDIO_RPC,
+				Hooks: []common.ExtensionHook{{
+					Id:   enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED,
+					Mode: enums.EXTENSION_HOOK_MODE_READ_WRITE,
+				}},
+				Configuration: &feeExtensionConfiguration,
+			},
+		},
 	}
+}
+
+func GenerateSampleHJson() {
+	config := genrateSample()
 
 	sample, _ := hjson.Marshal(config)
 	_ = os.WriteFile("docs/configuration/config.sample.hjson", sample, 0644)
