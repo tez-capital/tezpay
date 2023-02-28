@@ -10,6 +10,7 @@ import (
 	"github.com/alis-is/jsonrpc2/rpc"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/echa/log"
 	"github.com/google/uuid"
 )
 
@@ -78,6 +79,7 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 		if hook == enums.EXTENSION_HOOK_TEST_REQUEST {
 			matchedMode = enums.EXTENSION_HOOK_MODE_READ_WRITE
 		}
+		log.Debugf("executing hook %s with mode %s on extension %s", hook, matchedMode, def.Id)
 
 		var err error
 		for i := 0; i < def.GetRetry(); i++ {
@@ -112,7 +114,6 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 					Version: version,
 					Data:    data,
 				}, &response)
-
 				responseResult, err := response.Unwrap()
 
 				if err != nil && strings.Contains(err.Error(), string(rpc.MethodNotFoundKind)) {

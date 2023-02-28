@@ -8,15 +8,15 @@ import (
 )
 
 type PayoutCandidate struct {
-	Source                       tezos.Address
-	Recipient                    tezos.Address
-	FeeRate                      float64
-	Balance                      tezos.Z
-	IsInvalid                    bool
-	IsEmptied                    bool
-	IsBakerPayingTxFee           bool
-	IsBakerPayingAllocationTxFee bool
-	InvalidBecause               enums.EPayoutInvalidReason
+	Source                       tezos.Address              `json:"source,omitempty"`
+	Recipient                    tezos.Address              `json:"recipient,omitempty"`
+	FeeRate                      float64                    `json:"fee_rate,omitempty"`
+	Balance                      tezos.Z                    `json:"balance,omitempty"`
+	IsInvalid                    bool                       `json:"is_invalid,omitempty"`
+	IsEmptied                    bool                       `json:"is_emptied,omitempty"`
+	IsBakerPayingTxFee           bool                       `json:"is_baker_paying_tx_fee,omitempty"`
+	IsBakerPayingAllocationTxFee bool                       `json:"is_baker_paying_allocation_tx_fee,omitempty"`
+	InvalidBecause               enums.EPayoutInvalidReason `json:"invalid_because,omitempty"`
 }
 
 func (candidate *PayoutCandidate) ToValidationContext(ctx *PayoutGenerationContext) PayoutValidationContext {
@@ -35,10 +35,10 @@ func (candidate *PayoutCandidate) ToValidationContext(ctx *PayoutGenerationConte
 
 type PayoutCandidateWithBondAmount struct {
 	PayoutCandidate
-	BondsAmount tezos.Z
-	TxKind      enums.EPayoutTransactionKind
-	FATokenId   tezos.Z       // required only if fa12 or fa2
-	FAContract  tezos.Address // required only if fa12 or fa2
+	BondsAmount tezos.Z                      `json:"bonds_amount,omitempty"`
+	TxKind      enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId   tezos.Z                      `json:"fa_token_id,omitempty"` // required only if fa12 or fa2
+	FAContract  tezos.Address                `json:"fa_contract"`           // required only if fa12 or fa2
 }
 
 func (candidate *PayoutCandidateWithBondAmount) GetDestination() tezos.Address {
@@ -67,14 +67,14 @@ func (candidate *PayoutCandidateWithBondAmount) GetFeeRate() float64 {
 
 type PayoutCandidateWithBondAmountAndFee struct {
 	PayoutCandidateWithBondAmount
-	Fee tezos.Z
+	Fee tezos.Z `json:"fee,omitempty"`
 }
 
 type PayoutCandidateSimulated struct {
 	PayoutCandidateWithBondAmountAndFee
-	AllocationBurn int64
-	StorageBurn    int64
-	OpLimits       *common.OpLimits
+	AllocationBurn int64            `json:"allocation_burn,omitempty"`
+	StorageBurn    int64            `json:"storage_burn,omitempty"`
+	OpLimits       *common.OpLimits `json:"op_limits,omitempty"`
 }
 
 func (payout *PayoutCandidateSimulated) GetOperationTotalFees() int64 {

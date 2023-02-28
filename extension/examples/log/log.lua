@@ -3,14 +3,15 @@ This is an example of a eli (Lua) extension.
 It logs all requests and responses to a file.
 Path to log file is specified in tezpay configuration.
 
-extensions: {
-	log: {
+extensions: [
+	{
+		id: "log",
 		path: "extension/examples/log.lua",
 		configuration: {
 			LOG_FILE: "extension/examples/log.txt"
 		}
 	}
-}
+]
 ]]
 
 local hjson = require("hjson")
