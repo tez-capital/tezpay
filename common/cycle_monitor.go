@@ -25,7 +25,6 @@ type cycleMonitor struct {
 
 func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorOptions) (CycleMonitor, error) {
 	if options.NotificationDelay == 0 {
-		rand.Seed(time.Now().UnixNano())
 		options.NotificationDelay = int64(rand.Intn(120) + 5)
 	}
 
