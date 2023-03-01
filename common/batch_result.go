@@ -44,6 +44,8 @@ func (br *BatchResult) ToReports() []PayoutReport {
 		payout.Note = note
 
 		result[i] = payout.ToPayoutReport()
+		result[i].OpHash = br.OpHash
+		result[i].IsSuccess = br.IsSuccess
 	}
 	return result
 }

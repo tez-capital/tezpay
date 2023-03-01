@@ -16,6 +16,14 @@ const (
 )
 
 func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGenerationContext) []PayoutCandidateSimulated {
+	// validate
+	payouts = lo.Map(payouts, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
+		validationContext := candidate.ToValidationContext(ctx)
+		return *validationContext.Validate(
+			TxKindValidator,
+		).ToPresimPayoutCandidate()
+	})
+
 	candidates := lo.Filter(payouts, func(payout PayoutCandidateWithBondAmountAndFee, _ int) bool {
 		return !payout.IsInvalid
 	})

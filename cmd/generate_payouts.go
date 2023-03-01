@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/core"
+	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
@@ -17,6 +18,7 @@ var generatePayoutsCmd = &cobra.Command{
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		config, collector, signer, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		defer extension.CloseExtensions()
 
 		if cycle <= 0 {
 			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")

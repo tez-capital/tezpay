@@ -35,7 +35,7 @@ func RegisterExtension(ctx context.Context, def common.ExtensionDefinition) (Ext
 		return newTcpExtension(ctx, def), nil
 		// TODO: http and WS
 	default:
-		return nil, fmt.Errorf("not supported")
+		return nil, fmt.Errorf("unknown extension kind - \"%s\"", def.Kind)
 	}
 }
 

@@ -64,7 +64,8 @@ func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 		Cycle:            pr.Cycle,
 		Kind:             pr.Kind,
 		TxKind:           pr.TxKind,
-		Contract:         pr.FAContract,
+		FAContract:       pr.FAContract,
+		FATokenId:        pr.FATokenId,
 		Delegator:        pr.Delegator,
 		DelegatedBalance: pr.DelegatedBalance,
 		Recipient:        pr.Recipient,
@@ -75,6 +76,71 @@ func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 		OpHash:           tezos.ZeroOpHash,
 		IsSuccess:        false,
 		Note:             pr.Note,
+	}
+}
+
+func (pr *PayoutRecipe) GetTransactionFee() int64 {
+	if pr.OpLimits != nil {
+		return pr.OpLimits.TransactionFee
+	}
+	return 0
+}
+
+func (pr *PayoutRecipe) ToTableRowData() []string {
+	return []string{
+		ShortenAddress(pr.Delegator),
+		ShortenAddress(pr.Recipient),
+		MutezToTezS(pr.DelegatedBalance.Int64()),
+		string(pr.Kind),
+		ShortenAddress(pr.FAContract),
+		ToStringEmptyIfZero(pr.FATokenId.Int64()),
+		FormatAmount(pr.TxKind, pr.Amount.Int64()),
+		FloatToPercentage(pr.FeeRate),
+		MutezToTezS(pr.Fee.Int64()),
+		MutezToTezS(pr.GetTransactionFee()),
+		pr.Note,
+	}
+}
+
+func (pr *PayoutRecipe) GetTableHeaders() []string {
+	return []string{
+		"Delegator",
+		"Recipient",
+		"Delegated Balance",
+		"Kind",
+		"FA Contract",
+		"FA Token Id",
+		"Amount",
+		"Fee Rate",
+		"Fee",
+		"Tx Fee",
+		"Note",
+	}
+}
+
+func GetRecipesTotals(recipes []PayoutRecipe) []string {
+	totalAmount := int64(0)
+	totalFee := int64(0)
+	totalTx := int64(0)
+	for _, recipe := range recipes {
+		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ {
+			totalAmount += recipe.Amount.Int64()
+		}
+		totalFee += recipe.Fee.Int64()
+		totalTx += recipe.GetTransactionFee()
+	}
+	return []string{
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		MutezToTezS(totalAmount),
+		"",
+		MutezToTezS(totalFee),
+		MutezToTezS(totalTx),
+		"",
 	}
 }
 

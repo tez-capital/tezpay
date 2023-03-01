@@ -1,13 +1,11 @@
 package core
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core/generate"
-	"github.com/alis-is/tezpay/extension"
 )
 
 const (
@@ -19,9 +17,6 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 	if config == nil {
 		return nil, fmt.Errorf("configuration not specified")
 	}
-
-	extension.InitializeExtensionStore(context.Background(), config.Extensions)
-	defer extension.EndExecutionScope()
 
 	ctx, err := generate.NewPayoutGenerationContext(config, engineContext)
 	if err != nil {

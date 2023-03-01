@@ -21,7 +21,7 @@ var extensionTestCmd = &cobra.Command{
 		config, _, _, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 
 		err := extension.InitializeExtensionStore(context.Background(), config.Extensions)
-		defer extension.EndExecutionScope()
+		defer extension.CloseScopedExtensions()
 		if err != nil {
 			log.Errorf("failed to initialize extension store - %s", err.Error())
 		}
@@ -33,7 +33,7 @@ var extensionTestCmd = &cobra.Command{
 			return
 		}
 		log.Info("test-notify hook executed successfully")
-		extension.EndExecutionScope()
+		extension.CloseScopedExtensions()
 		if err := extension.ExecuteHook(enums.EXTENSION_HOOK_TEST_REQUEST, "0.1", &data); err != nil {
 			log.Errorf("failed to execute hook - %s", err.Error())
 			return

@@ -8,6 +8,7 @@ import (
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
+	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
@@ -21,6 +22,7 @@ var continualCmd = &cobra.Command{
 	Long:  "runs payout until stopped manually",
 	Run: func(cmd *cobra.Command, args []string) {
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
@@ -89,7 +91,7 @@ var continualCmd = &cobra.Command{
 					return
 				}
 			}
-
+			defer extension.CloseScopedExtensions()
 			cycleToProcess = lastProcessedCycle + 1
 
 			if !notifiedNewVersionAvailable {

@@ -45,9 +45,17 @@ func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefiniti
 }
 
 // sends close to all scoped extensions
-func EndExecutionScope() {
+func CloseScopedExtensions() {
 	for _, ext := range extensionStore.extensions {
 		if ext.IsLoaded() && ext.GetDefinition().GetLifespan() == enums.EXTENSION_LIFESPAN_SCOPED {
+			ext.Close()
+		}
+	}
+}
+
+func CloseExtensions() {
+	for _, ext := range extensionStore.extensions {
+		if ext.IsLoaded() {
 			ext.Close()
 		}
 	}

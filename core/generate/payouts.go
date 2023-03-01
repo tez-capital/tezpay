@@ -70,6 +70,13 @@ type PayoutCandidateWithBondAmountAndFee struct {
 	Fee tezos.Z `json:"fee,omitempty"`
 }
 
+func (candidate *PayoutCandidateWithBondAmountAndFee) ToValidationContext(ctx *PayoutGenerationContext) PresimPayoutCandidateValidationContext {
+	return PresimPayoutCandidateValidationContext{
+		Configuration: ctx.configuration,
+		Payout:        candidate,
+	}
+}
+
 type PayoutCandidateSimulated struct {
 	PayoutCandidateWithBondAmountAndFee
 	AllocationBurn int64            `json:"allocation_burn,omitempty"`

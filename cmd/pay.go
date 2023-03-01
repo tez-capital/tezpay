@@ -7,6 +7,7 @@ import (
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
+	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
@@ -20,6 +21,8 @@ var payCmd = &cobra.Command{
 	Long:  "runs manual payout",
 	Run: func(cmd *cobra.Command, args []string) {
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		defer extension.CloseExtensions()
+
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)

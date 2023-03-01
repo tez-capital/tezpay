@@ -10,8 +10,8 @@ import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -55,7 +55,7 @@ var transferCmd = &cobra.Command{
 			op.WithTransfer(destination, mutez)
 		}
 
-		if err := requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", utils.MutezToTezS(total), strings.Join(destinations, ", "))); err != nil {
+		if err := requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", common.MutezToTezS(total), strings.Join(destinations, ", "))); err != nil {
 			os.Exit(EXIT_OPERTION_CANCELED)
 		}
 		log.Infof("transfering tez... waiting for %d confirmations", constants.DEFAULT_REQUIRED_CONFIRMATIONS)

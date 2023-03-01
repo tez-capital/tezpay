@@ -9,7 +9,6 @@ import (
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
@@ -125,10 +124,10 @@ func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSum
 				},
 				Timestamp: time.Now().Format(time.RFC3339),
 				Fields: []*discordgo.MessageEmbedField{
-					{Name: "Staking Balance", Value: utils.MutezToTezS(summary.StakingBalance.Int64())},
-					{Name: "Distributed", Value: utils.MutezToTezS(summary.DistributedRewards.Int64())},
+					{Name: "Staking Balance", Value: common.MutezToTezS(summary.StakingBalance.Int64())},
+					{Name: "Distributed", Value: common.MutezToTezS(summary.DistributedRewards.Int64())},
 					{Name: "Delegators", Value: fmt.Sprintf("%d", summary.Delegators)},
-					{Name: "Donated", Value: utils.MutezToTezS(summary.DonatedTotal.Int64())},
+					{Name: "Donated", Value: common.MutezToTezS(summary.DonatedTotal.Int64())},
 				},
 			},
 		},
