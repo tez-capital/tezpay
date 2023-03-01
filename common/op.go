@@ -62,6 +62,7 @@ func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs)
 			return errors.New("invalid contract address")
 		}
 		args := contract.NewFA1TransferArgs().WithTransfer(source, p.GetDestination(), p.GetAmount()).
+			WithSource(source).
 			WithDestination(p.GetFAContract())
 		op.WithContents(args.Encode())
 	case enums.PAYOUT_TX_KIND_FA2:
@@ -69,6 +70,7 @@ func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs)
 			return errors.New("invalid contract address")
 		}
 		args := contract.NewFA2TransferArgs().WithTransfer(source, p.GetDestination(), p.GetFATokenId(), p.GetAmount()).
+			WithSource(source).
 			WithDestination(p.GetFAContract())
 		op.WithContents(args.Encode())
 	default:
