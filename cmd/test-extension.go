@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/extension"
 	log "github.com/sirupsen/logrus"
@@ -18,13 +16,9 @@ var extensionTestCmd = &cobra.Command{
 	Short: "extension test",
 	Long:  "initializes and executes test hook agains extensions",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, _, _, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
-
-		err := extension.InitializeExtensionStore(context.Background(), config.Extensions)
+		assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseScopedExtensions()
-		if err != nil {
-			log.Errorf("failed to initialize extension store - %s", err.Error())
-		}
+
 		data := testHookData{
 			Message: "hello",
 		}

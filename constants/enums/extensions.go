@@ -33,7 +33,15 @@ var (
 type EExtensionHook string
 
 const (
-	EXTENSION_HOOK_ALL          EExtensionHook = "all"
+	/* CALLS */
+	EXTENSION_INIT_CALL        EExtensionHook = "init"
+	EXTENSION_CLOSE_CALL       EExtensionHook = "close"
+	EXTENSION_HEALTHCHECK_CALL EExtensionHook = "healthcheck"
+
+	/* HOOKS */
+	// special hook to register all other hooks, not implemented on the servers
+	EXTENSION_HOOK_ALL EExtensionHook = "all"
+
 	EXTENSION_HOOK_TEST_NOTIFY  EExtensionHook = "test-notify"
 	EXTENSION_HOOK_TEST_REQUEST EExtensionHook = "test-request"
 	// can adjust generated candidate list (inject, remove, mutate)
@@ -45,9 +53,9 @@ const (
 	// can adjust fees to be collected by baker
 	EXTENSION_HOOK_ON_FEES_COLLECTION EExtensionHook = "on_fees_collection"
 
-	// EXTENSION_HOOK_AFTER_PAYOUTS_FINALIZED            EExtensionHook = "after_payouts_finalized"
-	// EXTENSION_HOOK_AFTER_PAYOUTS_PREPARE_DISTRIBUTION EExtensionHook = "after_prepare_distribution"
-	// EXTENSION_HOOK_AFTER_REWARD_DISTRIBUTED           EExtensionHook = "after_reward_distributed"
+	// EXTENSION_HOOK_AFTER_PAYOUTS_FINALIZED            EExtensionHook = "tp.after_payouts_finalized"
+	// EXTENSION_HOOK_AFTER_PAYOUTS_PREPARE_DISTRIBUTION EExtensionHook = "tp.after_prepare_distribution"
+	// EXTENSION_HOOK_AFTER_REWARD_DISTRIBUTED           EExtensionHook = "tp.after_reward_distributed"
 	EXTENSION_HOOK_UNKNOWN EExtensionHook = "unknown"
 )
 

@@ -58,7 +58,11 @@ func loadConfigurationAndEngines() (*configurationAndEngines, error) {
 		fmt.Println("Loaded configuration:", string(marshaled))
 	}
 
-	if err = extension.InitializeExtensionStore(context.Background(), config.Extensions); err != nil {
+	extEnv := &extension.ExtensionStoreEnviromnent{
+		BakerPKH:  config.BakerPKH.String(),
+		PayoutPKH: signerEngine.GetPKH().String(),
+	}
+	if err = extension.InitializeExtensionStore(context.Background(), config.Extensions, extEnv); err != nil {
 		return nil, fmt.Errorf("failed to initialize extension store - %s", err.Error())
 	}
 

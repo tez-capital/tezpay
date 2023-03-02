@@ -9,8 +9,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/alis-is/jsonrpc2/endpoints"
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -60,8 +60,8 @@ func (e *StdioExtension) Load() error {
 		return err
 	}
 
-	objStream := endpoints.NewPlainObjectStream(rwCloser{pr, pw})
-	streamEndpoint := endpoints.NewStreamEndpoint(e.ctx, objStream)
+	objStream := NewPlainObjectStream(rwCloser{pr, pw})
+	streamEndpoint := NewStreamEndpoint(e.ctx, objStream)
 	streamEndpoint.UseLogger(logrus.StandardLogger())
 	if err := cmd.Start(); err != nil {
 		return err
@@ -78,16 +78,18 @@ func (e *StdioExtension) IsLoaded() bool {
 	if e.endpoint == nil {
 		return false
 	}
-	err := endpoints.Notify[interface{}](e.ctx, e.endpoint, "tp.healthcheck", nil)
+	err := Notify[interface{}](e.ctx, e.endpoint, string(enums.EXTENSION_HEALTHCHECK_CALL), nil)
 	return e.loaded && err == nil
 }
 
 func (e *StdioExtension) Close() error {
+	if !e.loaded {
+		return nil
+	}
 	e.loaded = false
 	if e.endpoint == nil {
 		return nil
 	}
-	endpoints.Notify[interface{}](e.ctx, e.endpoint, "close", nil)
 	return errors.Join(e.endpoint.Close())
 }
 
@@ -129,8 +131,8 @@ func (e *TcpExtension) Load() error {
 	if err != nil {
 		return err
 	}
-	objStream := endpoints.NewPlainObjectStream(conn)
-	streamEndpoint := endpoints.NewStreamEndpoint(e.ctx, objStream)
+	objStream := NewPlainObjectStream(conn)
+	streamEndpoint := NewStreamEndpoint(e.ctx, objStream)
 	streamEndpoint.UseLogger(logrus.StandardLogger())
 	e.endpoint = streamEndpoint
 	e.loaded = true
@@ -141,16 +143,14 @@ func (e *TcpExtension) IsLoaded() bool {
 	if e.endpoint == nil {
 		return false
 	}
-	err := endpoints.Notify[interface{}](e.ctx, e.endpoint, "tp.healthcheck", nil)
+	err := Notify[interface{}](e.ctx, e.endpoint, string(enums.EXTENSION_HEALTHCHECK_CALL), nil)
 	return e.loaded && err == nil
 }
 
 func (e *TcpExtension) Close() error {
-	e.loaded = false
-	endpoints.Notify[interface{}](e.ctx, e.endpoint, "close", nil)
-	err := e.endpoint.Close()
-	if err != nil {
-		return errors.Join(err, e.conn.Close())
+	if !e.loaded {
+		return nil
 	}
-	return e.conn.Close()
+	e.loaded = false
+	return errors.Join(e.endpoint.Close(), e.conn.Close())
 }

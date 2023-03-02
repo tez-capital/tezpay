@@ -107,5 +107,7 @@ type ExtensionInitializationResult struct {
 type ExtensionInitializationMessage struct {
 	// the id of the extension store
 	OwnerId    string              `json:"owner_id"`
+	BakerPKH   string              `json:"baker_pkh"`
+	PayoutPKH  string              `json:"payout_pkh"`
 	Definition ExtensionDefinition `json:"definition"`
 }

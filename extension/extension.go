@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/alis-is/jsonrpc2/endpoints"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	log "github.com/sirupsen/logrus"
@@ -14,7 +13,7 @@ import (
 
 type Extension interface {
 	IsLoaded() bool
-	GetEndpoint() endpoints.IEndpointClient
+	GetEndpoint() IEndpointClient
 	Load() error
 	Close() error
 	GetDefinition() common.ExtensionDefinition
@@ -50,9 +49,11 @@ func LoadExtension(ext Extension) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), ext.GetTimeout())
 	defer cancel()
-	response, err := endpoints.Request[common.ExtensionInitializationMessage, common.ExtensionInitializationResult](ctx, ext.GetEndpoint(), "initialize", common.ExtensionInitializationMessage{
+	response, err := Request[common.ExtensionInitializationMessage, common.ExtensionInitializationResult](ctx, ext.GetEndpoint(), string(enums.EXTENSION_INIT_CALL), common.ExtensionInitializationMessage{
 		OwnerId:    extensionStore.id.String(),
 		Definition: ext.GetDefinition(),
+		BakerPKH:   extensionStore.environment.BakerPKH,
+		PayoutPKH:  extensionStore.environment.PayoutPKH,
 	})
 	if err != nil {
 		return err
@@ -69,7 +70,7 @@ func LoadExtension(ext Extension) error {
 
 type ExtensionBase struct {
 	definition common.ExtensionDefinition
-	endpoint   endpoints.IEndpointClient
+	endpoint   IEndpointClient
 	loaded     bool
 }
 
@@ -77,7 +78,7 @@ func (e *ExtensionBase) GetDefinition() common.ExtensionDefinition {
 	return e.definition
 }
 
-func (e *ExtensionBase) GetEndpoint() endpoints.IEndpointClient {
+func (e *ExtensionBase) GetEndpoint() IEndpointClient {
 	return e.endpoint
 }
 

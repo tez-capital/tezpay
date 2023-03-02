@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alis-is/jsonrpc2/endpoints"
 	"github.com/alis-is/jsonrpc2/rpc"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
@@ -14,16 +13,22 @@ import (
 	"github.com/google/uuid"
 )
 
+type ExtensionStoreEnviromnent struct {
+	BakerPKH  string `json:"baker_pkh"`
+	PayoutPKH string `json:"payout_pkh"`
+}
+
 type ExtensionStore struct {
-	id         uuid.UUID
-	extensions []Extension
+	id          uuid.UUID
+	extensions  []Extension
+	environment *ExtensionStoreEnviromnent
 }
 
 var (
 	extensionStore ExtensionStore
 )
 
-func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefinition) error {
+func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefinition, env *ExtensionStoreEnviromnent) error {
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		return err
@@ -38,26 +43,32 @@ func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefiniti
 		extensions = append(extensions, ext)
 	}
 	extensionStore = ExtensionStore{
-		id:         uuid,
-		extensions: extensions,
+		id:          uuid,
+		extensions:  extensions,
+		environment: env,
 	}
 	return nil
+}
+
+func closeExtension(ext Extension) {
+	if ext.IsLoaded() {
+		Notify[interface{}](context.Background(), ext.GetEndpoint(), string(enums.EXTENSION_CLOSE_CALL), nil)
+		ext.Close()
+	}
 }
 
 // sends close to all scoped extensions
 func CloseScopedExtensions() {
 	for _, ext := range extensionStore.extensions {
-		if ext.IsLoaded() && ext.GetDefinition().GetLifespan() == enums.EXTENSION_LIFESPAN_SCOPED {
-			ext.Close()
+		if ext.GetDefinition().GetLifespan() == enums.EXTENSION_LIFESPAN_SCOPED {
+			closeExtension(ext)
 		}
 	}
 }
 
 func CloseExtensions() {
 	for _, ext := range extensionStore.extensions {
-		if ext.IsLoaded() {
-			ext.Close()
-		}
+		closeExtension(ext)
 	}
 }
 
@@ -112,27 +123,30 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 
 			switch matchedMode {
 			case enums.EXTENSION_HOOK_MODE_READ_ONLY:
-				err = endpoints.Notify(ctx, ext.GetEndpoint(), string(hook), common.ExtensionHookData[TData]{
+				err = Notify(ctx, ext.GetEndpoint(), string(hook), common.ExtensionHookData[TData]{
 					Version: version,
 					Data:    data,
 				})
 			case enums.EXTENSION_HOOK_MODE_READ_WRITE:
 				var response rpc.Response[TData]
-				err = endpoints.RequestTo(ctx, ext.GetEndpoint(), string(hook), common.ExtensionHookData[TData]{
+				err = RequestTo(ctx, ext.GetEndpoint(), string(hook), common.ExtensionHookData[TData]{
 					Version: version,
 					Data:    data,
 				}, &response)
-				responseResult, err := response.Unwrap()
-
-				if err != nil && strings.Contains(err.Error(), string(rpc.MethodNotFoundKind)) {
-					// extensions are not required to implement all hooks
-					// so we continue if error is MethodNotFound
-					err = nil
-					break
-				}
 				if err == nil {
-					*data = responseResult
+					responseResult, err := response.Unwrap()
+
+					if err != nil && strings.Contains(err.Error(), string(rpc.MethodNotFoundKind)) {
+						// extensions are not required to implement all hooks
+						// so we continue if error is MethodNotFound
+						err = nil
+						break
+					}
+					if err == nil {
+						*data = responseResult
+					}
 				}
+
 			default:
 				// no hook matched
 				continue

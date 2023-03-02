@@ -15,11 +15,10 @@ import (
 )
 
 type checkBalanceHookData struct {
-	PayoutAddress tezos.Address `json:"address"`
-	RequiredTez   tezos.Z       `json:"required_tez"`
-	SkipTezCheck  bool          `json:"skip_tez_check"`
-	IsSufficient  bool          `json:"is_sufficient"`
-	Message       string        `json:"message"`
+	SkipTezCheck bool                            `json:"skip_tez_check"`
+	IsSufficient bool                            `json:"is_sufficient"`
+	Message      string                          `json:"message"`
+	Payouts      []PayoutCandidateWithBondAmount `json:"payouts"`
 }
 
 func checkBalanceWithHook(data *checkBalanceHookData) error {
@@ -30,18 +29,37 @@ func checkBalanceWithHook(data *checkBalanceHookData) error {
 	return nil
 }
 
-func checkBalanceWithCollector(collector common.CollectorEngine, data *checkBalanceHookData) error {
+func checkBalanceWithCollector(data *checkBalanceHookData, ctx *PayoutGenerationContext) error {
 	if data.SkipTezCheck { // skip tez check for cases when pervious hook already checked it
 		return nil
 	}
-	payableBalance, err := collector.GetBalance(data.PayoutAddress)
+	payableBalance, err := ctx.GetCollector().GetBalance(ctx.PayoutKey.Address())
 	if err != nil {
 		return err
 	}
-	diff := payableBalance.Sub(data.RequiredTez)
+
+	configuration := ctx.GetConfiguration()
+
+	totalPayouts := len(lo.Filter(data.Payouts, func(candidate PayoutCandidateWithBondAmount, _ int) bool {
+		return !candidate.IsInvalid
+	}))
+	// add all bonds, fees and donations destinations
+	totalPayouts = totalPayouts + len(configuration.IncomeRecipients.Bonds) + len(configuration.IncomeRecipients.Fees) + utils.Max(len(configuration.IncomeRecipients.Donations), 1)
+
+	requiredbalance := lo.Reduce(data.Payouts, func(agg tezos.Z, candidate PayoutCandidateWithBondAmount, _ int) tezos.Z {
+		if candidate.TxKind == enums.PAYOUT_TX_KIND_TEZ {
+			return agg.Add(candidate.BondsAmount)
+		}
+		return agg
+	}, tezos.Zero)
+
+	requiredbalance = ctx.StageData.BakerBondsAmount.Add(requiredbalance)
+	requiredbalance = requiredbalance.Add(tezos.NewZ(constants.PAYOUT_FEE_BUFFER).Mul64(int64(totalPayouts)))
+
+	diff := payableBalance.Sub(requiredbalance)
 	if diff.IsNeg() || diff.IsZero() {
 		data.IsSufficient = false
-		data.Message = fmt.Sprintf("required: %s, available: %s", data.RequiredTez, payableBalance)
+		data.Message = fmt.Sprintf("required: %s, available: %s", requiredbalance, payableBalance)
 	}
 	return nil
 }
@@ -82,34 +100,14 @@ So we just try to estimate with a buffer which should be enough for most cases.
 */
 
 func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
-	configuration := ctx.GetConfiguration()
 	if options.SkipBalanceCheck { // skip
 		return ctx, nil
 	}
 
 	log.Debugf("checking for sufficient balance")
-	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
-
-	totalPayouts := len(lo.Filter(candidates, func(candidate PayoutCandidateWithBondAmount, _ int) bool {
-		return !candidate.IsInvalid
-	}))
-	// add all bonds, fees and donations destinations
-	totalPayouts = totalPayouts + len(configuration.IncomeRecipients.Bonds) + len(configuration.IncomeRecipients.Fees) + utils.Max(len(configuration.IncomeRecipients.Donations), 1)
-
-	requiredbalance := lo.Reduce(candidates, func(agg tezos.Z, candidate PayoutCandidateWithBondAmount, _ int) tezos.Z {
-		if candidate.TxKind == enums.PAYOUT_TX_KIND_TEZ {
-			return agg.Add(candidate.BondsAmount)
-		}
-		return agg
-	}, tezos.Zero)
-
-	requiredbalance = ctx.StageData.BakerBondsAmount.Add(requiredbalance)
-	requiredbalance = requiredbalance.Add(tezos.NewZ(constants.PAYOUT_FEE_BUFFER).Mul64(int64(totalPayouts)))
-
 	hookResponse := checkBalanceHookData{
-		PayoutAddress: ctx.PayoutKey.Address(),
-		RequiredTez:   requiredbalance,
-		IsSufficient:  true,
+		IsSufficient: true,
+		Payouts:      ctx.StageData.PayoutCandidatesWithBondAmount,
 	}
 
 	checks := []func(*checkBalanceHookData) error{
@@ -119,7 +117,7 @@ func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.Genera
 		},
 		func(data *checkBalanceHookData) error {
 			log.Trace("checking tez balance with collector")
-			return checkBalanceWithCollector(ctx.GetCollector(), data)
+			return checkBalanceWithCollector(data, ctx)
 		},
 	}
 

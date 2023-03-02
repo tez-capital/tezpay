@@ -46,7 +46,7 @@ func appendToFile(data []byte) error {
 func main() {
 	endpoint := endpoints.NewStreamEndpoint(context.Background(), endpoints.NewPlainObjectStream(rwCloser{os.Stdin, os.Stdout}))
 
-	endpoints.RegisterEndpointMethod(endpoint, "initialize", func(ctx context.Context, params common.ExtensionInitializationMessage) (common.ExtensionInitializationResult, *rpc.Error) {
+	endpoints.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_INIT_CALL), func(ctx context.Context, params common.ExtensionInitializationMessage) (common.ExtensionInitializationResult, *rpc.Error) {
 		def := params.Definition
 		if def.Configuration == nil {
 			return common.ExtensionInitializationResult{
@@ -93,7 +93,7 @@ func main() {
 	}
 
 	closeChannel := make(chan struct{})
-	endpoints.RegisterEndpointMethod(endpoint, "close", func(ctx context.Context, params interface{}) (interface{}, *rpc.Error) {
+	endpoints.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_CLOSE_CALL), func(ctx context.Context, params interface{}) (interface{}, *rpc.Error) {
 		close(closeChannel)
 		return nil, nil
 	})

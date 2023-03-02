@@ -47,13 +47,13 @@ while true do
 	local request = hjson.parse(line)
 	local id = request.id
 	local method = request.method
-	if method == "test-request" then
+	if method == "tp.test-request" then
 		local data = request.params.data
 		data.message = "Hello from Lua!"
 		write_response(id, data)
-	elseif method == "close" then
+	elseif method == "tp.close" then
 		os.exit(0)
-	elseif method == "initialize" then
+	elseif method == "tp.init" then
 		def = util.merge_tables(def, request.params.definition, true)
 		write_response(id, {
 			success = true,
