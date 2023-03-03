@@ -10,6 +10,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type AfterCandidateGeneratedHookData = []PayoutCandidate
+
+func ExecuteAfterCandidateGenerated(data *AfterCandidateGeneratedHookData) error {
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED, "0.1", &data)
+}
+
 func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
 
@@ -44,7 +50,7 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 		).ToPayoutCandidate()
 	})
 
-	err = extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED, "0.1", &payoutCandidates)
+	err = ExecuteAfterCandidateGenerated(&payoutCandidates)
 	if err != nil {
 		return ctx, err
 	}

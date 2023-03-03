@@ -16,4 +16,5 @@ func main() {
 
 	GenerateDefaultHJson()
 	GenerateSampleHJson()
+	GenerateHookSampleData()
 }

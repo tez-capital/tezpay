@@ -14,14 +14,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type checkBalanceHookData struct {
+type CheckBalanceHookData struct {
 	SkipTezCheck bool                            `json:"skip_tez_check"`
 	IsSufficient bool                            `json:"is_sufficient"`
 	Message      string                          `json:"message"`
 	Payouts      []PayoutCandidateWithBondAmount `json:"payouts"`
 }
 
-func checkBalanceWithHook(data *checkBalanceHookData) error {
+func checkBalanceWithHook(data *CheckBalanceHookData) error {
 	err := extension.ExecuteHook(enums.EXTENSION_HOOK_CHECK_BALANCE, "0.1", data)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func checkBalanceWithHook(data *checkBalanceHookData) error {
 	return nil
 }
 
-func checkBalanceWithCollector(data *checkBalanceHookData, ctx *PayoutGenerationContext) error {
+func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGenerationContext) error {
 	if data.SkipTezCheck { // skip tez check for cases when pervious hook already checked it
 		return nil
 	}
@@ -64,7 +64,7 @@ func checkBalanceWithCollector(data *checkBalanceHookData, ctx *PayoutGeneration
 	return nil
 }
 
-func runBalanceCheck(ctx *PayoutGenerationContext, check func(*checkBalanceHookData) error, data *checkBalanceHookData, options *common.GeneratePayoutsOptions) error {
+func runBalanceCheck(ctx *PayoutGenerationContext, check func(*CheckBalanceHookData) error, data *CheckBalanceHookData, options *common.GeneratePayoutsOptions) error {
 	notificatorTrigger := 0
 	for {
 		if err := check(data); err != nil {
@@ -105,17 +105,17 @@ func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.Genera
 	}
 
 	log.Debugf("checking for sufficient balance")
-	hookResponse := checkBalanceHookData{
+	hookResponse := CheckBalanceHookData{
 		IsSufficient: true,
 		Payouts:      ctx.StageData.PayoutCandidatesWithBondAmount,
 	}
 
-	checks := []func(*checkBalanceHookData) error{
-		func(data *checkBalanceHookData) error {
+	checks := []func(*CheckBalanceHookData) error{
+		func(data *CheckBalanceHookData) error {
 			log.Trace("checking balance with hook")
 			return checkBalanceWithHook(data)
 		},
-		func(data *checkBalanceHookData) error {
+		func(data *CheckBalanceHookData) error {
 			log.Trace("checking tez balance with collector")
 			return checkBalanceWithCollector(data, ctx)
 		},

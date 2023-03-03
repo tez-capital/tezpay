@@ -13,6 +13,12 @@ import (
 	"github.com/samber/lo"
 )
 
+type AfterBondsDistributedHookData = []PayoutCandidateWithBondAmount
+
+func ExecuteAfterBondsDistributed(data *AfterBondsDistributedHookData) error {
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.1", &data)
+}
+
 func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {
 	bakerBalance := cycleData.GetBakerBalance()
 	totalRewards := cycleData.GetTotalRewards(configuration.PayoutConfiguration.PayoutMode)
@@ -63,7 +69,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	ctx.StageData.BakerBondsAmount = bakerBonds.Sub(bondsDonate)
 	ctx.StageData.DonateBondsAmount = bondsDonate
 
-	err := extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.1", &ctx.StageData.PayoutCandidatesWithBondAmount)
+	err := ExecuteAfterBondsDistributed(&ctx.StageData.PayoutCandidatesWithBondAmount)
 	if err != nil {
 		return ctx, err
 	}

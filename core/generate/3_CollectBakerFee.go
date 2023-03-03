@@ -10,6 +10,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type OnFeesCollectionHookData = []PayoutCandidateWithBondAmountAndFee
+
+func ExecuteOnFeesCollection(data *OnFeesCollectionHookData) error {
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_ON_FEES_COLLECTION, "0.1", &data)
+}
+
 func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
 	log.Debugf("collecting baker fee")
@@ -44,7 +50,7 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		}
 	})
 
-	err := extension.ExecuteHook(enums.EXTENSION_HOOK_ON_FEES_COLLECTION, "0.1", &candidatesWithBondsAndFees)
+	err := ExecuteOnFeesCollection(&candidatesWithBondsAndFees)
 	if err != nil {
 		return ctx, err
 	}

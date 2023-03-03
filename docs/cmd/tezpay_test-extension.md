@@ -1,23 +1,19 @@
-## tezpay continual
+## tezpay test-extension
 
-continual payout
+extension test
 
 ### Synopsis
 
-runs payout until stopped manually
+initializes and executes test hook agains extensions
 
 ```
-tezpay continual [flags]
+tezpay test-extension [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cycle int                   initial cycle
-      --force-confirmation-prompt   forces confirmation prompts for each payout
-  -h, --help                        help for continual
-      --no-separate-fa              disables fa transfers separation (mixes txs and fa transfers within batches)
-      --no-separate-sc              disables smart contract separation (mixes txs and smart contract calls within batches)
+  -h, --help   help for test-extension
 ```
 
 ### Options inherited from parent commands

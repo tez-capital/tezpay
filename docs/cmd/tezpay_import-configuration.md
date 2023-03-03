@@ -1,23 +1,19 @@
-## tezpay continual
+## tezpay import-configuration
 
-continual payout
+seed configuration from
 
 ### Synopsis
 
-runs payout until stopped manually
+generates configuration based on configuration from others payout distribution tools
 
 ```
-tezpay continual [flags]
+tezpay import-configuration <kind> <source-file> [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cycle int                   initial cycle
-      --force-confirmation-prompt   forces confirmation prompts for each payout
-  -h, --help                        help for continual
-      --no-separate-fa              disables fa transfers separation (mixes txs and fa transfers within batches)
-      --no-separate-sc              disables smart contract separation (mixes txs and smart contract calls within batches)
+  -h, --help   help for import-configuration
 ```
 
 ### Options inherited from parent commands

@@ -62,7 +62,7 @@ type EPayoutTransactionKind string
 
 const (
 	PAYOUT_TX_KIND_TEZ   EPayoutTransactionKind = "tez"
-	PAYOUT_TX_KIND_FA1_2 EPayoutTransactionKind = "fa12"
+	PAYOUT_TX_KIND_FA1_2 EPayoutTransactionKind = "fa1"
 	PAYOUT_TX_KIND_FA2   EPayoutTransactionKind = "fa2"
 )
 
