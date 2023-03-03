@@ -23,6 +23,7 @@ var (
 					Recipient: mock.GetRandomAddress(),
 				},
 				BondsAmount: tezos.NewZ(10000000),
+				TxKind:      enums.PAYOUT_TX_KIND_TEZ,
 			},
 		},
 		{
@@ -32,6 +33,7 @@ var (
 					Recipient: mock.GetRandomAddress(),
 				},
 				BondsAmount: tezos.NewZ(20000000),
+				TxKind:      enums.PAYOUT_TX_KIND_TEZ,
 			},
 		},
 	}
