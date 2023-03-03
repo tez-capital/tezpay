@@ -52,10 +52,12 @@ const (
 	EXTENSION_HOOK_CHECK_BALANCE EExtensionHook = "check_balance"
 	// can adjust fees to be collected by baker
 	EXTENSION_HOOK_ON_FEES_COLLECTION EExtensionHook = "on_fees_collection"
+	// for now just readonly for logging purposes/validation
+	EXTENSION_HOOK_AFTER_PAYOUTS_BLUEPRINT_GENERATED EExtensionHook = "after_payouts_blueprint_generated"
 
-	// EXTENSION_HOOK_AFTER_PAYOUTS_FINALIZED            EExtensionHook = "tp.after_payouts_finalized"
-	// EXTENSION_HOOK_AFTER_PAYOUTS_PREPARE_DISTRIBUTION EExtensionHook = "tp.after_prepare_distribution"
-	// EXTENSION_HOOK_AFTER_REWARD_DISTRIBUTED           EExtensionHook = "tp.after_reward_distributed"
+	// EXTENSION_HOOK_AFTER_PAYOUTS_FINALIZED            EExtensionHook = "after_payouts_finalized"
+	// EXTENSION_HOOK_AFTER_PAYOUTS_PREPARE_DISTRIBUTION EExtensionHook = "after_prepare_distribution"
+	// EXTENSION_HOOK_AFTER_REWARD_DISTRIBUTED           EExtensionHook = "after_reward_distributed"
 	EXTENSION_HOOK_UNKNOWN EExtensionHook = "unknown"
 )
 
@@ -65,6 +67,7 @@ var (
 		EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED,
 		EXTENSION_HOOK_CHECK_BALANCE,
 		EXTENSION_HOOK_ON_FEES_COLLECTION,
+		EXTENSION_HOOK_AFTER_PAYOUTS_BLUEPRINT_GENERATED,
 	}
 )
 

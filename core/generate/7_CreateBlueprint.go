@@ -5,6 +5,8 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/extension"
 	"github.com/samber/lo"
 )
 
@@ -17,10 +19,17 @@ func sumValidPayoutsAmount(payouts []common.PayoutRecipe) tezos.Z {
 	}, tezos.Zero)
 }
 
+type AfterPayoutsBlueprintGeneratedHookData = common.CyclePayoutBlueprint
+
+// NOTE: do we want to allow rewriting of blueprint?
+func ExecuteAfterPayoutsBlueprintGenerated(data AfterPayoutsBlueprintGeneratedHookData) error {
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_PAYOUTS_BLUEPRINT_GENERATED, "0.1", &data)
+}
+
 func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	stageData := ctx.StageData
 
-	stageData.PayoutBlueprint = &common.CyclePayoutBlueprint{
+	blueprint := common.CyclePayoutBlueprint{
 		Cycle:   options.Cycle,
 		Payouts: stageData.Payouts,
 		Summary: common.CyclePayoutSummary{
@@ -40,5 +49,12 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 			Timestamp:          time.Now(),
 		},
 	}
+
+	err = ExecuteAfterPayoutsBlueprintGenerated(blueprint)
+	if err != nil {
+		return ctx, err
+	}
+
+	stageData.PayoutBlueprint = &blueprint
 	return ctx, nil
 }
