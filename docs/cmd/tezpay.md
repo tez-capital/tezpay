@@ -7,7 +7,6 @@ TEZPAY
 TEZPAY 0.1.0-dev.2 - the tezos reward distributor
 Copyright © 2023 alis.is
 
-
 ### Options
 
 ```
