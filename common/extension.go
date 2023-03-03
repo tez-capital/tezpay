@@ -60,6 +60,7 @@ type ExtensionDefinition struct {
 	// id is optional, it is used for debugging purposes only
 	Id      string                  `json:"id"`
 	Command string                  `json:"command,omitempty"`
+	Args    []string                `json:"args,omitempty"`
 	Url     string                  `json:"url,omitempty"`
 	Kind    enums.EExtensionRpcKind `json:"kind"`
 	// configuration is passed through to the extension as is

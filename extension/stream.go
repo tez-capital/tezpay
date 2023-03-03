@@ -3,7 +3,6 @@ package extension
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"os/exec"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,14 +41,8 @@ func (e *StdioExtension) Load() error {
 		// cleanup old endpoint
 		return e.endpoint.Close()
 	}
-	args, err := utils.SplitStringToArgs(e.GetDefinition().Command)
-	if err != nil {
-		return fmt.Errorf("invalid command: %s", err)
-	}
-	if len(args) == 0 {
-		return errors.New("no command specified")
-	}
-	cmd := exec.Command(args[0], args[1:]...)
+
+	cmd := exec.Command(e.GetDefinition().Command, e.GetDefinition().Args...)
 	pw, err := cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -114,18 +106,12 @@ func (e *TcpExtension) Load() error {
 	}
 	cmd := e.GetDefinition().Command
 	if cmd != "" {
-		args, err := utils.SplitStringToArgs(e.GetDefinition().Command)
-		if err != nil {
-			return fmt.Errorf("invalid command: %s", err)
+		cmd := exec.Command(cmd, e.GetDefinition().Args...)
+		cmd.Start()
+		if err := cmd.Start(); err != nil {
+			return err
 		}
-		if len(args) != 0 {
-			cmd := exec.Command(args[0], args[1:]...)
-			cmd.Start()
-			if err := cmd.Start(); err != nil {
-				return err
-			}
-			time.Sleep(time.Duration(e.definition.WaitForStart) * time.Second)
-		}
+		time.Sleep(time.Duration(e.definition.WaitForStart) * time.Second)
 	}
 	conn, err := net.Dial("tcp", e.GetDefinition().Url)
 	if err != nil {

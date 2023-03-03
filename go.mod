@@ -7,7 +7,6 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/alis-is/jsonrpc2 v0.0.0-20230302152708-b80edc290c56
 	github.com/bwmarrin/discordgo v0.26.1
-	github.com/cryi/go-shellwords v0.0.0-20230227132710-c680f9a65b01
 	github.com/dghubble/oauth1 v0.7.1
 	github.com/echa/log v1.2.2
 	github.com/g8rswimmer/go-twitter/v2 v2.1.2

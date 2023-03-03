@@ -6,7 +6,6 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
-	"github.com/cryi/go-shellwords"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/samber/lo"
@@ -183,12 +182,4 @@ func PrintBatchResults(results []common.BatchResult, header string, explorerUrl 
 		resultsTable.AppendRow(table.Row{i + 1, len(result.Payouts), result.IsSuccess, GetOpReference(result.OpHash, explorerUrl)}, table.RowConfig{AutoMerge: false})
 	}
 	resultsTable.Render()
-}
-
-func SplitStringToArgs(s string) ([]string, error) {
-	p := shellwords.NewParser()
-	p.ParseEnv = true
-	p.ParseBacktick = true
-	args, err := p.Parse(s)
-	return args, err
 }
