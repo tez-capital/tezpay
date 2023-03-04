@@ -118,7 +118,7 @@
   ]
   extensions: [
     {
-      id: log-extension
+      name: log-extension
       command: python3
       args: [
         /path/to/my/extension.py
@@ -132,7 +132,7 @@
       ]
     }
     {
-      id: fee-extension
+      name: fee-extension
       command: /path/to/my/extension.bin
       args: [
         --config

@@ -8,8 +8,8 @@ This hook is capable of mutating data.
 ```json
 [
   {
-    "source": "",
-    "recipient": "",
+    "source": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+    "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
     "fee_rate": 5,
     "balance": "1000000000",
     "is_invalid": true,
@@ -37,7 +37,7 @@ This hook is capable of mutating data.
     "is_baker_paying_allocation_tx_fee": true,
     "invalid_because": "reason",
     "bonds_amount": "1000000000",
-    "tx_kind": "fa2",
+    "tx_kind": "fa1",
     "fa_token_id": "10",
     "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT"
   }
@@ -64,7 +64,7 @@ This hook is NOT capable of mutating data.
       "is_baker_paying_allocation_tx_fee": true,
       "invalid_because": "reason",
       "bonds_amount": "1000000000",
-      "tx_kind": "tez",
+      "tx_kind": "fa1",
       "fa_token_id": "10",
       "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT"
     }
@@ -94,5 +94,52 @@ This hook is capable of mutating data.
     "fee": "1000000000"
   }
 ]
+```
+
+## after_payouts_blueprint_generated
+
+This hook is NOT capable of mutating data *currently*.
+```json
+{
+  "cycle": 1,
+  "payouts": [
+    {
+      "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "cycle": 1,
+      "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "kind": "invalid",
+      "tx_kind": "fa1",
+      "fa_token_id": "10",
+      "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
+      "delegator_balance": "1000000000",
+      "amount": "1000000000",
+      "fee_rate": 5,
+      "fee": "1000000000",
+      "op_limits": {
+        "transaction_fee": 1,
+        "storage_limit": 1,
+        "gas_limit": 1
+      },
+      "note": "reason"
+    }
+  ],
+  "summary": {
+    "cycle": 1,
+    "delegators": 2,
+    "paid_delegators": 1,
+    "staking_balance": "1000000000",
+    "cycle_fees": "1000000000",
+    "cycle_rewards": "1000000000",
+    "distributed_rewards": "1000000000",
+    "bond_income": "1000000000",
+    "fee_income": "1000000000",
+    "total_income": "1000000000",
+    "donated_bonds": "1000000000",
+    "donated_fees": "1000000000",
+    "donated_total": "1000000000",
+    "timestamp": "2023-03-04T23:26:14.937795376Z"
+  }
+}
 ```
 
