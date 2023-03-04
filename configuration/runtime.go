@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"blockwatch.cc/tzgo/tezos"
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
+	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
@@ -15,10 +15,11 @@ type RuntimeDelegatorRequirements struct {
 }
 
 type RuntimeDelegatorOverride struct {
-	Recipient      tezos.Address `json:"recipient,omitempty"`
-	Fee            float64       `json:"fee,omitempty"`
-	NoFee          bool          `json:"no_fee,omitempty"`
-	MinimumBalance tezos.Z       `json:"minimum_balance,omitempty"`
+	Recipient                    tezos.Address `json:"recipient,omitempty"`
+	Fee                          *float64      `json:"fee,omitempty"`
+	MinimumBalance               tezos.Z       `json:"minimum_balance,omitempty"`
+	IsBakerPayingTxFee           *bool         `json:"baker_pays_transaction_fee,omitempty"`
+	IsBakerPayingAllocationTxFee *bool         `json:"baker_pays_allocation_fee,omitempty"`
 }
 
 type RuntimeDelegatorsConfiguration struct {
@@ -53,6 +54,7 @@ type RuntimeConfiguration struct {
 	Network                    tezpay_configuration.TezosNetworkConfigurationV0
 	Overdelegation             tezpay_configuration.OverdelegationConfigurationV0
 	NotificationConfigurations []RuntimeNotificatorConfiguration
+	Extensions                 []tezpay_configuration.ExtensionConfigurationV0
 	SourceBytes                []byte `json:"-"`
 }
 

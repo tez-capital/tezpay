@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"blockwatch.cc/tzgo/tezos"
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
+	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	test_assert "github.com/stretchr/testify/assert"
 )
 
@@ -21,15 +21,15 @@ func TestConfigurationToRuntimeConfiguration(t *testing.T) {
 	})
 	val, ok := runtime.Delegators.Overrides[tezos.InvalidAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.Fee, 0.5)
+	assert.Equal(*val.Fee, 0.5)
 
 	val, ok = runtime.Delegators.Overrides[tezos.BurnAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.Fee, 0.5)
+	assert.Equal(*val.Fee, 0.5)
 
 	val, ok = runtime.Delegators.Overrides[tezos.ZeroAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.Fee, float64(1))
+	assert.Equal(*val.Fee, float64(1))
 
 	runtime, _ = ConfigurationToRuntimeConfiguration(&LatestConfigurationType{
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
@@ -41,12 +41,13 @@ func TestConfigurationToRuntimeConfiguration(t *testing.T) {
 
 	val, ok = runtime.Delegators.Overrides[tezos.InvalidAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.NoFee, true)
+	assert.Equal(*val.Fee, 0.)
 
 	val, ok = runtime.Delegators.Overrides[tezos.BurnAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.NoFee, true)
+	assert.Equal(*val.Fee, 0.)
 
+	fee := 1.0
 	runtime, _ = ConfigurationToRuntimeConfiguration(&LatestConfigurationType{
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
 			FeeOverrides: map[string][]tezos.Address{
@@ -54,7 +55,7 @@ func TestConfigurationToRuntimeConfiguration(t *testing.T) {
 			},
 			Overrides: map[string]tezpay_configuration.DelegatorOverrideV0{
 				tezos.InvalidAddress.String(): {
-					Fee: 1,
+					Fee: &fee,
 				},
 			},
 		},
@@ -62,12 +63,11 @@ func TestConfigurationToRuntimeConfiguration(t *testing.T) {
 
 	val, ok = runtime.Delegators.Overrides[tezos.InvalidAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.NoFee, false)
-	assert.Equal(val.Fee, float64(1))
+	assert.Equal(*val.Fee, float64(1))
 
 	val, ok = runtime.Delegators.Overrides[tezos.BurnAddress.String()]
 	assert.True(ok)
-	assert.Equal(val.NoFee, true)
+	assert.Equal(*val.Fee, 0.)
 
 	runtime, _ = ConfigurationToRuntimeConfiguration(&LatestConfigurationType{
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{

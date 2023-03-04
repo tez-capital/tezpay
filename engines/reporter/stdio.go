@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/common"
 )
 
 type StdioReporter struct {

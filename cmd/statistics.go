@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"

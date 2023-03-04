@@ -8,9 +8,9 @@ import (
 	"syscall/js"
 
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/common"
-	"github.com/alis-is/tezpay/core/payout"
+	"github.com/alis-is/tezpay/core"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +31,7 @@ func generate_payouts(key js.Value, cycle int64, configurationJs js.Value) (js.V
 		return js.Null(), err
 	}
 
-	payoutBlueprint, err := payout.GeneratePayoutsWithPayoutAddress(bakerKey, config, common.GeneratePayoutsOptions{
+	payoutBlueprint, err := core.GeneratePayoutsWithPayoutAddress(bakerKey, config, common.GeneratePayoutsOptions{
 		Cycle:            cycle,
 		SkipBalanceCheck: true,
 		Engines: common.GeneratePayoutsEngines{

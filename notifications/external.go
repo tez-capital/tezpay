@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 	log "github.com/sirupsen/logrus"
 )
 

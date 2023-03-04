@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/sirupsen/logrus"

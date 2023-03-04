@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
@@ -46,21 +47,33 @@ func PayoutsFromJson(data []byte) ([]common.PayoutRecipe, error) {
 	return payuts, err
 }
 
+func FilterPayoutsByTxKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutTransactionKind) []common.PayoutRecipe {
+	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+		return lo.Contains(kinds, payout.TxKind)
+	})
+}
+
+func RejectPayoutsByTxKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutTransactionKind) []common.PayoutRecipe {
+	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+		return !lo.Contains(kinds, payout.TxKind)
+	})
+}
+
 func FilterPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
 		return payout.Recipient.Type == t
 	})
 }
 
-func FilterPayoutsByCycle(payouts []common.PayoutRecipe, cycle int64) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		return payout.Cycle == cycle
-	})
-}
-
 func RejectPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
 		return payout.Recipient.Type != t
+	})
+}
+
+func FilterPayoutsByCycle(payouts []common.PayoutRecipe, cycle int64) []common.PayoutRecipe {
+	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+		return payout.Cycle == cycle
 	})
 }
 
@@ -82,20 +95,24 @@ func FilterReportsByBaker(payouts []common.PayoutReport, t tezos.Address) []comm
 	})
 }
 
+type payoutId struct {
+	kind      enums.EPayoutKind
+	txKind    enums.EPayoutTransactionKind
+	delegator string
+	recipient string
+}
+
 func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.PayoutReport, collector common.CollectorEngine) ([]common.PayoutRecipe, []common.PayoutReport) {
-	paidOut := make(map[string]common.PayoutReport)
+	paidOut := make(map[payoutId]common.PayoutReport)
 	validOpHashes := make(map[string]bool)
 	if collector == nil {
 		log.Debugf("collector undefined filtering payout recipes only by succcess status from reports")
 	}
+
 	for _, report := range reports {
-		k := report.Delegator
-		if k.Equal(tezos.ZeroAddress) { // bonds, fees, donatio nrewards
-			k = report.Recipient
-		}
 		if collector != nil && !report.OpHash.Equal(tezos.ZeroOpHash) {
 			if _, ok := validOpHashes[report.OpHash.String()]; ok {
-				paidOut[k.String()] = report
+				paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
 				continue
 			}
 
@@ -105,13 +122,16 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 				log.Warnf("collector check of '%s' failed", report.OpHash)
 			}
 			if paid == common.OPERATION_STATUS_APPLIED {
-				paidOut[k.String()] = report
+				paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
 				validOpHashes[report.OpHash.String()] = true
 			}
+			// NOTE: in case we would like to rely only on collector status we could continue here
+			// but reports are fairly reliable so we will continue to check them rn
+			// continue
 		}
 
 		if report.IsSuccess {
-			paidOut[k.String()] = report
+			paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
 			validOpHashes[report.OpHash.String()] = true
 		}
 	}
@@ -121,7 +141,7 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 		if k.Equal(tezos.ZeroAddress) {
 			k = payout.Recipient
 		}
-		_, ok := paidOut[k.String()]
+		_, ok := paidOut[payoutId{payout.Kind, payout.TxKind, k.String(), payout.Recipient.String()}]
 		return !ok
 	}), lo.Values(paidOut)
 }

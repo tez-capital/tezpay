@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 	"github.com/nikoksr/notify/service/mail"
 	log "github.com/sirupsen/logrus"
 )

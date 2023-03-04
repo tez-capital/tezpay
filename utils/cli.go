@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/core/common"
+	"github.com/alis-is/tezpay/common"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/samber/lo"
@@ -27,11 +27,37 @@ func shortenAddress(taddr tezos.Address) string {
 	return fmt.Sprintf("%s...%s", addr[:5], addr[total-5:])
 }
 
-func toPercentage[T FloatConstraint](portion T) string {
-	if portion == 0 {
-		return "-"
+func getColumnsByIndexes[T any](row []T, indexes []int) []T {
+	return lo.Filter(row, func(_ T, i int) bool {
+		return lo.Contains(indexes, i)
+	})
+}
+
+func columnsAsInterfaces[T any](row []T) []interface{} {
+	return lo.Map(row, func(c T, _ int) interface{} {
+		return c
+	})
+}
+
+func replaceZeroFields[T comparable](items []T, value T, stopOnNonEmpty bool) []T {
+	var zero T
+	for i, item := range items {
+		if item == zero {
+			items[i] = value
+		} else if stopOnNonEmpty {
+			break
+		}
 	}
-	return fmt.Sprintf("%.2f %%", portion*100)
+	return items
+}
+
+func getNonEmptyIndexes[T comparable](headers []string, data [][]T) []int {
+	var zero T
+	return lo.Filter(lo.Range(len(headers)), func(c int, i int) bool {
+		return lo.SomeBy(data, func(d []T) bool {
+			return d[i] != zero
+		})
+	})
 }
 
 func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {
@@ -44,31 +70,25 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	payoutTable.SetOutputMirror(os.Stdout)
 	payoutTable.SetTitle(header)
 	payoutTable.Style().Title.Align = text.AlignCenter
-	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Delegated Balance", "Kind", "Amount", "Fee Rate", "Baker Fee", "Transaction Fee", "Note"}, table.RowConfig{AutoMerge: true})
-	for _, payout := range payouts {
-		note := payout.Note
-		if note == "" {
-			note = "-"
-		}
-		txFee := int64(0)
-		if payout.OpLimits != nil {
-			txFee = payout.OpLimits.TransactionFee
-		}
 
-		payoutTable.AppendRow(table.Row{shortenAddress(payout.Delegator), shortenAddress(payout.Recipient), MutezToTezS(payout.DelegatedBalance.Int64()), payout.Kind, MutezToTezS(payout.Amount.Int64()), toPercentage(payout.FeeRate), MutezToTezS(payout.Fee.Int64()), MutezToTezS(txFee), note}, table.RowConfig{AutoMerge: false})
+	headers := payouts[0].GetTableHeaders()
+	data := lo.Map(payouts, func(p common.PayoutRecipe, _ int) []string {
+		return p.ToTableRowData()
+	})
+	validIndexes := getNonEmptyIndexes(headers, data)
+
+	payoutTable.AppendHeader(columnsAsInterfaces(getColumnsByIndexes(headers, validIndexes)), table.RowConfig{AutoMerge: true})
+
+	for _, payout := range data {
+		row := replaceZeroFields(payout, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
-		totalAmount := lo.Reduce(payouts, func(agg int64, payout common.PayoutRecipe, _ int) int64 {
-			return agg + payout.Amount.Int64()
-		}, 0)
-		bakerFee := lo.Reduce(payouts, func(agg int64, payout common.PayoutRecipe, _ int) int64 {
-			return agg + payout.Fee.Int64()
-		}, 0)
-		transactionFees := lo.Reduce(payouts, func(agg int64, payout common.PayoutRecipe, _ int) int64 {
-			return agg + payout.OpLimits.TransactionFee
-		}, 0)
-		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), "-", MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
+		totals := replaceZeroFields(common.GetRecipesTotals(payouts), TOTAL, true)
+		totals = replaceZeroFields(totals, "-", false)
+
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
 	}
 	payoutTable.Render()
 }
@@ -105,28 +125,23 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 	payoutTable.SetOutputMirror(os.Stdout)
 	payoutTable.SetTitle(header)
 	payoutTable.Style().Title.Align = text.AlignCenter
-	payoutTable.AppendHeader(table.Row{"Delegator", "Recipient", "Kind", "Amount", "Baker Fee", "Transaction Fee", "OpHash"}, table.RowConfig{AutoMerge: true})
-	for _, payout := range payouts {
-		note := payout.Note
-		if note == "" {
-			note = "-"
-		}
-		txFee := int64(0)
 
-		payoutTable.AppendRow(table.Row{shortenAddress(payout.Delegator), shortenAddress(payout.Recipient), payout.Kind, MutezToTezS(payout.Amount.Int64()), MutezToTezS(payout.Fee.Int64()), MutezToTezS(txFee), payout.OpHash}, table.RowConfig{AutoMerge: false})
+	headers := payouts[0].GetTableHeaders()
+	data := lo.Map(payouts, func(p common.PayoutReport, _ int) []string {
+		return p.ToTableRowData()
+	})
+	validIndexes := getNonEmptyIndexes(headers, data)
+
+	payoutTable.AppendHeader(columnsAsInterfaces(getColumnsByIndexes(headers, validIndexes)), table.RowConfig{AutoMerge: true})
+	for _, payout := range data {
+		row := replaceZeroFields(payout, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
-		totalAmount := lo.Reduce(payouts, func(agg int64, payout common.PayoutReport, _ int) int64 {
-			return agg + payout.Amount.Int64()
-		}, 0)
-		bakerFee := lo.Reduce(payouts, func(agg int64, payout common.PayoutReport, _ int) int64 {
-			return agg + payout.Fee.Int64()
-		}, 0)
-		transactionFees := lo.Reduce(payouts, func(agg int64, payout common.PayoutReport, _ int) int64 {
-			return agg + payout.TransactionFee
-		}, 0)
-		payoutTable.AppendRow(table.Row{TOTAL, TOTAL, TOTAL, MutezToTezS(totalAmount), MutezToTezS(bakerFee), MutezToTezS(transactionFees), "-"}, table.RowConfig{AutoMerge: true})
+		totals := replaceZeroFields(common.GetReportsTotals(payouts), TOTAL, true)
+		totals = replaceZeroFields(totals, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
 	}
 	payoutTable.Render()
 }
@@ -138,17 +153,17 @@ func PrintCycleSummary(summary common.CyclePayoutSummary, header string) {
 	summaryTable.SetOutputMirror(os.Stdout)
 	summaryTable.SetTitle(header)
 	summaryTable.Style().Title.Align = text.AlignCenter
-	summaryTable.AppendRow(table.Row{"Earned Fees", MutezToTezS(summary.EarnedFees.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Earned Rewards", MutezToTezS(summary.EarnedRewards.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Distributed Rewards", MutezToTezS(summary.DistributedRewards.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Earned Fees", common.MutezToTezS(summary.EarnedFees.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Earned Rewards", common.MutezToTezS(summary.EarnedRewards.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Distributed Rewards", common.MutezToTezS(summary.DistributedRewards.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendSeparator()
-	summaryTable.AppendRow(table.Row{"Donated Bonds", MutezToTezS(summary.DonatedBonds.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Donated Fees", MutezToTezS(summary.DonatedFees.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Donated Total", MutezToTezS(summary.DonatedTotal.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Bonds", common.MutezToTezS(summary.DonatedBonds.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Fees", common.MutezToTezS(summary.DonatedFees.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Total", common.MutezToTezS(summary.DonatedTotal.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendSeparator()
-	summaryTable.AppendRow(table.Row{"Bond Income", MutezToTezS(summary.BondIncome.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Fee Income", MutezToTezS(summary.FeeIncome.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Income Total", MutezToTezS(summary.IncomeTotal.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Bond Income", common.MutezToTezS(summary.BondIncome.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Fee Income", common.MutezToTezS(summary.FeeIncome.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Income Total", common.MutezToTezS(summary.IncomeTotal.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.Render()
 }
 

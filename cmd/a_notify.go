@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/notifications"
 	log "github.com/sirupsen/logrus"
 )

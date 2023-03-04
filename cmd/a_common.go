@@ -1,15 +1,17 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core/common"
 	collector_engines "github.com/alis-is/tezpay/engines/collector"
 	signer_engines "github.com/alis-is/tezpay/engines/signer"
 	transactor_engines "github.com/alis-is/tezpay/engines/transactor"
+	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
@@ -54,6 +56,14 @@ func loadConfigurationAndEngines() (*configurationAndEngines, error) {
 	if utils.IsTty() && state.Global.GetIsInDebugMode() {
 		marshaled, _ := json.MarshalIndent(config, "", "\t")
 		fmt.Println("Loaded configuration:", string(marshaled))
+	}
+
+	extEnv := &extension.ExtensionStoreEnviromnent{
+		BakerPKH:  config.BakerPKH.String(),
+		PayoutPKH: signerEngine.GetPKH().String(),
+	}
+	if err = extension.InitializeExtensionStore(context.Background(), config.Extensions, extEnv); err != nil {
+		return nil, fmt.Errorf("failed to initialize extension store - %s", err.Error())
 	}
 
 	return &configurationAndEngines{

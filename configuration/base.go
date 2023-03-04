@@ -7,8 +7,9 @@ import (
 	"strconv"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/configuration/migrations"
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/tezpay"
+
+	"github.com/alis-is/tezpay/common"
+	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
@@ -36,25 +37,24 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	}
 
 	delegatorOverrides := lo.MapEntries(configuration.Delegators.Overrides, func(k string, delegatorOverride tezpay_configuration.DelegatorOverrideV0) (string, RuntimeDelegatorOverride) {
-		actualFee := delegatorOverride.Fee
-		noFee := delegatorOverride.NoFee
-		if feeFromFeeOverrides, ok := delegatorFeeOverrides[k]; actualFee == 0 && !noFee && ok {
-			actualFee = feeFromFeeOverrides
-			noFee = feeFromFeeOverrides == 0
-		}
 		return k, RuntimeDelegatorOverride{
-			Recipient:      delegatorOverride.Recipient,
-			Fee:            actualFee,
-			NoFee:          noFee,
-			MinimumBalance: FloatAmountToMutez(delegatorOverride.MinimumBalance),
+			Recipient:                    delegatorOverride.Recipient,
+			Fee:                          delegatorOverride.Fee,
+			MinimumBalance:               FloatAmountToMutez(delegatorOverride.MinimumBalance),
+			IsBakerPayingTxFee:           delegatorOverride.IsBakerPayingTxFee,
+			IsBakerPayingAllocationTxFee: delegatorOverride.IsBakerPayingAllocationTxFee,
 		}
 	})
 	for k, v := range delegatorFeeOverrides {
-		if _, ok := delegatorOverrides[k]; !ok {
-			delegatorOverrides[k] = RuntimeDelegatorOverride{
-				Fee:   v,
-				NoFee: v == 0,
+		fee := v
+		if delegatorOverride, ok := delegatorOverrides[k]; ok {
+			if delegatorOverride.Fee == nil {
+				delegatorOverride.Fee = &fee
 			}
+			continue
+		}
+		delegatorOverrides[k] = RuntimeDelegatorOverride{
+			Fee: &fee,
 		}
 	}
 
@@ -109,6 +109,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 				IsValid:       isValid,
 			}
 		}),
+		Extensions:  configuration.Extensions,
 		SourceBytes: []byte{},
 	}, nil
 }
@@ -128,7 +129,7 @@ func Load() (*RuntimeConfiguration, error) {
 	}
 
 	log.Debug("loading version info")
-	versionInfo := migrations.ConfigurationVersionInfo{}
+	versionInfo := common.ConfigurationVersionInfo{}
 	err := hjson.Unmarshal(configurationBytes, &versionInfo)
 	if err != nil {
 		return nil, err
@@ -149,7 +150,7 @@ func Load() (*RuntimeConfiguration, error) {
 
 func LoadFromString(configurationBytes []byte) (*RuntimeConfiguration, error) {
 	log.Debug("loading version info")
-	versionInfo := migrations.ConfigurationVersionInfo{}
+	versionInfo := common.ConfigurationVersionInfo{}
 	err := hjson.Unmarshal(configurationBytes, &versionInfo)
 	if err != nil {
 		return nil, err

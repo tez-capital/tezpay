@@ -6,9 +6,9 @@ import (
 	"os"
 	"path"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/common"
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/gocarina/gocsv"
@@ -69,7 +69,7 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 }
 
 func mapPayoutRecipeToPayoutReport(pr common.PayoutRecipe, _ int) common.PayoutReport {
-	return pr.PayoutRecipeToPayoutReport()
+	return pr.ToPayoutReport()
 }
 
 func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) error {

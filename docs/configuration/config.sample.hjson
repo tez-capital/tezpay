@@ -20,8 +20,7 @@
     overrides: {
       tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: {
         recipient: ""
-        fee: 0.005
-        no_fee: true
+        fee: 0
         minimum_balance: 2.5
       }
     }
@@ -115,6 +114,39 @@
       ]
       path: path to external notificator binary
       type: external
+    }
+  ]
+  extensions: [
+    {
+      id: log-extension
+      command: python3
+      args: [
+        /path/to/my/extension.py
+      ]
+      kind: stdio
+      configuration: {
+        LOG_FILE: path/to/my/extension.log
+      }
+      hooks: [
+        all:ro
+      ]
+    }
+    {
+      id: fee-extension
+      command: /path/to/my/extension.bin
+      args: [
+        --config
+        /path/to/my/extension.config
+      ]
+      kind: stdio
+      configuration: {
+        FEE: 0
+        TOKEN: "1"
+        CONTRACT: KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV
+      }
+      hooks: [
+        after_candidate_generated:rw
+      ]
     }
   ]
 }
