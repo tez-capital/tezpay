@@ -98,7 +98,7 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 		if hook == enums.EXTENSION_HOOK_TEST_REQUEST {
 			matchedMode = enums.EXTENSION_HOOK_MODE_READ_WRITE
 		}
-		log.Debugf("executing hook %s with mode %s on extension %s", hook, matchedMode, def.Id)
+		log.Debugf("executing hook %s with mode %s on extension %s", hook, matchedMode, def.Name)
 
 		var err error
 		for i := 0; i < def.GetRetry(); i++ {

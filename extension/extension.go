@@ -43,7 +43,7 @@ func LoadExtension(ext Extension) error {
 		return nil
 	}
 	def := ext.GetDefinition()
-	log.Tracef("loading extension - %s#%s@%s", def.Id, def.Command, def.Url)
+	log.Tracef("loading extension - %s#%s@%s", def.Name, def.Command, def.Url)
 	if err := ext.Load(); err != nil {
 		return err
 	}

@@ -125,7 +125,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 		},
 		Extensions: []tezpay_configuration.ExtensionConfigurationV0{
 			common.ExtensionDefinition{
-				Id:      "log-extension",
+				Name:    "log-extension",
 				Command: "python3",
 				Args:    []string{"/path/to/my/extension.py"},
 				Kind:    enums.EXTENSION_STDIO_RPC,
@@ -136,7 +136,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 				Configuration: &logExtensionConfiguration,
 			},
 			common.ExtensionDefinition{
-				Id:      "fee-extension",
+				Name:    "fee-extension",
 				Command: `/path/to/my/extension.bin`,
 				Args:    []string{"--config", "/path/to/my/extension.config"},
 				Kind:    enums.EXTENSION_STDIO_RPC,
