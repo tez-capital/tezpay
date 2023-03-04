@@ -13,7 +13,7 @@ import (
 type AfterCandidateGeneratedHookData = []PayoutCandidate
 
 func ExecuteAfterCandidateGenerated(data *AfterCandidateGeneratedHookData) error {
-	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED, "0.1", &data)
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED, "0.1", data)
 }
 
 func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {

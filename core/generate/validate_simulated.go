@@ -41,12 +41,8 @@ func (validationContext *PayoutSimulatedValidationContext) Validate(validators .
 // validation
 
 func ValidateSimulatedMinumumAmount(candidate *PayoutCandidateSimulated, configuration *configuration.RuntimeConfiguration, _ *configuration.RuntimeDelegatorOverride) {
-	if candidate.TxKind != enums.PAYOUT_TX_KIND_TEZ {
-		// only tez payouts are validated, txs from extensions has to be validated by the extension itself
-		return
-	}
 	treshhold := configuration.PayoutConfiguration.MinimumAmount
-	if treshhold.IsNeg() {
+	if treshhold.IsNeg() || candidate.TxKind != enums.PAYOUT_TX_KIND_TEZ { // if payout is not tezos we respect anything above 0
 		treshhold = tezos.Zero
 	}
 	diff := candidate.BondsAmount.Sub(treshhold)

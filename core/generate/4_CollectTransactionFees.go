@@ -116,7 +116,7 @@ func CollectTransactionFees(ctx *PayoutGenerationContext, options *common.Genera
 	simulatedPayouts := batchEstimate(candidates, ctx)
 
 	simulatedPayouts = lo.Map(simulatedPayouts, func(candidate PayoutCandidateSimulated, _ int) PayoutCandidateSimulated {
-		if candidate.IsInvalid {
+		if candidate.IsInvalid || candidate.TxKind != enums.PAYOUT_TX_KIND_TEZ { // we don't collect fees from non-tez payouts
 			return candidate
 		}
 		if !candidate.IsBakerPayingTxFee {

@@ -16,7 +16,7 @@ import (
 type AfterBondsDistributedHookData = []PayoutCandidateWithBondAmount
 
 func ExecuteAfterBondsDistributed(data *AfterBondsDistributedHookData) error {
-	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.1", &data)
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.1", data)
 }
 
 func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {

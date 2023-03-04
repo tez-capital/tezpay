@@ -13,7 +13,7 @@ import (
 type OnFeesCollectionHookData = []PayoutCandidateWithBondAmountAndFee
 
 func ExecuteOnFeesCollection(data *OnFeesCollectionHookData) error {
-	return extension.ExecuteHook(enums.EXTENSION_HOOK_ON_FEES_COLLECTION, "0.1", &data)
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_ON_FEES_COLLECTION, "0.1", data)
 }
 
 func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
