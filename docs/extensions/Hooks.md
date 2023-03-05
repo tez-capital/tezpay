@@ -138,7 +138,7 @@ This hook is NOT capable of mutating data *currently*.
     "donated_bonds": "1000000000",
     "donated_fees": "1000000000",
     "donated_total": "1000000000",
-    "timestamp": "2023-03-05T12:32:35.601867587Z"
+    "timestamp": "2023-03-05T12:43:28.458458777Z"
   }
 }
 ```

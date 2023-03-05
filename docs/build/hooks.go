@@ -64,6 +64,7 @@ func GenerateHookSampleData() {
 		},
 	}
 
+	t, _ := time.Parse(time.RFC3339, "2023-01-01T00:00:00+00:00")
 	apg := generate.AfterPayoutsBlueprintGeneratedHookData{
 		Cycle: 1,
 		Payouts: []common.PayoutRecipe{
@@ -83,11 +84,11 @@ func GenerateHookSampleData() {
 			DonatedBonds:       tezos.NewZ(1000000000),
 			DonatedFees:        tezos.NewZ(1000000000),
 			DonatedTotal:       tezos.NewZ(1000000000),
-			Timestamp:          time.Now(),
+			Timestamp:          t,
 		},
 	}
 
-	result := "# Available Hooks\n\n"
+	result := "\n"
 	result += "NOTE: *all bellow examples are just sample data to showcase fields used in data passed to hooks.*\n\n"
 
 	result += fmt.Sprintf("## %s\n\n", enums.EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED)
@@ -125,6 +126,6 @@ func GenerateHookSampleData() {
 	result += string(apgSerialized)
 	result += "\n```\n\n"
 
-	// write to docs/extensions/hooks.md
-	os.WriteFile("docs/extensions/hooks.md", []byte(result), 0644)
+	// write to docs/extensions/Hooks.md
+	os.WriteFile("docs/extensions/Hooks.md", []byte(result), 0644)
 }
