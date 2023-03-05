@@ -45,7 +45,7 @@ const (
 	EXTENSION_HOOK_TEST_NOTIFY  EExtensionHook = "test-notify"
 	EXTENSION_HOOK_TEST_REQUEST EExtensionHook = "test-request"
 	// can adjust generated candidate list (inject, remove, mutate)
-	EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED EExtensionHook = "after_candidate_generated"
+	EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED EExtensionHook = "after_candidates_generated"
 	// can adjust generated bond list (inject, remove, mutate)
 	EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED EExtensionHook = "after_bonds_distributed"
 	// can provide aditional logic to check balance and optionally skip in tezpay check
@@ -63,7 +63,7 @@ const (
 
 var (
 	SUPPORTED_EXTENSION_HOOKS = []EExtensionHook{
-		EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED,
+		EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED,
 		EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED,
 		EXTENSION_HOOK_CHECK_BALANCE,
 		EXTENSION_HOOK_ON_FEES_COLLECTION,

@@ -141,7 +141,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 				Args:    []string{"--config", "/path/to/my/extension.config"},
 				Kind:    enums.EXTENSION_STDIO_RPC,
 				Hooks: []common.ExtensionHook{{
-					Id:   enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED,
+					Id:   enums.EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED,
 					Mode: enums.EXTENSION_HOOK_MODE_READ_WRITE,
 				}},
 				Configuration: &feeExtensionConfiguration,

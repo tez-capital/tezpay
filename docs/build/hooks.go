@@ -90,7 +90,7 @@ func GenerateHookSampleData() {
 	result := "# Available Hooks\n\n"
 	result += "NOTE: *all bellow examples are just sample data to showcase fields used in data passed to hooks.*\n\n"
 
-	result += fmt.Sprintf("## %s\n\n", enums.EXTENSION_HOOK_AFTER_CANDIDATE_GENERATED)
+	result += fmt.Sprintf("## %s\n\n", enums.EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED)
 	result += "This hook is capable of mutating data.\n"
 	result += "```json\n"
 	acgSerialized, _ := json.MarshalIndent(acg, "", "  ")

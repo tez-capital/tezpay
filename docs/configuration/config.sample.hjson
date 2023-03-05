@@ -145,7 +145,7 @@
         CONTRACT: KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV
       }
       hooks: [
-        after_candidate_generated:rw
+        after_candidates_generated:rw
       ]
     }
   ]

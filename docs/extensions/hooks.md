@@ -2,7 +2,7 @@
 
 NOTE: *all bellow examples are just sample data to showcase fields used in data passed to hooks.*
 
-## after_candidate_generated
+## after_candidates_generated
 
 This hook is capable of mutating data.
 ```json
