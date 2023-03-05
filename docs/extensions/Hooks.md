@@ -1,4 +1,3 @@
-# Available Hooks
 
 NOTE: *all bellow examples are just sample data to showcase fields used in data passed to hooks.*
 
@@ -138,7 +137,7 @@ This hook is NOT capable of mutating data *currently*.
     "donated_bonds": "1000000000",
     "donated_fees": "1000000000",
     "donated_total": "1000000000",
-    "timestamp": "2023-03-05T12:43:28.458458777Z"
+    "timestamp": "2023-01-01T00:00:00Z"
   }
 }
 ```
