@@ -16,14 +16,6 @@ const (
 )
 
 func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGenerationContext) []PayoutCandidateSimulated {
-	// validate
-	payouts = lo.Map(payouts, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
-		validationContext := candidate.ToValidationContext(ctx)
-		return *validationContext.Validate(
-			TxKindValidator,
-		).ToPresimPayoutCandidate()
-	})
-
 	candidates := lo.Filter(payouts, func(payout PayoutCandidateWithBondAmountAndFee, _ int) bool {
 		return !payout.IsInvalid
 	})
@@ -62,10 +54,11 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 				}
 				if err != nil || !receipt.IsSuccess() {
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind)
+					if receipt != nil && receipt.Error() != nil {
+						log.Infof("estimating tx costs to '%s' failed because: %s", candidate.Recipient, receipt.Error().Error())
+					}
 					if err != nil {
 						log.Debugf(err.Error())
-					} else {
-						log.Debugf(receipt.Error().Error())
 					}
 					candidate.IsInvalid = true
 					candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS
@@ -111,6 +104,14 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 
 func CollectTransactionFees(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmountAndFees
+
+	// presim validation
+	candidates = lo.Map(candidates, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
+		validationContext := candidate.ToValidationContext(ctx)
+		return *validationContext.Validate(
+			TxKindValidator,
+		).ToPresimPayoutCandidate()
+	})
 
 	log.Debug("simulating transactions to collect tx fees")
 	simulatedPayouts := batchEstimate(candidates, ctx)
