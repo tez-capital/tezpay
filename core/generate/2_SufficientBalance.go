@@ -67,6 +67,10 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGeneration
 func runBalanceCheck(ctx *PayoutGenerationContext, check func(*CheckBalanceHookData) error, data *CheckBalanceHookData, options *common.GeneratePayoutsOptions) error {
 	notificatorTrigger := 0
 	for {
+		// we reset values before each check so we get relevant data for this check only
+		data.IsSufficient = true
+		data.Message = ""
+
 		if err := check(data); err != nil {
 			if options.WaitForSufficientBalance {
 				log.Errorf("failed to check balance - %s, waiting 5 minutes...", err.Error())
