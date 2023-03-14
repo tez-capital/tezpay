@@ -15,10 +15,10 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tezos chain limits - %s, retries in 5 minutes", err.Error())
 	}
+	payouts := utils.OnlyValidPayouts(ctx.Payouts) // make sure we are batching only valid payouts
+	payoutsWithoutFa := utils.RejectPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)
 
-	payoutsWithoutFa := utils.RejectPayoutsByTxKind(ctx.Payouts, enums.FA_OPERATION_KINDS)
-
-	faRecipes := utils.FilterPayoutsByTxKind(ctx.Payouts, enums.FA_OPERATION_KINDS)
+	faRecipes := utils.FilterPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)
 	contractTezRecipes := utils.FilterPayoutsByType(payoutsWithoutFa, tezos.AddressTypeContract)
 	classicTezRecipes := utils.RejectPayoutsByType(payoutsWithoutFa, tezos.AddressTypeContract)
 

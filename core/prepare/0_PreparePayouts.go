@@ -18,6 +18,7 @@ func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOpt
 		return nil, fmt.Errorf("failed to read old payout reports from cycle #%d - %s, retries in 5 minutes", ctx.PayoutBlueprint.Cycle, err.Error())
 	}
 	reportResidues := utils.FilterReportsByBaker(reports, ctx.configuration.BakerPKH)
-	ctx.StageData.Payouts, ctx.StageData.ReportsOfPastSuccesfulPayouts = utils.FilterRecipesByReports(utils.OnlyValidPayouts(ctx.PayoutBlueprint.Payouts), reportResidues, ctx.GetCollector())
+	// we match already paid even against invalid set of payouts in case they were paid under different conditions
+	ctx.StageData.Payouts, ctx.StageData.ReportsOfPastSuccesfulPayouts = utils.FilterRecipesByReports(ctx.PayoutBlueprint.Payouts, reportResidues, ctx.GetCollector())
 	return ctx, nil
 }
