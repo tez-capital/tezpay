@@ -13,10 +13,13 @@ import (
 	"github.com/samber/lo"
 )
 
-type AfterBondsDistributedHookData = []PayoutCandidateWithBondAmount
+type AfterBondsDistributedHookData struct {
+	Cycle      int64                           `json:"cycle"`
+	Candidates []PayoutCandidateWithBondAmount `json:"candidates"`
+}
 
 func ExecuteAfterBondsDistributed(data *AfterBondsDistributedHookData) error {
-	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.1", data)
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.2", data)
 }
 
 func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {
@@ -69,10 +72,15 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	ctx.StageData.BakerBondsAmount = bakerBonds.Sub(bondsDonate)
 	ctx.StageData.DonateBondsAmount = bondsDonate
 
-	err := ExecuteAfterBondsDistributed(&ctx.StageData.PayoutCandidatesWithBondAmount)
+	hookData := &AfterBondsDistributedHookData{
+		Cycle:      options.Cycle,
+		Candidates: ctx.StageData.PayoutCandidatesWithBondAmount,
+	}
+	err := ExecuteAfterBondsDistributed(hookData)
 	if err != nil {
 		return ctx, err
 	}
+	ctx.StageData.PayoutCandidatesWithBondAmount = hookData.Candidates
 
 	return ctx, nil
 }

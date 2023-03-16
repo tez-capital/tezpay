@@ -3,6 +3,7 @@ package extension
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -110,8 +111,11 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 			case enums.EXTENSION_HOOK_MODE_READ_ONLY:
 				fallthrough
 			case enums.EXTENSION_HOOK_MODE_READ_WRITE:
-				err := LoadExtension(ext)
+				err = LoadExtension(ext)
 				if err != nil {
+					if ext.GetDefinition().Name != "" {
+						return fmt.Errorf("failed to load extension %s: %w", ext.GetDefinition().Name, err)
+					}
 					return err
 				}
 			default:
@@ -134,7 +138,8 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 					Data:    data,
 				}, &response)
 				if err == nil {
-					responseResult, err := response.Unwrap()
+					var responseResult TData
+					responseResult, err = response.Unwrap()
 
 					if err != nil && strings.Contains(err.Error(), string(rpc.MethodNotFoundKind)) {
 						// extensions are not required to implement all hooks
@@ -146,7 +151,6 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 						*data = responseResult
 					}
 				}
-
 			default:
 				// no hook matched
 				continue
@@ -159,6 +163,9 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 			switch def.ErrorAction {
 			case enums.EXTENSION_ERROR_ACTION_CONTINUE:
 			default:
+				if ext.GetDefinition().Name != "" {
+					return fmt.Errorf("[%s] %w", ext.GetDefinition().Name, err)
+				}
 				return err
 			}
 		}

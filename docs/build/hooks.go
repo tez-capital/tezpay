@@ -35,11 +35,13 @@ func GenerateHookSampleData() {
 	}
 
 	acg := generate.AfterCandidateGeneratedHookData{
-		payoutCandidate.PayoutCandidate,
+		Cycle:      580,
+		Candidates: []generate.PayoutCandidate{payoutCandidate.PayoutCandidate},
 	}
 
 	abd := generate.AfterBondsDistributedHookData{
-		payoutCandidate.PayoutCandidateWithBondAmount,
+		Cycle:      580,
+		Candidates: []generate.PayoutCandidateWithBondAmount{payoutCandidate.PayoutCandidateWithBondAmount},
 	}
 	acb := generate.CheckBalanceHookData{
 		SkipTezCheck: true,
@@ -50,7 +52,8 @@ func GenerateHookSampleData() {
 		},
 	}
 	ofc := generate.OnFeesCollectionHookData{
-		payoutCandidate,
+		580,
+		[]generate.PayoutCandidateWithBondAmountAndFee{payoutCandidate},
 	}
 
 	simulatedCandidate := generate.PayoutCandidateSimulated{

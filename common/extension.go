@@ -57,7 +57,7 @@ type ExtensionHookData[TData any] struct {
 }
 
 type ExtensionDefinition struct {
-	// id is optional, it is used for debugging purposes only
+	// name is optional, it is used for debugging purposes only
 	Name    string                  `json:"name"`
 	Command string                  `json:"command,omitempty"`
 	Args    []string                `json:"args,omitempty"`

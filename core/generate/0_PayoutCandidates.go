@@ -10,10 +10,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type AfterCandidateGeneratedHookData = []PayoutCandidate
+type AfterCandidateGeneratedHookData struct {
+	Cycle      int64             `json:"cycle"`
+	Candidates []PayoutCandidate `json:"candidates"`
+}
 
 func ExecuteAfterCandidateGenerated(data *AfterCandidateGeneratedHookData) error {
-	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED, "0.1", data)
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_CANDIDATES_GENERATED, "0.2", data)
 }
 
 func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
@@ -50,10 +53,15 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 		).ToPayoutCandidate()
 	})
 
-	err = ExecuteAfterCandidateGenerated(&payoutCandidates)
+	hookData := &AfterCandidateGeneratedHookData{
+		Cycle:      options.Cycle,
+		Candidates: payoutCandidates,
+	}
+	err = ExecuteAfterCandidateGenerated(hookData)
 	if err != nil {
 		return ctx, err
 	}
+	payoutCandidates = hookData.Candidates
 
 	ctx.StageData.PayoutCandidates = payoutCandidates
 	return ctx, nil

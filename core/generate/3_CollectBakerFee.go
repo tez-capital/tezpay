@@ -10,10 +10,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type OnFeesCollectionHookData = []PayoutCandidateWithBondAmountAndFee
+type OnFeesCollectionHookData = struct {
+	Cycle      int64                                 `json:"cycle"`
+	Candidates []PayoutCandidateWithBondAmountAndFee `json:"candidates"`
+}
 
 func ExecuteOnFeesCollection(data *OnFeesCollectionHookData) error {
-	return extension.ExecuteHook(enums.EXTENSION_HOOK_ON_FEES_COLLECTION, "0.1", data)
+	return extension.ExecuteHook(enums.EXTENSION_HOOK_ON_FEES_COLLECTION, "0.2", data)
 }
 
 func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
@@ -50,10 +53,15 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		}
 	})
 
-	err := ExecuteOnFeesCollection(&candidatesWithBondsAndFees)
+	hookData := &OnFeesCollectionHookData{
+		Cycle:      options.Cycle,
+		Candidates: candidatesWithBondsAndFees,
+	}
+	err := ExecuteOnFeesCollection(hookData)
 	if err != nil {
 		return ctx, err
 	}
+	candidatesWithBondsAndFees = hookData.Candidates
 
 	collectedFees := lo.Reduce(candidatesWithBondsAndFees, func(agg tezos.Z, candidateWithBondsAmountAndFee PayoutCandidateWithBondAmountAndFee, _ int) tezos.Z {
 		return agg.Add(candidateWithBondsAmountAndFee.Fee)
