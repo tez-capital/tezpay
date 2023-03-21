@@ -128,7 +128,10 @@
         LOG_FILE: path/to/my/extension.log
       }
       hooks: [
-        all:ro
+        {
+          id: all
+          mode: ro
+        }
       ]
     }
     {
@@ -145,7 +148,10 @@
         CONTRACT: KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV
       }
       hooks: [
-        after_candidates_generated:rw
+        {
+          id: after_candidates_generated
+          mode: rw
+        }
       ]
     }
   ]
