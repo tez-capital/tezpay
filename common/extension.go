@@ -47,7 +47,7 @@ func (h *ExtensionHook) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (h ExtensionHook) MarshalJSON() ([]byte, error) {
+func (h *ExtensionHook) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("\"%s:%s\"", h.Id, h.Mode)), nil
 }
 

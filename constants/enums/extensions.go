@@ -54,6 +54,8 @@ const (
 	EXTENSION_HOOK_ON_FEES_COLLECTION EExtensionHook = "on_fees_collection"
 	// for now just readonly for logging purposes/validation
 	EXTENSION_HOOK_AFTER_PAYOUTS_BLUEPRINT_GENERATED EExtensionHook = "after_payouts_blueprint_generated"
+	// can adjust payouts just before real payout, past successful payouts are accessible through separate object
+	EXTENSION_HOOK_AFTER_PAYOUTS_PREPARED EExtensionHook = "after_payouts_prepared"
 
 	// EXTENSION_HOOK_AFTER_PAYOUTS_FINALIZED            EExtensionHook = "after_payouts_finalized"
 	// EXTENSION_HOOK_AFTER_PAYOUTS_PREPARE_DISTRIBUTION EExtensionHook = "after_prepare_distribution"

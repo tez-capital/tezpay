@@ -61,13 +61,13 @@ func RejectPayoutsByTxKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutT
 
 func FilterPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		return payout.Recipient.Type == t
+		return payout.Recipient.Type() == t
 	})
 }
 
 func RejectPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		return payout.Recipient.Type != t
+		return payout.Recipient.Type() != t
 	})
 }
 
