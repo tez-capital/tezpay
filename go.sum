@@ -2,6 +2,8 @@ blockwatch.cc/tzgo v1.15.1-0.20221214143603-9928b4f5aa64 h1:U/GfvxeqVzcLtcOjyWIB
 blockwatch.cc/tzgo v1.15.1-0.20221214143603-9928b4f5aa64/go.mod h1:Bm3ZfCsqnJtpsAdwBQmhsoz4n8qc9qL4uJhsDoLArR8=
 blockwatch.cc/tzgo v1.16.2 h1:1evbh0m9OnIK3vXafgwdNV8UxsnHz/lIH4Kt5wvo+h8=
 blockwatch.cc/tzgo v1.16.2/go.mod h1:Bm3ZfCsqnJtpsAdwBQmhsoz4n8qc9qL4uJhsDoLArR8=
+blockwatch.cc/tzgo v1.16.3 h1:LTS6lnzyCMBYX6fMvURCMbusmssvyW6JQD4/9DvVLao=
+blockwatch.cc/tzgo v1.16.3/go.mod h1:Bm3ZfCsqnJtpsAdwBQmhsoz4n8qc9qL4uJhsDoLArR8=
 github.com/AlecAivazis/survey/v2 v2.3.6 h1:NvTuVHISgTHEHeBFqt6BHOe4Ny/NwGZr7w+F8S9ziyw=
 github.com/AlecAivazis/survey/v2 v2.3.6/go.mod h1:4AuI9b7RjAR+G7v9+C4YSlX/YL3K3cWNXgWXOhllqvI=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63nhn5WAunQHLTznkw5W8b1Xc0dNjp83s=

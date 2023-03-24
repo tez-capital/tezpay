@@ -3,7 +3,7 @@ module github.com/alis-is/tezpay
 go 1.20
 
 require (
-	blockwatch.cc/tzgo v1.16.2
+	blockwatch.cc/tzgo v1.16.3
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/alis-is/jsonrpc2 v0.0.0-20230302152708-b80edc290c56
 	github.com/bwmarrin/discordgo v0.26.1
