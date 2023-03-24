@@ -126,6 +126,7 @@ func (transactor *DefaultRpcTransactor) GetLimits() (*common.OperationLimits, er
 }
 
 func (transactor *DefaultRpcTransactor) Complete(op *codec.Op, key tezos.Key) error {
+	op = op.WithParams(transactor.rpc.Params)
 	err := transactor.rpc.Complete(context.Background(), op, key)
 	return err
 }
@@ -135,7 +136,10 @@ func (transactor *DefaultRpcTransactor) initOpResult(opHash tezos.OpHash, opts *
 		opts = &rpc.DefaultOptions
 	}
 	rpcClient, err := transactor.GetNewRpcClient()
-	rpcClient.Init(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	err = rpcClient.Init(context.Background())
 	if err != nil {
 		return nil, err
 	}

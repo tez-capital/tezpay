@@ -36,6 +36,7 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 			receipt *rpc.Receipt
 		)
 		op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
+		op.WithTTL(constants.MAX_OPERATION_TTL)
 		for _, p := range batch {
 			if err = common.InjectTransferContents(op, ctx.PayoutKey.Address(), &p); err != nil {
 				break

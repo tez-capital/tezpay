@@ -32,11 +32,10 @@ func InitDefaultRpcAndTzktColletor(config *configuration.RuntimeConfiguration) (
 	if err != nil {
 		return nil, err
 	}
-	chainId, err := rpcClient.GetChainId(context.Background())
+	err = rpcClient.Init(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	rpcClient.ChainId = chainId
 	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, &client)
 	if err != nil {
 		return nil, err
@@ -80,6 +79,7 @@ func (engine *DefaultRpcAndTzktColletor) GetBranch(offset int64) (hash tezos.Blo
 }
 
 func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
+	o = o.WithParams(engine.rpc.Params)
 	err := engine.rpc.Complete(context.Background(), o, publicKey)
 	if err != nil {
 		return nil, err
