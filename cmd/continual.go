@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -99,6 +100,13 @@ var continualCmd = &cobra.Command{
 					notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
 					notifiedNewVersionAvailable = true
 				}
+			}
+
+			// refresh engine params - for protoocol upgrades
+			if err := errors.Join(transactor.RefreshParams(), collector.RefreshParams()); err != nil {
+				log.Errorf("failed to refresh chain params - %s, retries in 5 minutes", err.Error())
+				time.Sleep(time.Minute * 5)
+				continue
 			}
 
 			log.Infof("====================  CYCLE %d  ====================", cycleToProcess)

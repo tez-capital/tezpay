@@ -33,6 +33,7 @@ var transferCmd = &cobra.Command{
 		destinations := make([]string, 0)
 
 		op := codec.NewOp().WithSource(signer.GetPKH())
+		op.WithTTL(constants.MAX_OPERATION_TTL)
 		for i := 0; i < len(args); i += 2 {
 			destination, err := tezos.ParseAddress(args[i])
 			if err != nil {

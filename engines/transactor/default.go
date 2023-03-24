@@ -83,24 +83,26 @@ func InitDefaultTransactor(config *configuration.RuntimeConfiguration) (*Default
 	if err != nil {
 		return nil, err
 	}
-	err = rpcClient.Init(context.Background())
-	if err != nil {
-		return nil, err
-	}
+
 	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return &DefaultRpcTransactor{
+	result := &DefaultRpcTransactor{
 		rpcUrl: config.Network.RpcUrl,
 		rpc:    rpcClient,
 		tzkt:   tzktClient,
-	}, nil
+	}
+	return result, result.RefreshParams()
 }
 
 func (transactor *DefaultRpcTransactor) GetId() string {
 	return "DefaultRpcTransactor"
+}
+
+func (transactor *DefaultRpcTransactor) RefreshParams() error {
+	return transactor.rpc.Init(context.Background())
 }
 
 func (transactor *DefaultRpcTransactor) GetNewRpcClient() (*rpc.Client, error) {

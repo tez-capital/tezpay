@@ -49,6 +49,7 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 			log.Tracef("failed to estimate tx costs of batch n.%d (falling back to one by one estimate)", index)
 			return lo.Map(batch, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 				op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
+				op.WithTTL(constants.MAX_OPERATION_TTL)
 				err := common.InjectTransferContents(op, ctx.PayoutKey.Address(), &candidate)
 				if err == nil {
 					receipt, err = ctx.GetCollector().Simulate(op, ctx.PayoutKey)

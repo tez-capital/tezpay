@@ -18,6 +18,7 @@ const (
 
 type CollectorEngine interface {
 	GetId() string
+	RefreshParams() error
 	GetCurrentCycleNumber() (int64, error)
 	GetLastCompletedCycle() (int64, error)
 	GetCycleData(baker tezos.Address, cycle int64) (*BakersCycleData, error)
@@ -43,6 +44,7 @@ type OpResult interface {
 
 type TransactorEngine interface {
 	GetId() string
+	RefreshParams() error
 	Complete(op *codec.Op, key tezos.Key) error
 	Dispatch(op *codec.Op, opts *rpc.CallOptions) (OpResult, error)
 	Broadcast(op *codec.Op) (tezos.OpHash, error)

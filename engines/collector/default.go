@@ -32,23 +32,26 @@ func InitDefaultRpcAndTzktColletor(config *configuration.RuntimeConfiguration) (
 	if err != nil {
 		return nil, err
 	}
-	err = rpcClient.Init(context.Background())
-	if err != nil {
-		return nil, err
-	}
+
 	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, &client)
 	if err != nil {
 		return nil, err
 	}
 
-	return &DefaultRpcAndTzktColletor{
+	result := &DefaultRpcAndTzktColletor{
 		rpc:  rpcClient,
 		tzkt: tzktClient,
-	}, nil
+	}
+
+	return result, result.RefreshParams()
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetId() string {
 	return "DefaultRpcAndTzktColletor"
+}
+
+func (engine *DefaultRpcAndTzktColletor) RefreshParams() error {
+	return engine.rpc.Init(context.Background())
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetCurrentCycleNumber() (int64, error) {

@@ -41,6 +41,10 @@ func (engine *SimpleColletor) GetId() string {
 	return "DefaultRpcAndTzktColletor"
 }
 
+func (engine *SimpleColletor) RefreshParams() error {
+	return nil
+}
+
 func (engine *SimpleColletor) SetOpts(opts *SimpleCollectorOpts) {
 	engine.opts = opts
 }
@@ -86,6 +90,7 @@ func (engine *SimpleColletor) GetBranch(offset int64) (hash tezos.BlockHash, err
 
 func (engine *SimpleColletor) GetExpectedTxCosts() int64 {
 	op := codec.NewOp().WithSource(GetRandomAddress())
+	op.WithTTL(constants.MAX_OPERATION_TTL)
 	op.WithTransfer(GetRandomAddress(), 100000)
 	costs := tezos.Costs{
 		StorageBurn:    engine.opts.StorageBurn,

@@ -80,10 +80,10 @@ func SplitIntoBatches(payouts []PayoutRecipe, limits *OperationLimits) ([]Recipe
 
 func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor TransactorEngine) (*OpExecutionContext, error) {
 	op := codec.NewOp().WithSource(signer.GetPKH())
+	op.WithTTL(constants.MAX_OPERATION_TTL)
 	for _, p := range *b {
 		InjectTransferContents(op, p.Recipient, &p)
 	}
-	op.WithTTL(constants.MAX_OPERATION_TTL)
 	op.WithLimits(lo.Map(*b, func(p PayoutRecipe, _ int) tezos.Limits {
 		return tezos.Limits{
 			Fee:          p.OpLimits.TransactionFee,
