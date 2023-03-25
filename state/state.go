@@ -1,14 +1,17 @@
 package state
 
 import (
+	"errors"
 	"os"
 	"path"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
-	Global                 State
+	Global                 *State
 	CONFIG_FILE_NAME       = "config.hjson"
 	PRIVATE_KEY_FILE_NAME  = "payout_wallet_private.key"
 	REMOTE_SPECS_FILE_NAME = "remote_signer.hjson"
@@ -32,12 +35,13 @@ type State struct {
 	disableDonationPrompt    bool
 }
 
-func Init(workingDirectory string, options StateInitOptions) {
+func Init(workingDirectory string, options StateInitOptions) error {
 	injectedConfiguration, hasInjectedConfiguration := []byte{}, false
 	if options.InjectedConfiguration != nil {
 		injectedConfiguration, hasInjectedConfiguration = []byte(*options.InjectedConfiguration), true
 	}
-	Global = State{
+
+	Global = &State{
 		workingDirectory:         workingDirectory,
 		injectedConfiguration:    injectedConfiguration,
 		wantsJsonOutput:          options.WantsJsonOutput,
@@ -46,6 +50,25 @@ func Init(workingDirectory string, options StateInitOptions) {
 		debug:                    options.Debug,
 		disableDonationPrompt:    options.DisableDonationPrompt,
 	}
+
+	return errors.Join(Global.validateReportsDirectory())
+}
+
+func (state *State) validateReportsDirectory() error {
+	reportsDirectoryPath := state.GetReportsDirectory()
+	if _, err := os.Stat(reportsDirectoryPath); os.IsNotExist(err) {
+		log.Debugf("Reports directory '%s' does not exist. Creating it.", reportsDirectoryPath)
+		if err := os.Mkdir(reportsDirectoryPath, 0755); err != nil {
+			return err
+		}
+	}
+	// write test file
+	testFilePath := path.Join(reportsDirectoryPath, ".test")
+	log.Debugf("Writing test file to '%s'", testFilePath)
+	if err := os.WriteFile(testFilePath, []byte("test"), 0644); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (state *State) GetWorkingDirectory() string {
@@ -58,6 +81,14 @@ func (state *State) GetWantsOutputJson() bool {
 
 func (state *State) GetInjectedConfiguration() (bool, []byte) {
 	return state.hasInjectedConfiguration, state.injectedConfiguration
+}
+
+func (state *State) GetReportsDirectory() string {
+	reportsDirectoryPath := os.Getenv("REPORTS_DIRECTORY")
+	if reportsDirectoryPath != "" {
+		return reportsDirectoryPath
+	}
+	return path.Join(state.GetWorkingDirectory(), constants.REPORTS_DIRECTORY)
 }
 
 func (state *State) GetConfigurationFilePath() string {

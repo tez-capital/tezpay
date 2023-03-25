@@ -80,12 +80,16 @@ Copyright © %d alis.is
 				}
 			}
 
-			state.Init(workingDirectory, state.StateInitOptions{
+			stateOptions := state.StateInitOptions{
 				WantsJsonOutput:       outputJson,
 				SignerOverride:        signerOverride,
 				Debug:                 level == "trace" || level == "debug",
 				DisableDonationPrompt: disableDonationPrompt,
-			})
+			}
+			if err := state.Init(workingDirectory, stateOptions); err != nil {
+				log.Errorf("Failed to initialize state: %s", err.Error())
+				os.Exit(EXIT_STATE_LOAD_FAILURE)
+			}
 
 			skipVersionCheck, _ := cmd.Flags().GetBool(SKIP_VERSION_CHECK_FLAG)
 			if !skipVersionCheck && utils.IsTty() {

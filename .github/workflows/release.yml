@@ -37,6 +37,17 @@ jobs:
           file_glob: true
           file: bin/tezpay*
 
+      # - name: Build and publish container
+      #   uses: mr-smithers-excellent/docker-build-push@v6
+      #   with:
+      #     image: tez-capital/tezpay
+      #     dockerfile: ./container/Containerfile
+      #     addLatest: true
+      #     registry: ghcr.io
+      #     username: ${{ secrets.GHCR_USERNAME }}
+      #     password: ${{ secrets.GHCR_TOKEN }}
+      #     platform: linux/amd64,linux/arm64
+
       - name: Ami Tezpay Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
         with:

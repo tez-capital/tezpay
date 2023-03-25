@@ -26,8 +26,7 @@ func NewFileSystemReporter(config *configuration.RuntimeConfiguration) *FsReport
 }
 
 func (engine *FsReporter) GetExistingReports(cycle int64) ([]common.PayoutReport, error) {
-	workingDirectory := state.Global.GetWorkingDirectory()
-	sourceFile := path.Join(workingDirectory, constants.REPORTS_DIRECTORY, fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
+	sourceFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
 	data, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return []common.PayoutReport{}, err
@@ -45,10 +44,8 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 		return pr.Cycle
 	}))
 
-	workingDirectory := state.Global.GetWorkingDirectory()
-
 	for _, cycle := range cyclesToBeWritten {
-		targetFile := path.Join(workingDirectory, constants.REPORTS_DIRECTORY, fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
+		targetFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
 		err := os.MkdirAll(path.Dir(targetFile), 0700)
 		if err != nil {
 			return err
@@ -81,10 +78,8 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 		return pr.Cycle
 	}))
 
-	workingDirectory := state.Global.GetWorkingDirectory()
-
 	for _, cycle := range cyclesToBeWritten {
-		targetFile := path.Join(workingDirectory, constants.REPORTS_DIRECTORY, fmt.Sprintf("%d", cycle), constants.INVALID_REPORT_FILE_NAME)
+		targetFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.INVALID_REPORT_FILE_NAME)
 		err := os.MkdirAll(path.Dir(targetFile), 0700)
 		if err != nil {
 			return err
@@ -103,8 +98,7 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 }
 
 func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
-	workingDirectory := state.Global.GetWorkingDirectory()
-	targetFile := path.Join(workingDirectory, constants.REPORTS_DIRECTORY, fmt.Sprintf("%d", summary.Cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	targetFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", summary.Cycle), constants.REPORT_SUMMARY_FILE_NAME)
 	data, err := json.MarshalIndent(summary, "", "\t")
 	if err != nil {
 		return err
@@ -114,8 +108,7 @@ func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) 
 }
 
 func (engine *FsReporter) GetExistingCycleSummary(cycle int64) (*common.CyclePayoutSummary, error) {
-	workingDirectory := state.Global.GetWorkingDirectory()
-	sourceFile := path.Join(workingDirectory, constants.REPORTS_DIRECTORY, fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	sourceFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
 	data, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return nil, err
