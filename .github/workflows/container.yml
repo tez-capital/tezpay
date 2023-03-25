@@ -1,4 +1,4 @@
-name: release
+name: test container
 
 on:
   workflow_dispatch
@@ -16,6 +16,6 @@ jobs:
           dockerfile: ./container/Containerfile
           addLatest: true
           registry: ghcr.io
-          # username: ${{ secrets.GHCR_USERNAME }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           platform: linux/amd64,linux/arm64
