@@ -21,9 +21,9 @@ docker run --rm -it -v $(pwd):/tezpay ghcr.io/tez-capital/tezpay generate-payout
 ```
 Replace `<cycle_number>` with the desired cycle number for which you want to generate payouts.
 
-Continual payout:
+Continual payout (executed by default if no commands or arguments are provided):
 ```bash
-docker run --rm -it -v $(pwd):/tezpay ghcr.io/tez-capital/tezpay continual  [flags]
+docker run --rm -it -v $(pwd):/tezpay ghcr.io/tez-capital/tezpay continual [flags]
 ```
 
 Manual payout:
