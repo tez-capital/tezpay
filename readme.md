@@ -20,6 +20,10 @@ To contribute to TEZPAY please read [CONTRIBUTING.md](docs/CONTRIBUTING.md)
 4. ...
 5. Run `tezpay pay` to pay latest cycle
 
+## Container
+
+If you want to use tezpay in container, please refer to [container readme](container/readme.md).
+
 ## Credits
 
 - TEZPAY [default data collector](https://github.com/tez-capital/tezpay/blob/main/engines/colletor/default.go#L39) and [default transactor](https://github.com/tez-capital/tezpay/blob/main/engines/transactor/default.go#L39) (*only available right now*) are **Powered by [TzKT API](https://api.tzkt.io/)**

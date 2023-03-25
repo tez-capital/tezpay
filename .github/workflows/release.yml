@@ -32,21 +32,20 @@ jobs:
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.4.0
         with:
-          # repo_token: ${{ secrets.GITHUB_TOKEN }}
-          # tag: ${{ github.ref }}
           file_glob: true
           file: bin/tezpay*
 
-      # - name: Build and publish container
-      #   uses: mr-smithers-excellent/docker-build-push@v6
-      #   with:
-      #     image: tez-capital/tezpay
-      #     dockerfile: ./container/Containerfile
-      #     addLatest: true
-      #     registry: ghcr.io
-      #     username: ${{ secrets.GHCR_USERNAME }}
-      #     password: ${{ secrets.GHCR_TOKEN }}
-      #     platform: linux/amd64,linux/arm64
+      - name: Build and publish container
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: tezpay
+          dockerfile: ./container/Containerfile
+          addLatest: true
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          multiPlatform: true
+          platform: linux/amd64,linux/arm64
 
       - name: Ami Tezpay Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
