@@ -46,6 +46,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           multiPlatform: true
           platform: linux/amd64,linux/arm64
+          buildArgs: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
       - name: Ami Tezpay Repository Dispatch
         uses: peter-evans/repository-dispatch@v2

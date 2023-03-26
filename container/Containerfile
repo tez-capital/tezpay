@@ -1,11 +1,22 @@
 FROM alpine:3.17.2
 
 RUN apk add wget
-# install eli for minimal extension support
-RUN wget -q https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && sh /tmp/install.sh
+
+# Add a build argument for the token
+ARG GITHUB_TOKEN
+
+# Create a script for conditional authentication
+RUN printf '#!/bin/sh\n\
+if [ -z "$GITHUB_TOKEN" ]; then\n\
+  wget "$@" \n\
+else\n\
+  wget --header "Authorization: token $GITHUB_TOKEN" "$@" \n\
+fi\n' > /usr/local/bin/auth_wget && chmod +x /usr/local/bin/auth_wget
+
+# Use auth_wget for downloading files with optional authentication
+RUN auth_wget https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && sh /tmp/install.sh
 WORKDIR /tezpay-bin
-# install tezpay
-RUN wget -q https://raw.githubusercontent.com/alis-is/tezpay/main/install.sh -O /tmp/install.sh && sh /tmp/install.sh
+RUN auth_wget https://raw.githubusercontent.com/tez-capital/tezpay/main/install.sh -O /tmp/install.sh && sh /tmp/install.sh
 WORKDIR /tezpay
 
 ENTRYPOINT [ "/tezpay-bin/tezpay" ]
