@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"blockwatch.cc/tzgo/rpc"
+	"github.com/alis-is/tezpay/constants"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,7 +26,7 @@ type cycleMonitor struct {
 
 func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorOptions) (CycleMonitor, error) {
 	if options.NotificationDelay == 0 {
-		options.NotificationDelay = int64(rand.Intn(120) + 5)
+		options.NotificationDelay = int64(rand.Intn(constants.CYCLE_MONITOR_MAXIMUM_DELAY) + constants.CYCLE_MONITOR_DELAY_OFFSET)
 	}
 
 	if options.CheckFrequency < 2 {
