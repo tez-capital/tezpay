@@ -70,7 +70,7 @@ var payCmd = &cobra.Command{
 			utils.PrintValidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
 		}
 
-		if len(preparationResult.Payouts) == 0 {
+		if len(utils.OnlyValidPayouts(preparationResult.Payouts)) == 0 {
 			log.Info("nothing to pay out")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
