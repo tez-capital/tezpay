@@ -6,6 +6,7 @@ import (
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/echa/log"
 	"github.com/hjson/hjson-go/v4"
 	"gopkg.in/yaml.v3"
 )
@@ -37,7 +38,9 @@ func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, er
 			return nil, fmt.Errorf("failed to unmarshal version info: %w", err)
 		}
 		if versionInfo.Version == nil {
-			return nil, fmt.Errorf("invalid trd version: %v", versionInfo.Version)
+			defVer := "1.0"
+			log.Warnf("trd version is not defined, assuming version: %v", defVer)
+			versionInfo.Version = &defVer
 		}
 		switch *versionInfo.Version {
 		case "1.0":
