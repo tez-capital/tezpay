@@ -112,12 +112,12 @@ func ValidateDiscordConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
+func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
 
 	_, err := dn.session.WebhookExecute(dn.id, dn.token, true, &discordgo.WebhookParams{
 		Embeds: []*discordgo.MessageEmbed{
 			{
-				Title: PopulateMessageTemplate(dn.messageTemplate, summary),
+				Title: PopulateMessageTemplate(dn.messageTemplate, summary, additionalData),
 				Color: 261239,
 				Footer: &discordgo.MessageEmbedFooter{
 					Text: fmt.Sprintf(`%s v%s`, constants.CODENAME, constants.VERSION),

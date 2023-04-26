@@ -1,11 +1,30 @@
 package cmd
 
 import (
+	"encoding/json"
+
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
+	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/notifications"
 	log "github.com/sirupsen/logrus"
 )
+
+func collectAdditionalData(summary *common.CyclePayoutSummary) map[string]string {
+	data := make(map[string]json.RawMessage)
+
+	err := extension.ExecuteHook(enums.EXTENSION_HOOK_COLLECT_ADDITIONAL_NOTIFICATION_DATA, "0.1", &data)
+	if err != nil {
+		log.Warnf("failed to execute hook - %s", err.Error())
+	}
+	result := make(map[string]string)
+	for key, value := range data {
+		result[key] = string(value)
+	}
+
+	return result
+}
 
 func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, summary *common.CyclePayoutSummary, filter string) {
 	for _, notificatorConfiguration := range configuration.NotificationConfigurations {
@@ -24,7 +43,8 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 			continue
 		}
 
-		err = notificator.PayoutSummaryNotify(summary)
+		additionalData := collectAdditionalData(summary)
+		err = notificator.PayoutSummaryNotify(summary, additionalData)
 		if err != nil {
 			log.Warnf("failed to send notification - %s", err.Error())
 			continue

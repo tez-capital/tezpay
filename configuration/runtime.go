@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"encoding/json"
 	"math"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -30,8 +31,7 @@ type RuntimeDelegatorsConfiguration struct {
 
 type RuntimeNotificatorConfiguration struct {
 	Type          notifications.NotificatorKind `json:"type,omitempty"`
-	Configuration []byte                        `json:"-"`
-	Options       map[string]interface{}        `json:"configuration,omitempty"`
+	Configuration json.RawMessage               `json:"-"`
 	IsValid       bool                          `json:"-"`
 	IsAdmin       bool                          `json:"admin"`
 }

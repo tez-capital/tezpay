@@ -1,6 +1,8 @@
 package bc_seed
 
 import (
+	"encoding/json"
+
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 )
@@ -44,7 +46,7 @@ type ConfigurationV0 struct {
 	Network                    TezosNetworkConfigurationV0    `json:"network_configuration,omitempty"`
 	Overdelegation             OverdelegationConfigurationV0  `json:"overdelegation,omitempty"`
 	PaymentRequirements        PaymentRequirementsV0          `json:"payment_requirements,omitempty"`
-	NotificationConfigurations []map[string]interface{}       `json:"notifications,omitempty"`
+	NotificationConfigurations []json.RawMessage              `json:"notifications,omitempty"`
 }
 
 func GetDefault() ConfigurationV0 {
@@ -68,6 +70,6 @@ func GetDefault() ConfigurationV0 {
 			IsPayingTxFee: false,
 			MinimumAmount: constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
 		},
-		NotificationConfigurations: make([]map[string]interface{}, 0),
+		NotificationConfigurations: make([]json.RawMessage, 0),
 	}
 }

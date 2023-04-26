@@ -28,7 +28,7 @@ func (cae *configurationAndEngines) Unwrap() (*configuration.RuntimeConfiguratio
 	return cae.Configuration, cae.Collector, cae.Signer, cae.Transactor
 }
 
-func loadConfigurationAndEngines() (*configurationAndEngines, error) {
+func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	config, err := configuration.Load()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load configuration - %s", err.Error())

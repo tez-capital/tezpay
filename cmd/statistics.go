@@ -18,7 +18,7 @@ var statisticsCmd = &cobra.Command{
 		n, _ := cmd.Flags().GetInt(CYCLES_FLAG)
 		lastCycle, _ := cmd.Flags().GetInt64(LAST_CYCLE_FLAG)
 
-		config, collector, _, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, _, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		if lastCycle == 0 {
 			lastCycle = assertRunWithResult(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED)
 		}
@@ -33,7 +33,7 @@ var statisticsCmd = &cobra.Command{
 				log.Warnf("failed to read report of #%d, skipping...", cycle)
 				continue
 			}
-			total = *total.Add(summary)
+			total = *total.CombineNumericData(summary)
 			ok++
 		}
 

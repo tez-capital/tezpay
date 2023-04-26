@@ -16,7 +16,7 @@ var extensionTestCmd = &cobra.Command{
 	Short: "extension test",
 	Long:  "initializes and executes test hook agains extensions",
 	Run: func(cmd *cobra.Command, args []string) {
-		assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseScopedExtensions()
 
 		data := testHookData{

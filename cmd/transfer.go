@@ -21,7 +21,7 @@ var transferCmd = &cobra.Command{
 	Short: "transfers tez to specified address",
 	Long:  "transfers tez to specified address from payout wallet",
 	Run: func(cmd *cobra.Command, args []string) {
-		_, _, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		_, _, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		mutez, _ := cmd.Flags().GetBool(MUTEZ_FLAG)
 
 		if len(args)%2 != 0 {

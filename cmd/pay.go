@@ -20,7 +20,7 @@ var payCmd = &cobra.Command{
 	Short: "manual payout",
 	Long:  "runs manual payout",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)

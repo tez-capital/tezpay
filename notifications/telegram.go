@@ -69,8 +69,8 @@ func ValidateTelegramConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (tn *TelegramNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
-	return tn.session.Send(context.Background(), fmt.Sprintf("Report of cycle #%d", summary.Cycle), PopulateMessageTemplate(tn.messageTemplate, summary))
+func (tn *TelegramNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+	return tn.session.Send(context.Background(), fmt.Sprintf("Report of cycle #%d", summary.Cycle), PopulateMessageTemplate(tn.messageTemplate, summary, additionalData))
 }
 
 func (tn *TelegramNotificator) AdminNotify(msg string) error {

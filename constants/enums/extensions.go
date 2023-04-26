@@ -60,7 +60,10 @@ const (
 	// EXTENSION_HOOK_AFTER_PAYOUTS_FINALIZED            EExtensionHook = "after_payouts_finalized"
 	// EXTENSION_HOOK_AFTER_PAYOUTS_PREPARE_DISTRIBUTION EExtensionHook = "after_prepare_distribution"
 	// EXTENSION_HOOK_AFTER_REWARD_DISTRIBUTED           EExtensionHook = "after_reward_distributed"
+
 	EXTENSION_HOOK_UNKNOWN EExtensionHook = "unknown"
+
+	EXTENSION_HOOK_COLLECT_ADDITIONAL_NOTIFICATION_DATA EExtensionHook = "collect_additional_notification_data"
 )
 
 var (

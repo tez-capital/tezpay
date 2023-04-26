@@ -161,7 +161,7 @@ type CyclePayoutSummary struct {
 	Timestamp          time.Time `json:"timestamp"`
 }
 
-func (summary *CyclePayoutSummary) Add(another *CyclePayoutSummary) *CyclePayoutSummary {
+func (summary *CyclePayoutSummary) CombineNumericData(another *CyclePayoutSummary) *CyclePayoutSummary {
 	return &CyclePayoutSummary{
 		StakingBalance:     summary.StakingBalance.Add(another.StakingBalance),
 		EarnedFees:         summary.EarnedFees.Add(another.EarnedFees),

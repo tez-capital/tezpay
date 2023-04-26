@@ -17,7 +17,7 @@ var generatePayoutsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
-		config, collector, signer, _ := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 
 		if cycle <= 0 {

@@ -85,7 +85,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 		log.Warnf("we do not support migration of rules right now")
 	}
 
-	notificationConfigurations := make([]map[string]interface{}, 0)
+	notificationConfigurations := make([]json.RawMessage, 0)
 	if configuration.Plugins != nil {
 		for t, plugin := range configuration.Plugins {
 			switch t {
@@ -102,22 +102,32 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					continue
 				}
 				if len(configuration.AdminChatsIds) > 0 {
-					notificationConfigurations = append(notificationConfigurations, map[string]interface{}{
+					config, err := json.Marshal(map[string]interface{}{
 						"type":             "telegram",
 						"admin":            true,
 						"recipients":       configuration.AdminChatsIds,
 						"api_token":        configuration.BotApiKey,
 						"message_template": configuration.TelegramText,
 					})
+					if err == nil {
+						notificationConfigurations = append(notificationConfigurations, config)
+					} else {
+						log.Warnf("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually\n - %s", err.Error())
+					}
 				}
-				if len(configuration.AdminChatsIds) > 0 {
-					notificationConfigurations = append(notificationConfigurations, map[string]interface{}{
+				if len(configuration.PayoutChatsIds) > 0 {
+					config, err := json.Marshal(map[string]interface{}{
 						"type":             "telegram",
 						"admin":            false,
 						"recipients":       configuration.PayoutChatsIds,
 						"api_token":        configuration.BotApiKey,
 						"message_template": configuration.TelegramText,
 					})
+					if err == nil {
+						notificationConfigurations = append(notificationConfigurations, config)
+					} else {
+						log.Warnf("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually\n - %s", err.Error())
+					}
 				}
 			case "twitter":
 				var configuration trd_seed.TwitterPluginConfigurationV1
@@ -133,13 +143,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					log.Warnf("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually")
 					continue
 				}
-				var notificationConfiguration map[string]interface{}
-				err = json.Unmarshal(result, &notificationConfiguration)
-				if err != nil {
-					log.Warnf("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually")
-					continue
-				}
-				notificationConfigurations = append(notificationConfigurations, notificationConfiguration)
+				notificationConfigurations = append(notificationConfigurations, result)
 			case "discord":
 				var configuration trd_seed.DiscordPluginConfigurationV1
 				err := plugin.Decode(&configuration)
@@ -154,13 +158,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					log.Warnf("we are not able to migrate discord plugin configuration right now, please check your configuration file and migrate it manually")
 					continue
 				}
-				var notificationConfiguration map[string]interface{}
-				err = json.Unmarshal(result, &notificationConfiguration)
-				if err != nil {
-					log.Warnf("we are not able to migrate discord plugin configuration right now, please check your configuration file and migrate it manually")
-					continue
-				}
-				notificationConfigurations = append(notificationConfigurations, notificationConfiguration)
+				notificationConfigurations = append(notificationConfigurations, result)
 			}
 		}
 	}

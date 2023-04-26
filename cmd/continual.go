@@ -22,7 +22,7 @@ var continualCmd = &cobra.Command{
 	Short: "continual payout",
 	Long:  "runs payout until stopped manually",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, collector, signer, transactor := assertRunWithResult(loadConfigurationAndEngines, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)

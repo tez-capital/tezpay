@@ -60,39 +60,39 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			IsPayingAllocationTxFee: true,
 			MinimumAmount:           10.5,
 		},
-		NotificationConfigurations: []map[string]interface{}{
-			{
+		NotificationConfigurations: []json.RawMessage{
+			json.RawMessage(`{
 				"type":             "discord",
 				"webhook_url":      "https://my-discord-webhook.com/",
 				"message_template": "my awesome message",
-			},
-			{
+			}`),
+			json.RawMessage(`{
 				"type":             "discord",
 				"webhook_url":      "https://my-admin-discord-webhook.com/",
 				"message_template": "my awesome message",
 				"admin":            true,
-			},
-			{
+			}`),
+			json.RawMessage(`{
 				"type":             "discord",
 				"webhook_id":       "webhook id",
 				"webhook_token":    "webhook token",
 				"message_template": "my awesome message",
-			},
-			{
+			}`),
+			json.RawMessage(`{
 				"type":                "twitter",
 				"access_token":        "your access token",
 				"access_token_secret": "your access token secret",
 				"consumer_key":        "your consumer key",
 				"consumer_secret":     "your consumer secret",
 				"message_template":    "my awesome message",
-			},
-			{
+			}`),
+			json.RawMessage(`{
 				"type":             "telegram",
 				"api_token":        "your api token",
 				"receivers":        []interface{}{"list of chat numbers without quotes", -1234567890},
 				"message_template": "my awesome message",
-			},
-			{
+			}`),
+			json.RawMessage(`{
 				"type":             "email",
 				"sender":           "my@email.is",
 				"smtp_server":      "smtp.gmail.com:443",
@@ -101,12 +101,12 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 				"smtp_password":    "password123",
 				"recipients":       []string{"my-follower1@email.is", "my-follower2@email.is"},
 				"message_template": "my awesome message",
-			},
-			{
+			}`),
+			json.RawMessage(`{
 				"type": "external",
 				"path": "path to external notificator binary",
 				"args": []string{"--kind", "<kind>", "<data>"},
-			},
+			}`),
 		},
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
 			Bonds: map[string]float64{

@@ -88,9 +88,9 @@ func ValidateTwitterConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (tn *TwitterNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
+func (tn *TwitterNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
 	_, err := tn.client.CreateTweet(context.Background(), twitter.CreateTweetRequest{
-		Text: PopulateMessageTemplate(tn.messageTemplate, summary),
+		Text: PopulateMessageTemplate(tn.messageTemplate, summary, additionalData),
 	})
 	return err
 }

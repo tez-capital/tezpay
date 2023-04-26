@@ -26,7 +26,8 @@ type ExtensionStore struct {
 }
 
 var (
-	extensionStore ExtensionStore
+	extensionStore     ExtensionStore
+	IsStoreInitialized bool
 )
 
 func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefinition, env *ExtensionStoreEnviromnent) error {
@@ -48,6 +49,7 @@ func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefiniti
 		extensions:  extensions,
 		environment: env,
 	}
+	IsStoreInitialized = true
 	return nil
 }
 

@@ -12,7 +12,6 @@ import (
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/samber/lo"
@@ -88,24 +87,17 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		IncomeRecipients: configuration.IncomeRecipients,
 		Network:          configuration.Network,
 		Overdelegation:   configuration.Overdelegation,
-		NotificationConfigurations: lo.Map(configuration.NotificationConfigurations, func(item map[string]interface{}, index int) RuntimeNotificatorConfiguration {
+		NotificationConfigurations: lo.Map(configuration.NotificationConfigurations, func(item json.RawMessage, index int) RuntimeNotificatorConfiguration {
 			var isValid bool
-			var notificatorType string
-			if notificatorType, isValid = item["type"].(string); !isValid {
-				log.Warnf("invalid notificator type %v", item["type"])
+			var notificatorConfigurationBase tezpay_configuration.NotificatorConfigurationBase
+			if err := json.Unmarshal(item, &notificatorConfigurationBase); err != nil {
+				log.Warnf("invalid notificator configuration %v", err)
 			}
-			isAdmin := false
-			if admin, ok := item["admin"].(bool); ok {
-				isAdmin = admin
-			}
-
-			configuration, _ := json.Marshal(item)
 
 			return RuntimeNotificatorConfiguration{
-				Type:          notifications.NotificatorKind(notificatorType),
-				IsAdmin:       isAdmin,
-				Configuration: configuration,
-				Options:       item,
+				Type:          notificatorConfigurationBase.Type,
+				IsAdmin:       notificatorConfigurationBase.Admin,
+				Configuration: item,
 				IsValid:       isValid,
 			}
 		}),

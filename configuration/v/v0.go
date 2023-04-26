@@ -1,10 +1,13 @@
 package tezpay_configuration
 
 import (
+	"encoding/json"
+
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/notifications"
 )
 
 type IncomeRecipientsV0 struct {
@@ -64,9 +67,14 @@ type ConfigurationV0 struct {
 	IncomeRecipients           IncomeRecipientsV0            `json:"income_recipients,omitempty"`
 	Network                    TezosNetworkConfigurationV0   `json:"network,omitempty"`
 	Overdelegation             OverdelegationConfigurationV0 `json:"overdelegation,omitempty"`
-	NotificationConfigurations []map[string]interface{}      `json:"notifications,omitempty"`
+	NotificationConfigurations []json.RawMessage             `json:"notifications,omitempty"`
 	Extensions                 []ExtensionConfigurationV0    `json:"extensions,omitempty"`
 	SourceBytes                []byte                        `json:"-"`
+}
+
+type NotificatorConfigurationBase struct {
+	Type  notifications.NotificatorKind `json:"type"`
+	Admin bool                          `json:"admin"`
 }
 
 func GetDefaultV0() ConfigurationV0 {
@@ -97,7 +105,7 @@ func GetDefaultV0() ConfigurationV0 {
 			IsPayingAllocationTxFee: false,
 			MinimumAmount:           constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
 		},
-		NotificationConfigurations: make([]map[string]interface{}, 0),
+		NotificationConfigurations: make([]json.RawMessage, 0),
 		SourceBytes:                []byte{},
 	}
 }

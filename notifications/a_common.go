@@ -28,7 +28,7 @@ const (
 	EXTERNAL_NOTIFICATOR NotificatorKind = "external"
 )
 
-func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary) string {
+func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary, additionalData map[string]string) string {
 	v := reflect.ValueOf(*summary)
 	typeOfS := v.Type()
 
@@ -38,6 +38,10 @@ func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayout
 			val = fmt.Sprintf("%v", common.MutezToTezS(v.Field(i).Interface().(tezos.Z).Int64()))
 		}
 		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", typeOfS.Field(i).Name), val)
+	}
+
+	for k, v := range additionalData {
+		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", k), v)
 	}
 
 	return messageTempalte

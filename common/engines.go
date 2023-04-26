@@ -54,7 +54,7 @@ type TransactorEngine interface {
 }
 
 type NotificatorEngine interface {
-	PayoutSummaryNotify(summary *CyclePayoutSummary) error
+	PayoutSummaryNotify(summary *CyclePayoutSummary, additionalData map[string]string) error
 	AdminNotify(msg string) error
 	TestNotify() error
 }

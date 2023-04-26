@@ -78,8 +78,8 @@ func ValidateEmailConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (en *EmailNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
-	return en.session.Send(context.Background(), fmt.Sprintf("Report of cycle #%d", summary.Cycle), PopulateMessageTemplate(en.messageTemplate, summary))
+func (en *EmailNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+	return en.session.Send(context.Background(), fmt.Sprintf("Report of cycle #%d", summary.Cycle), PopulateMessageTemplate(en.messageTemplate, summary, additionalData))
 }
 
 func (en *EmailNotificator) AdminNotify(msg string) error {

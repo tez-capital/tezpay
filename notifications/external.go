@@ -53,32 +53,34 @@ func ValidateExternalConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (en *ExternalNotificator) mapArgs(kind NotificationKind, data string) []string {
+func (en *ExternalNotificator) mapArgs(kind NotificationKind, data string, additionalData string) []string {
 	args := make([]string, len(en.args))
 	for i, v := range en.args {
 		mappedArg := v
 		mappedArg = strings.ReplaceAll(mappedArg, "<kind>", string(PAYOUT_SUMMARY_NOTIFICATION))
 		mappedArg = strings.ReplaceAll(mappedArg, "<data>", data)
+		mappedArg = strings.ReplaceAll(mappedArg, "<additional_data>", additionalData)
 		args[i] = mappedArg
 	}
 	return args
 }
 
-func (en *ExternalNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary) error {
-	data, _ := json.Marshal(summary)
-	args := en.mapArgs(PAYOUT_SUMMARY_NOTIFICATION, string(data))
+func (en *ExternalNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+	summaryBytes, _ := json.Marshal(summary)
+	additionalDataBytes, _ := json.Marshal(additionalData)
+	args := en.mapArgs(PAYOUT_SUMMARY_NOTIFICATION, string(summaryBytes), string(additionalDataBytes))
 	cmd := exec.Command(en.path, args...)
 	return cmd.Run()
 }
 
 func (en *ExternalNotificator) AdminNotify(msg string) error {
-	args := en.mapArgs(ADMIN_NOTIFICATION, msg)
+	args := en.mapArgs(ADMIN_NOTIFICATION, msg, "")
 	cmd := exec.Command(en.path, args...)
 	return cmd.Run()
 }
 
 func (en *ExternalNotificator) TestNotify() error {
-	args := en.mapArgs(TEST_NOTIFICATION, "test notification")
+	args := en.mapArgs(TEST_NOTIFICATION, "test notification", "test additional data")
 	cmd := exec.Command(en.path, args...)
 	return cmd.Run()
 }
