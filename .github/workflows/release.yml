@@ -47,7 +47,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           multiPlatform: true
-          platform: linux/amd64,linux/arm64,linux/riscv64
+          platform: linux/amd64,linux/arm64
+          buildArgs: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish riscv64 container
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: tezpay
+          dockerfile: ./container/riscv64/Containerfile
+          addLatest: true
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          multiPlatform: true
+          platform: linux/riscv64
           buildArgs: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
       - name: Ami Tezpay Repository Dispatch
