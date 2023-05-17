@@ -22,6 +22,8 @@ jobs:
         run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-win-amd64.exe
       - name: Build linux-arm64
         run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-linux-arm64
+      - name: Build linux-arm64
+        run: env CGO_ENABLED=0 GOOS=linux GOARCH=riscv64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-linux-riscv64
       - name: Build linux-amd64
         run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-linux-amd64
       - name: Build macos-arm64
@@ -45,7 +47,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           multiPlatform: true
-          platform: linux/amd64,linux/arm64
+          platform: linux/amd64,linux/arm64,linux/riscv64
           buildArgs: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
       - name: Ami Tezpay Repository Dispatch
