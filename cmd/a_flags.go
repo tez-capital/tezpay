@@ -2,6 +2,7 @@ package cmd
 
 const (
 	CYCLE_FLAG                       = "cycle"
+	END_CYCLE_FLAG                   = "end-cycle"
 	CONFIRM_FLAG                     = "confirm"
 	NOTIFICATOR_FLAG                 = "notificator"
 	TO_FILE_FLAG                     = "to-file"

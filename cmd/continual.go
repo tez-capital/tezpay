@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/alis-is/tezpay/common"
@@ -25,6 +26,7 @@ var continualCmd = &cobra.Command{
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
+		endCycle, _ := cmd.Flags().GetInt64(END_CYCLE_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
@@ -70,6 +72,10 @@ var continualCmd = &cobra.Command{
 		completeCycle := func() {
 			lastProcessedCycle = cycleToProcess
 			log.Infof("================  CYCLE %d PROCESSED ===============", cycleToProcess)
+			if endCycle != 0 && lastProcessedCycle >= endCycle {
+				log.Info("end cycle reached, exiting")
+				os.Exit(0)
+			}
 		}
 
 		notifiedNewVersionAvailable := false
@@ -166,9 +172,10 @@ var continualCmd = &cobra.Command{
 
 func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
+	continualCmd.Flags().Int64P(END_CYCLE_FLAG, "e", 0, "end cycle")
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
-	continualCmd.Flags().Bool(FORCE_CONFIRMATION_PROMPT_FLAG, false, "forces confirmation prompts for each payout")
+	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")
 
 	RootCmd.AddCommand(continualCmd)
 }
