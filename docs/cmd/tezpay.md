@@ -4,7 +4,7 @@ TEZPAY
 
 ### Synopsis
 
-TEZPAY 0.1.15-alpha - the tezos reward distributor
+TEZPAY 0.1.16-alpha - the tezos reward distributor
 Copyright © 2023 alis.is
 
 
