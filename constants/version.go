@@ -1,6 +1,6 @@
 package constants
 
 const (
-	VERSION  = "0.1.14-alpha"
+	VERSION  = "0.1.15-alpha"
 	CODENAME = "tezpay"
 )
