@@ -80,7 +80,9 @@ var continualCmd = &cobra.Command{
 
 		notifiedNewVersionAvailable := false
 
-		defer notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
+		defer func() {
+			notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
+		}()
 		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s)", lastProcessedCycle+1, constants.VERSION))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
