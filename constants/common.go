@@ -15,11 +15,12 @@ const (
 	DEFAULT_EXPLORER_URL              = "https://tzkt.io/"
 	DEFAULT_REQUIRED_CONFIRMATIONS    = int64(2)
 
-	TRANSACTION_FEE_BUFFER = 0
-	GAS_LIMIT_BUFFER       = 100
-	PAYOUT_FEE_BUFFER      = 1000 // buffer per payout to check baker balance is sufficient
-	MAX_OPERATION_TTL      = 12   // 12 blocks
-	ALLOCATION_STORAGE     = 257
+	TRANSACTION_FEE_BUFFER        = 0
+	TX_GAS_LIMIT_BUFFER           = 85
+	TX_DESERIALIZATION_GAS_BUFFER = 15
+	PAYOUT_FEE_BUFFER             = 1000 // buffer per payout to check baker balance is sufficient
+	MAX_OPERATION_TTL             = 12   // 12 blocks
+	ALLOCATION_STORAGE            = 257
 
 	CYCLE_MONITOR_MAXIMUM_DELAY = 230
 	CYCLE_MONITOR_DELAY_OFFSET  = 10

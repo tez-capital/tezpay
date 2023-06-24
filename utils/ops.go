@@ -10,7 +10,8 @@ import (
 )
 
 func EstimateContentFee(content codec.Operation, costs tezos.Costs, params *tezos.Params, withTxBuffer bool) int64 {
-	total := codec.CalculateMinFee(content, costs.GasUsed+constants.GAS_LIMIT_BUFFER, true, params)
+	// we add deserialization buffer to gas limit because it is substracted for all tx before broadcast and added to the first tx limit
+	total := codec.CalculateMinFee(content, costs.GasUsed+constants.TX_GAS_LIMIT_BUFFER+constants.TX_DESERIALIZATION_GAS_BUFFER, true, params)
 	if withTxBuffer {
 		return total + constants.TRANSACTION_FEE_BUFFER
 	}

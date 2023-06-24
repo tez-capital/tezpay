@@ -67,7 +67,8 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		costs := receipt.TotalCosts()
 
 		recipe.OpLimits = &common.OpLimits{
-			GasLimit:       costs.GasUsed + constants.GAS_LIMIT_BUFFER,
+			// we add deserialization buffer to gas limit because it is substracted for all tx before broadcast and added to the first tx limit
+			GasLimit:       costs.GasUsed + constants.TX_GAS_LIMIT_BUFFER + constants.TX_DESERIALIZATION_GAS_BUFFER,
 			StorageLimit:   utils.CalculateStorageLimit(costs),
 			TransactionFee: utils.EstimateTransactionFee(op, receipt.Costs()),
 		}

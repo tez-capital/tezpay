@@ -49,7 +49,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 		}
 
 		if ctx.protectedSection.Signaled() {
-			batchesResults[i] = *common.NewFailedBatchResult(batch, fmt.Errorf("terminated by user"))
+			batchesResults = append(batchesResults, *common.NewFailedBatchResult(batch, fmt.Errorf("terminated by user")))
 			ctx.AdminNotify("Payouts execution terminated by user")
 			continue
 		}
@@ -61,7 +61,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 	ctx.StageData.BatchResults = batchesResults
 	failureDetected := false
 
-	if err := reporter.ReportPayouts(ctx.StageData.BatchResults.ToReports()); err != nil {
+	if err := reporter.ReportPayouts(append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)); err != nil {
 		log.Warnf("failed to report sent payouts - %s", err.Error())
 		failureDetected = true
 	}

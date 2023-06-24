@@ -81,7 +81,9 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 					AllocationBurn:                      costs.AllocationBurn,
 					StorageBurn:                         costs.StorageBurn,
 					OpLimits: &common.OpLimits{
-						GasLimit:       costs.GasUsed + constants.GAS_LIMIT_BUFFER,
+						// we use deserialization buffer as well because we use calculations here to substract fees from delegators
+						// deserialization fee is later substracted from gas limit and added to first limit in the operation
+						GasLimit:       costs.GasUsed + constants.TX_GAS_LIMIT_BUFFER + constants.TX_DESERIALIZATION_GAS_BUFFER,
 						StorageLimit:   utils.CalculateStorageLimit(costs),
 						TransactionFee: utils.EstimateTransactionFee(op, receipt.Costs()),
 					},
@@ -98,7 +100,9 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 				AllocationBurn:                      costs[index].AllocationBurn,
 				StorageBurn:                         costs[index].StorageBurn,
 				OpLimits: &common.OpLimits{
-					GasLimit:       costs[index].GasUsed + constants.GAS_LIMIT_BUFFER,
+					// we use deserialization buffer as well because we use calculations here to substract fees from delegators
+					// deserialization fee is later substracted from gas limit and added to first limit in the operation
+					GasLimit:       costs[index].GasUsed + constants.TX_GAS_LIMIT_BUFFER + constants.TX_DESERIALIZATION_GAS_BUFFER,
 					StorageLimit:   utils.CalculateStorageLimit(costs[index]),
 					TransactionFee: utils.EstimateContentFee(op.Contents[index], costs[index], op.Params, true),
 				},

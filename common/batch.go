@@ -84,10 +84,14 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 	for _, p := range *b {
 		InjectTransferContents(op, p.Recipient, &p)
 	}
-	op.WithLimits(lo.Map(*b, func(p PayoutRecipe, _ int) tezos.Limits {
+	op.WithLimits(lo.Map(*b, func(p PayoutRecipe, i int) tezos.Limits {
+		buffer := int64(-constants.TX_DESERIALIZATION_GAS_BUFFER) // include in first substract from rest
+		if i == 0 {
+			buffer = int64(constants.TX_DESERIALIZATION_GAS_BUFFER * len(*b))
+		}
 		return tezos.Limits{
 			Fee:          p.OpLimits.TransactionFee,
-			GasLimit:     p.OpLimits.GasLimit,
+			GasLimit:     p.OpLimits.GasLimit + buffer,
 			StorageLimit: p.OpLimits.StorageLimit,
 		}
 	}), 0)
