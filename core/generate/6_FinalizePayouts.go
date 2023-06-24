@@ -58,19 +58,31 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
 		op.WithTTL(constants.MAX_OPERATION_TTL)
 		op.WithTransfer(recipient, recipientPortion.Int64())
+		op.WithTransfer(recipient, recipientPortion.Int64())
 
 		receipt, err := ctx.GetCollector().Simulate(op, ctx.PayoutKey)
 
 		if err != nil {
 			return []common.PayoutRecipe{}, err
 		}
-		costs := receipt.TotalCosts()
+		costs := receipt.Costs()
+		if len(costs) < 2 {
+			return []common.PayoutRecipe{}, fmt.Errorf("invalid costs length, cannot estimate")
+		}
+
+		// remove last op content as it is stored in first alreedy
+		op.Contents = op.Contents[:len(op.Contents)-1]
+		serializationFee := costs[0].GasUsed - costs[1].GasUsed
+
+		cost := costs[0]
+		cost.GasUsed = costs[1].GasUsed
+		costs = []tezos.Costs{cost}
 
 		recipe.OpLimits = &common.OpLimits{
-			// we add deserialization buffer to gas limit because it is substracted for all tx before broadcast and added to the first tx limit
-			GasLimit:       costs.GasUsed + constants.TX_GAS_LIMIT_BUFFER + constants.TX_DESERIALIZATION_GAS_BUFFER,
-			StorageLimit:   utils.CalculateStorageLimit(costs),
-			TransactionFee: utils.EstimateTransactionFee(op, receipt.Costs()),
+			GasLimit:         cost.GasUsed + constants.TX_GAS_LIMIT_BUFFER,
+			StorageLimit:     utils.CalculateStorageLimit(cost),
+			TransactionFee:   utils.EstimateTransactionFee(op, costs, serializationFee+constants.TX_DESERIALIZATION_GAS_BUFFER),
+			SerializationFee: serializationFee + constants.TX_DESERIALIZATION_GAS_BUFFER,
 		}
 		result = append(result, recipe)
 	}

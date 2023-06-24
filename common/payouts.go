@@ -9,9 +9,10 @@ import (
 )
 
 type OpLimits struct {
-	TransactionFee int64 `json:"transaction_fee,omitempty"`
-	StorageLimit   int64 `json:"storage_limit,omitempty"`
-	GasLimit       int64 `json:"gas_limit,omitempty"`
+	TransactionFee   int64 `json:"transaction_fee,omitempty"`
+	StorageLimit     int64 `json:"storage_limit,omitempty"`
+	GasLimit         int64 `json:"gas_limit,omitempty"`
+	SerializationFee int64 `json:"serialization_fee,omitempty"`
 }
 
 type PayoutRecipe struct {
@@ -55,7 +56,7 @@ func (candidate *PayoutRecipe) GetAmount() tezos.Z {
 func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 	txFee := int64(0)
 	if pr.OpLimits != nil {
-		txFee = pr.OpLimits.TransactionFee
+		txFee = pr.OpLimits.TransactionFee + pr.OpLimits.SerializationFee
 	}
 
 	return PayoutReport{

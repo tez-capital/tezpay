@@ -11,12 +11,11 @@ import (
 )
 
 type batchBlueprint struct {
-	Payouts        []PayoutRecipe
-	UsedStorage    int64
-	UsedGas        int64
-	TransactionFee int64
-	Op             *codec.Op
-	limits         OperationLimits
+	Payouts     []PayoutRecipe
+	UsedStorage int64
+	UsedGas     int64
+	Op          *codec.Op
+	limits      OperationLimits
 }
 
 func newBatch(limits *OperationLimits) batchBlueprint {
@@ -37,7 +36,7 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 	if b.UsedStorage+payout.OpLimits.StorageLimit >= b.limits.HardStorageLimitPerOperation {
 		return false
 	}
-	if b.UsedGas+payout.OpLimits.GasLimit >= b.limits.HardGasLimitPerOperation {
+	if b.UsedGas+payout.OpLimits.GasLimit+payout.OpLimits.SerializationFee >= b.limits.HardGasLimitPerOperation {
 		return false
 	}
 	InjectTransferContents(b.Op, payout.Recipient, &payout)
@@ -45,9 +44,9 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 		return false
 	}
 	b.UsedStorage += payout.OpLimits.StorageLimit
-	b.UsedGas += payout.OpLimits.GasLimit
-	b.TransactionFee += payout.OpLimits.TransactionFee
+	b.UsedGas += payout.OpLimits.GasLimit + payout.OpLimits.SerializationFee
 	b.Payouts = append(b.Payouts, payout)
+
 	return true
 }
 
@@ -84,10 +83,15 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 	for _, p := range *b {
 		InjectTransferContents(op, p.Recipient, &p)
 	}
+
+	serializationFee := lo.Reduce(*b, func(acc int64, p PayoutRecipe, _ int) int64 {
+		return acc + p.OpLimits.SerializationFee
+	}, int64(0))
+
 	op.WithLimits(lo.Map(*b, func(p PayoutRecipe, i int) tezos.Limits {
-		buffer := int64(-constants.TX_DESERIALIZATION_GAS_BUFFER) // include in first substract from rest
+		buffer := int64(0)
 		if i == 0 {
-			buffer = int64(constants.TX_DESERIALIZATION_GAS_BUFFER * len(*b))
+			buffer = serializationFee
 		}
 		return tezos.Limits{
 			Fee:          p.OpLimits.TransactionFee,

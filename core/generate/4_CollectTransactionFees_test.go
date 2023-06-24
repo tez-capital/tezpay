@@ -49,7 +49,6 @@ func TestCollectTransactionFees(t *testing.T) {
 		configuration:                &config,
 	}
 
-	t.Log("check gas usage")
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 0,
 		StorageBurn:    0,
@@ -207,6 +206,8 @@ func TestCollectTransactionFees(t *testing.T) {
 	})
 	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
 	assert.Panics(func() {
-		CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+
+		_, err := CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+		t.Log(err)
 	})
 }

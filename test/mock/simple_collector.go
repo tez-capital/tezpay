@@ -25,14 +25,16 @@ type SimpleCollectorOpts struct {
 	FailWithError        error
 	FailWithReceiptError error
 	ReturnOnlyNCosts     int
+	SerializationFee     int64
 }
 
 func InitSimpleColletor() *SimpleColletor {
 	return &SimpleColletor{
 		opts: &SimpleCollectorOpts{
-			AllocationBurn: 1000,
-			StorageBurn:    1000,
-			UsedMilliGas:   1000000,
+			AllocationBurn:   1000,
+			StorageBurn:      1000,
+			UsedMilliGas:     1000000,
+			SerializationFee: 100,
 		},
 	}
 }
@@ -97,11 +99,11 @@ func (engine *SimpleColletor) GetExpectedTxCosts() int64 {
 		AllocationBurn: engine.opts.AllocationBurn,
 		GasUsed:        engine.opts.UsedMilliGas / 1000,
 	}
-	return utils.EstimateTransactionFee(op, []tezos.Costs{costs}) + engine.opts.StorageBurn + engine.opts.AllocationBurn
+	return utils.EstimateTransactionFee(op, []tezos.Costs{costs}, engine.opts.SerializationFee+constants.TX_DESERIALIZATION_GAS_BUFFER) + engine.opts.StorageBurn + engine.opts.AllocationBurn
 }
 
 func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
-	if engine.opts.SingleOnly && len(o.Contents) > 1 {
+	if engine.opts.SingleOnly && len(o.Contents) > 2 {
 		return nil, errors.New("failed to batch estimate")
 	}
 	if engine.opts.FailWithError != nil {

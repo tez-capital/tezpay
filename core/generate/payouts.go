@@ -77,11 +77,15 @@ func (candidate *PayoutCandidateWithBondAmountAndFee) ToValidationContext(ctx *P
 	}
 }
 
-type PayoutCandidateSimulated struct {
-	PayoutCandidateWithBondAmountAndFee
+type PayoutCandidateSimulationResult struct {
 	AllocationBurn int64            `json:"allocation_burn,omitempty"`
 	StorageBurn    int64            `json:"storage_burn,omitempty"`
 	OpLimits       *common.OpLimits `json:"op_limits,omitempty"`
+}
+
+type PayoutCandidateSimulated struct {
+	PayoutCandidateWithBondAmountAndFee
+	PayoutCandidateSimulationResult
 }
 
 func (payout *PayoutCandidateSimulated) GetOperationTotalFees() int64 {
@@ -93,7 +97,7 @@ func (payout *PayoutCandidateSimulated) GetAllocationFee() int64 {
 }
 
 func (payout *PayoutCandidateSimulated) GetOperationFeesWithoutAllocation() int64 {
-	return payout.OpLimits.TransactionFee + payout.StorageBurn
+	return payout.OpLimits.TransactionFee + payout.StorageBurn + payout.OpLimits.SerializationFee
 }
 
 func (candidate *PayoutCandidateSimulated) ToValidationContext(config *configuration.RuntimeConfiguration) PayoutSimulatedValidationContext {
