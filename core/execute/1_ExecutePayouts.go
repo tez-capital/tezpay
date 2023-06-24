@@ -19,7 +19,7 @@ func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch commo
 	log.Infof("broadcasting batch %s", batchId)
 	err = opExecCtx.Dispatch(nil)
 	if err != nil {
-		log.Warnf("batch %s - %s", batchId, err.Error())
+		log.Warnf("failed to broadcast batch %s - %s", batchId, utils.TryUnwrapRPCError(err).Error())
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to broadcast - %s", err.Error()))
 	}
 
@@ -28,7 +28,7 @@ func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch commo
 	err = opExecCtx.WaitForApply()
 	ctx.protectedSection.Resume() // resume protected section
 	if err != nil {
-		log.Warnf("batch %s - %s", batchId, err.Error())
+		log.Warnf("failed to apply batch %s - %s", batchId, err.Error())
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to confirm - %s", err.Error()))
 	}
 

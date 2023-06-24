@@ -1,6 +1,8 @@
 package generate
 
 import (
+	"errors"
+
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"github.com/alis-is/tezpay/common"
@@ -57,10 +59,13 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 				if err != nil || !receipt.IsSuccess() {
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind)
 					if receipt != nil && receipt.Error() != nil {
-						log.Infof("estimating tx costs to '%s' failed because: %s", candidate.Recipient, receipt.Error().Error())
-					}
-					if err != nil {
-						log.Debugf(err.Error())
+						errToLog := errors.Join(receipt.Error(), err).Error()
+						if receipt.Error().Error() == err.Error() {
+							errToLog = err.Error()
+						}
+						log.Infof("estimating tx costs to '%s' failed because: %s", candidate.Recipient, errToLog)
+					} else if err != nil {
+						log.Infof("estimating tx costs to '%s' failed because: %s", candidate.Recipient, err.Error())
 					}
 					candidate.IsInvalid = true
 					candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS
