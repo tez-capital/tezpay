@@ -60,7 +60,7 @@ func batchEstimate(payouts []PayoutCandidateWithBondAmountAndFee, ctx *PayoutGen
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind)
 					if receipt != nil && receipt.Error() != nil {
 						errToLog := errors.Join(receipt.Error(), err).Error()
-						if receipt.Error().Error() == err.Error() {
+						if err != nil && receipt.Error().Error() == err.Error() {
 							errToLog = err.Error()
 						}
 						log.Infof("estimating tx costs to '%s' failed because: %s", candidate.Recipient, errToLog)
