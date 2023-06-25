@@ -7,20 +7,20 @@ const (
 
 	DELEGATION_CAPACITY_FACTOR = 10
 
-	DEFAULT_BAKER_FEE                 = float64(.05)
-	DEFAULT_DELEGATOR_MINIMUM_BALANCE = float64(0)
-	DEFAULT_PAYOUT_MINIMUM_AMOUNT     = float64(0)
-	DEFAULT_RPC_URL                   = "https://rpc-mainnet.groktech.xyz/"
-	DEFAULT_TZKT_URL                  = "https://api.tzkt.io/"
-	DEFAULT_EXPLORER_URL              = "https://tzkt.io/"
-	DEFAULT_REQUIRED_CONFIRMATIONS    = int64(2)
+	DEFAULT_BAKER_FEE                     = float64(.05)
+	DEFAULT_DELEGATOR_MINIMUM_BALANCE     = float64(0)
+	DEFAULT_PAYOUT_MINIMUM_AMOUNT         = float64(0)
+	DEFAULT_RPC_URL                       = "https://rpc-mainnet.groktech.xyz/"
+	DEFAULT_TZKT_URL                      = "https://api.tzkt.io/"
+	DEFAULT_EXPLORER_URL                  = "https://tzkt.io/"
+	DEFAULT_REQUIRED_CONFIRMATIONS        = int64(2)
+	DEFAULT_TX_GAS_LIMIT_BUFFER           = 98
+	DEFAULT_TX_DESERIALIZATION_GAS_BUFFER = 2 // just because of integer division
 
-	TRANSACTION_FEE_BUFFER        = 0
-	TX_GAS_LIMIT_BUFFER           = 98
-	TX_DESERIALIZATION_GAS_BUFFER = 2    // just because of integer division
-	PAYOUT_FEE_BUFFER             = 1000 // buffer per payout to check baker balance is sufficient
-	MAX_OPERATION_TTL             = 12   // 12 blocks
-	ALLOCATION_STORAGE            = 257
+	OPERATION_FEE_BUFFER = 0
+	PAYOUT_FEE_BUFFER    = 1000 // buffer per payout to check baker balance is sufficient
+	MAX_OPERATION_TTL    = 12   // 12 blocks
+	ALLOCATION_STORAGE   = 257
 
 	CYCLE_MONITOR_MAXIMUM_DELAY = 230
 	CYCLE_MONITOR_DELAY_OFFSET  = 10

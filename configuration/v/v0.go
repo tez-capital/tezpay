@@ -48,13 +48,15 @@ type OverdelegationConfigurationV0 struct {
 }
 
 type PayoutConfigurationV0 struct {
-	WalletMode              enums.EWalletMode `json:"wallet_mode"`
-	PayoutMode              enums.EPayoutMode `json:"payout_mode"`
-	Fee                     float64           `json:"fee,omitempty"`
-	IsPayingTxFee           bool              `json:"baker_pays_transaction_fee,omitempty"`
-	IsPayingAllocationTxFee bool              `json:"baker_pays_allocation_fee,omitempty"`
-	MinimumAmount           float64           `json:"minimum_payout_amount,omitempty"`
-	IgnoreEmptyAccounts     bool              `json:"ignore_empty_accounts,omitempty"`
+	WalletMode                 enums.EWalletMode `json:"wallet_mode"`
+	PayoutMode                 enums.EPayoutMode `json:"payout_mode"`
+	Fee                        float64           `json:"fee,omitempty"`
+	IsPayingTxFee              bool              `json:"baker_pays_transaction_fee,omitempty"`
+	IsPayingAllocationTxFee    bool              `json:"baker_pays_allocation_fee,omitempty"`
+	MinimumAmount              float64           `json:"minimum_payout_amount,omitempty"`
+	IgnoreEmptyAccounts        bool              `json:"ignore_empty_accounts,omitempty"`
+	TxGasLimitBuffer           *int64            `json:"transaction_gas_limit_buffer,omitempty"`
+	TxDeserializationGasBuffer *int64            `json:"transaction_deserialization_gas_buffer,omitempty"`
 }
 
 type ExtensionConfigurationV0 = common.ExtensionDefinition
@@ -78,6 +80,9 @@ type NotificatorConfigurationBase struct {
 }
 
 func GetDefaultV0() ConfigurationV0 {
+	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
+	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
+
 	return ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidKey.Address(),
@@ -98,12 +103,14 @@ func GetDefaultV0() ConfigurationV0 {
 			IsProtectionEnabled: true,
 		},
 		PayoutConfiguration: PayoutConfigurationV0{
-			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
-			PayoutMode:              enums.PAYOUT_MODE_ACTUAL,
-			Fee:                     constants.DEFAULT_BAKER_FEE,
-			IsPayingTxFee:           false,
-			IsPayingAllocationTxFee: false,
-			MinimumAmount:           constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
+			WalletMode:                 enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:                 enums.PAYOUT_MODE_ACTUAL,
+			Fee:                        constants.DEFAULT_BAKER_FEE,
+			IsPayingTxFee:              false,
+			IsPayingAllocationTxFee:    false,
+			MinimumAmount:              constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
+			TxGasLimitBuffer:           &gasLimitBuffer,
+			TxDeserializationGasBuffer: &deserializaGasBuffer,
 		},
 		NotificationConfigurations: make([]json.RawMessage, 0),
 		SourceBytes:                []byte{},

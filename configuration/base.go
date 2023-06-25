@@ -65,17 +65,28 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	if payoutMode == "" {
 		payoutMode = enums.PAYOUT_MODE_ACTUAL
 	}
+	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
+	if configuration.PayoutConfiguration.TxGasLimitBuffer != nil {
+		gasLimitBuffer = *configuration.PayoutConfiguration.TxGasLimitBuffer
+	}
+
+	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
+	if configuration.PayoutConfiguration.TxDeserializationGasBuffer != nil {
+		deserializaGasBuffer = *configuration.PayoutConfiguration.TxDeserializationGasBuffer
+	}
 
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
-			WalletMode:              walletMode,
-			PayoutMode:              payoutMode,
-			Fee:                     configuration.PayoutConfiguration.Fee,
-			IsPayingTxFee:           configuration.PayoutConfiguration.IsPayingTxFee,
-			IsPayingAllocationTxFee: configuration.PayoutConfiguration.IsPayingAllocationTxFee,
-			MinimumAmount:           FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
-			IgnoreEmptyAccounts:     configuration.PayoutConfiguration.IgnoreEmptyAccounts,
+			WalletMode:                 walletMode,
+			PayoutMode:                 payoutMode,
+			Fee:                        configuration.PayoutConfiguration.Fee,
+			IsPayingTxFee:              configuration.PayoutConfiguration.IsPayingTxFee,
+			IsPayingAllocationTxFee:    configuration.PayoutConfiguration.IsPayingAllocationTxFee,
+			MinimumAmount:              FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
+			IgnoreEmptyAccounts:        configuration.PayoutConfiguration.IgnoreEmptyAccounts,
+			TxGasLimitBuffer:           gasLimitBuffer,
+			TxDeserializationGasBuffer: deserializaGasBuffer,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

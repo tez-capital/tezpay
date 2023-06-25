@@ -23,6 +23,9 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	feeExtensionConfiguration := json.RawMessage(`{"FEE": 0, "TOKEN": "1", "CONTRACT": "KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV"}`)
 
 	fee := 0.0
+	gasLimitBuffer := int64(200)
+	deserializationGasBuffer := int64(5)
+
 	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidAddress,
@@ -53,12 +56,14 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			IsProtectionEnabled: true,
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
-			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
-			PayoutMode:              enums.PAYOUT_MODE_IDEAL,
-			Fee:                     .075,
-			IsPayingTxFee:           true,
-			IsPayingAllocationTxFee: true,
-			MinimumAmount:           10.5,
+			WalletMode:                 enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:                 enums.PAYOUT_MODE_IDEAL,
+			Fee:                        .075,
+			IsPayingTxFee:              true,
+			IsPayingAllocationTxFee:    true,
+			MinimumAmount:              10.5,
+			TxGasLimitBuffer:           &gasLimitBuffer,
+			TxDeserializationGasBuffer: &deserializationGasBuffer,
 		},
 		NotificationConfigurations: []json.RawMessage{
 			json.RawMessage(`{

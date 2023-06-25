@@ -9,20 +9,18 @@ import (
 	"github.com/samber/lo"
 )
 
-func EstimateContentFee(content codec.Operation, costs tezos.Costs, params *tezos.Params, serializationGas int64, withTxBuffer bool) int64 {
+// all buffers and additional costs should be added through txExtra
+func EstimateContentFee(content codec.Operation, costs tezos.Costs, params *tezos.Params, txExtra int64) int64 {
 	// we add deserialization buffer to gas limit because it is substracted for all tx before broadcast and added to the first tx limit
-	total := codec.CalculateMinFee(content, costs.GasUsed+constants.TX_GAS_LIMIT_BUFFER+serializationGas, true, params)
-	if withTxBuffer {
-		return total + constants.TRANSACTION_FEE_BUFFER
-	}
-	return total
+	return codec.CalculateMinFee(content, costs.GasUsed, true, params)
 }
 
-func EstimateTransactionFee(op *codec.Op, costs []tezos.Costs, serializationGas int64) int64 {
+// all buffers and additional costs should be added through txExtra
+func EstimateTransactionFee(op *codec.Op, costs []tezos.Costs, txExtra int64) int64 {
 	gasFee := lo.Reduce(op.Contents, func(agg int64, content codec.Operation, i int) int64 {
-		return agg + EstimateContentFee(content, costs[i], op.Params, serializationGas, false)
+		return agg + EstimateContentFee(content, costs[i], op.Params, txExtra)
 	}, 0)
-	return gasFee + constants.TRANSACTION_FEE_BUFFER /*0mutez*/
+	return gasFee + constants.OPERATION_FEE_BUFFER /*0mutez rn*/
 }
 
 func CalculateStorageLimit(costs tezos.Costs) int64 {

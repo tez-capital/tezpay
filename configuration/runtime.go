@@ -37,13 +37,15 @@ type RuntimeNotificatorConfiguration struct {
 }
 
 type RuntimePayoutConfiguration struct {
-	WalletMode              enums.EWalletMode `json:"wallet_mode,omitempty"`
-	PayoutMode              enums.EPayoutMode `json:"payout_mode,omitempty"`
-	Fee                     float64           `json:"fee,omitempty"`
-	IsPayingTxFee           bool              `json:"baker_pays_transaction_fee,omitempty"`
-	IsPayingAllocationTxFee bool              `json:"baker_pays_allocation_fee,omitempty"`
-	MinimumAmount           tezos.Z           `json:"minimum_payout_amount,omitempty"`
-	IgnoreEmptyAccounts     bool              `json:"ignore_empty_accounts,omitempty"`
+	WalletMode                 enums.EWalletMode `json:"wallet_mode,omitempty"`
+	PayoutMode                 enums.EPayoutMode `json:"payout_mode,omitempty"`
+	Fee                        float64           `json:"fee,omitempty"`
+	IsPayingTxFee              bool              `json:"baker_pays_transaction_fee,omitempty"`
+	IsPayingAllocationTxFee    bool              `json:"baker_pays_allocation_fee,omitempty"`
+	MinimumAmount              tezos.Z           `json:"minimum_payout_amount,omitempty"`
+	IgnoreEmptyAccounts        bool              `json:"ignore_empty_accounts,omitempty"`
+	TxGasLimitBuffer           int64             `json:"transaction_gas_limit_buffer,omitempty"`
+	TxDeserializationGasBuffer int64             `json:"transaction_deserialization_gas_buffer,omitempty"`
 }
 
 type RuntimeConfiguration struct {
@@ -59,16 +61,21 @@ type RuntimeConfiguration struct {
 }
 
 func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
+	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
+	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
+
 	return RuntimeConfiguration{
 		BakerPKH: tezos.InvalidKey.Address(),
 		PayoutConfiguration: RuntimePayoutConfiguration{
-			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
-			PayoutMode:              enums.PAYOUT_MODE_ACTUAL,
-			Fee:                     constants.DEFAULT_BAKER_FEE,
-			IsPayingTxFee:           false,
-			IsPayingAllocationTxFee: false,
-			MinimumAmount:           FloatAmountToMutez(constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT),
-			IgnoreEmptyAccounts:     false,
+			WalletMode:                 enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:                 enums.PAYOUT_MODE_ACTUAL,
+			Fee:                        constants.DEFAULT_BAKER_FEE,
+			IsPayingTxFee:              false,
+			IsPayingAllocationTxFee:    false,
+			MinimumAmount:              FloatAmountToMutez(constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT),
+			IgnoreEmptyAccounts:        false,
+			TxGasLimitBuffer:           gasLimitBuffer,
+			TxDeserializationGasBuffer: deserializaGasBuffer,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

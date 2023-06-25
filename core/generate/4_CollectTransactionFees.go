@@ -56,14 +56,6 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 		panic("Partial estimate. This should never happen!")
 	}
 
-	totalBytes := 0
-	for _, v := range op.Contents {
-		bytes, err := v.MarshalBinary()
-		if err != nil {
-			return nil, err
-		}
-		totalBytes += len(bytes)
-	}
 	serializationFee := costs[0].GasUsed - costs[len(costs)-1].GasUsed
 
 	costs[0].GasUsed = costs[len(costs)-1].GasUsed // we replace with actual costs - without deserialization of everything
@@ -72,6 +64,16 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 
 	// remove last op content as it is stored in first alreedy
 	op.Contents = op.Contents[:len(op.Contents)-1]
+	totalBytes := 0
+	// we intentionally caclculate total bytes on contents without last one (the one used to determinie serialization fee)
+	// to slightly increase per tx serialization fee as a buffer, it is likely going to be eaten be division anyway
+	for _, v := range op.Contents {
+		bytes, err := v.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		totalBytes += len(bytes)
+	}
 
 	for i, p := range costs {
 		bytes, err := op.Contents[i].MarshalBinary()
@@ -89,10 +91,10 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 			AllocationBurn: p.AllocationBurn,
 			StorageBurn:    p.StorageBurn,
 			OpLimits: &common.OpLimits{
-				GasLimit:         p.GasUsed + constants.TX_GAS_LIMIT_BUFFER,
+				GasLimit:         p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
 				StorageLimit:     utils.CalculateStorageLimit(p),
-				TransactionFee:   utils.EstimateTransactionFee(op, costs, serializationFee+constants.TX_DESERIALIZATION_GAS_BUFFER),
-				SerializationFee: txSerializationFee + constants.TX_DESERIALIZATION_GAS_BUFFER,
+				TransactionFee:   utils.EstimateTransactionFee(op, costs, serializationFee+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
+				SerializationFee: txSerializationFee + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 			},
 		})
 	}
