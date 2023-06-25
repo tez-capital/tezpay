@@ -5,6 +5,8 @@
     wallet_mode: local-private-key
     payout_mode: actual
     fee: 0.05
+    transaction_gas_limit_buffer: 98
+    transaction_deserialization_gas_buffer: 2
   }
   delegators: {
     requirements: {}
