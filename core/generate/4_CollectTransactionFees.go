@@ -93,7 +93,7 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 			OpLimits: &common.OpLimits{
 				GasLimit:         p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
 				StorageLimit:     utils.CalculateStorageLimit(p),
-				TransactionFee:   utils.EstimateTransactionFee(op, costs, serializationFee+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
+				TransactionFee:   utils.EstimateTransactionFee(op, costs, txSerializationFee+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
 				SerializationFee: txSerializationFee + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 			},
 		})
