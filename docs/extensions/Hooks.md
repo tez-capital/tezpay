@@ -127,7 +127,8 @@ This hook is NOT capable of mutating data *currently*.
       "op_limits": {
         "transaction_fee": 1,
         "storage_limit": 1,
-        "gas_limit": 1
+        "gas_limit": 1,
+        "serialization_fee": 1
       },
       "note": "reason"
     }
