@@ -3,6 +3,7 @@ package reporter_engines
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
@@ -26,8 +27,11 @@ type PayoutsReport struct {
 	Payouts []common.PayoutReport `json:"payouts"`
 }
 
-func (engine *StdioReporter) ReportPayouts(reports []common.PayoutReport) error {
-	data, err := json.Marshal(PayoutsReport{Payouts: reports})
+func (engine *StdioReporter) ReportPayouts(payouts []common.PayoutReport) error {
+	sort.Slice(payouts, func(i, j int) bool {
+		return !payouts[i].Amount.IsLess(payouts[j].Amount)
+	})
+	data, err := json.Marshal(PayoutsReport{Payouts: payouts})
 	if err != nil {
 		return err
 	}

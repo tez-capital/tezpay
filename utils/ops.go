@@ -20,7 +20,7 @@ func EstimateTransactionFee(op *codec.Op, costs []tezos.Costs, txExtra int64) in
 	gasFee := lo.Reduce(op.Contents, func(agg int64, content codec.Operation, i int) int64 {
 		return agg + EstimateContentFee(content, costs[i], op.Params, txExtra)
 	}, 0)
-	return gasFee + constants.OPERATION_FEE_BUFFER /*0mutez rn*/
+	return gasFee
 }
 
 func CalculateStorageLimit(costs tezos.Costs) int64 {

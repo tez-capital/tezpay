@@ -15,8 +15,30 @@ import (
 )
 
 const (
-	TX_BATCH_CAPACITY = 20
+	TX_BATCH_CAPACITY = 40
 )
+
+func filterCandidatesByTxKind(payouts []PayoutCandidateWithBondAmountAndFee, kinds []enums.EPayoutTransactionKind) []PayoutCandidateWithBondAmountAndFee {
+	return lo.Filter(payouts, func(payout PayoutCandidateWithBondAmountAndFee, _ int) bool {
+		return lo.Contains(kinds, payout.TxKind)
+	})
+}
+
+func rejectCandidatesByTxKind(payouts []PayoutCandidateWithBondAmountAndFee, kinds []enums.EPayoutTransactionKind) []PayoutCandidateWithBondAmountAndFee {
+	return lo.Filter(payouts, func(payout PayoutCandidateWithBondAmountAndFee, _ int) bool {
+		return !lo.Contains(kinds, payout.TxKind)
+	})
+}
+
+func splitIntoBatches(candidates []PayoutCandidateWithBondAmountAndFee) [][]PayoutCandidateWithBondAmountAndFee {
+	batches := make([][]PayoutCandidateWithBondAmountAndFee, 0)
+
+	for offset := 0; offset < len(candidates); offset += TX_BATCH_CAPACITY {
+		batches = append(batches, lo.Slice(candidates, offset, offset+TX_BATCH_CAPACITY))
+	}
+
+	return batches
+}
 
 func buildOpForEstimation(ctx *PayoutGenerationContext, batch []PayoutCandidateWithBondAmountAndFee, doubleFirstTx bool) (*codec.Op, error) {
 	var err error
@@ -80,7 +102,7 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 		if err != nil {
 			return nil, err
 		}
-		//rebuild op for estimates
+		// rebuild op for estimates
 		op, err := buildOpForEstimation(ctx, []PayoutCandidateWithBondAmountAndFee{batch[i]}, false)
 		if err != nil {
 			return nil, err
@@ -114,14 +136,24 @@ func estimateTransactionFees(payouts []PayoutCandidateWithBondAmountAndFee, ctx 
 			PayoutCandidateWithBondAmountAndFee: candidate,
 		}
 	})
-	batches := make([][]PayoutCandidateWithBondAmountAndFee, 0)
-	for offset := 0; offset < len(candidates); offset += TX_BATCH_CAPACITY {
-		batches = append(batches, lo.Slice(candidates, offset, offset+TX_BATCH_CAPACITY))
-	}
+
+	standardTxs := lo.Filter(candidates, func(p PayoutCandidateWithBondAmountAndFee, _ int) bool {
+		return !p.Recipient.IsContract()
+	})
+	contractTxs := lo.Filter(candidates, func(p PayoutCandidateWithBondAmountAndFee, _ int) bool {
+		return p.Recipient.IsContract()
+	})
+	faTxs := filterCandidatesByTxKind(contractTxs, []enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA1_2})
+	others := rejectCandidatesByTxKind(contractTxs, []enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA1_2})
+
+	batches := splitIntoBatches(others)
+	batches = append(batches, splitIntoBatches(faTxs)...)
+	batches = append(batches, splitIntoBatches(standardTxs)...)
+
 	batchesSimulated := lo.Map(batches, func(batch []PayoutCandidateWithBondAmountAndFee, index int) []PayoutCandidateSimulated {
 		simulationResults, err := estimateBatchFees(batch, ctx)
 		if err != nil {
-			log.Tracef("failed to estimate tx costs of batch n.%d (falling back to one by one estimate)", index)
+			log.Tracef("failed to estimate tx costs of batch n.%d (falling back to one by one estimate) - %s", index, err.Error())
 			return lo.Map(batch, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 				simulationResults, err := estimateBatchFees([]PayoutCandidateWithBondAmountAndFee{candidate}, ctx)
 				if len(simulationResults) == 0 {

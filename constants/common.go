@@ -17,10 +17,9 @@ const (
 	DEFAULT_TX_GAS_LIMIT_BUFFER           = 98
 	DEFAULT_TX_DESERIALIZATION_GAS_BUFFER = 2 // just because of integer division
 
-	OPERATION_FEE_BUFFER = 0
-	PAYOUT_FEE_BUFFER    = 1000 // buffer per payout to check baker balance is sufficient
-	MAX_OPERATION_TTL    = 12   // 12 blocks
-	ALLOCATION_STORAGE   = 257
+	PAYOUT_FEE_BUFFER  = 1000 // buffer per payout to check baker balance is sufficient
+	MAX_OPERATION_TTL  = 12   // 12 blocks
+	ALLOCATION_STORAGE = 257
 
 	CYCLE_MONITOR_MAXIMUM_DELAY = 230
 	CYCLE_MONITOR_DELAY_OFFSET  = 10

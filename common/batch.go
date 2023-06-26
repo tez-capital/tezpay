@@ -80,7 +80,9 @@ func SplitIntoBatches(payouts []PayoutRecipe, limits *OperationLimits) ([]Recipe
 func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor TransactorEngine) (*OpExecutionContext, error) {
 	op := codec.NewOp().WithSource(signer.GetPKH())
 	op.WithTTL(constants.MAX_OPERATION_TTL)
-	for _, p := range *b {
+	// shuffle payouts - first payout pays for signature and deserialization so we want to spread randomly (for statistics tools, they may missreport first tx like overpaid)
+	payouts := lo.Shuffle(*b)
+	for _, p := range payouts {
 		InjectTransferContents(op, p.Recipient, &p)
 	}
 
@@ -88,7 +90,7 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 		return acc + p.OpLimits.SerializationFee
 	}, int64(0))
 
-	op.WithLimits(lo.Map(*b, func(p PayoutRecipe, i int) tezos.Limits {
+	op.WithLimits(lo.Map(payouts, func(p PayoutRecipe, i int) tezos.Limits {
 		buffer := int64(0)
 		if i == 0 {
 			buffer = serializationFee

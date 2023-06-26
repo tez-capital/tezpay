@@ -72,7 +72,8 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 
 		// remove last op content as it is stored in first alreedy
 		op.Contents = op.Contents[:len(op.Contents)-1]
-		serializationFee := costs[0].GasUsed - costs[1].GasUsed
+		// we included tx 2x + something eats the signature check so lets make it 2/3 for now
+		serializationFee := ((costs[0].GasUsed - costs[1].GasUsed) * 2) / 3
 
 		cost := costs[0]
 		cost.GasUsed = costs[1].GasUsed

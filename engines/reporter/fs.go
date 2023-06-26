@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
@@ -50,6 +51,11 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 		if err != nil {
 			return err
 		}
+
+		sort.Slice(payouts, func(i, j int) bool {
+			return !payouts[i].Amount.IsLess(payouts[j].Amount)
+		})
+
 		reports := lo.Filter(payouts, func(payout common.PayoutReport, _ int) bool {
 			return payout.Cycle == cycle
 		})
