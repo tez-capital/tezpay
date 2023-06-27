@@ -23,9 +23,10 @@
 			"program": "main.go",
 			"args": [
 				"--log-level=trace",
+				"--pay-only-address-prefix=KT",
 				"pay",
-				"--cycle=620",
-				"--confirm"
+				"--cycle=623",
+				//"--confirm"
 			],
 		},
 		{

@@ -16,8 +16,8 @@ const (
 	DEFAULT_REQUIRED_CONFIRMATIONS        = int64(2)
 	DEFAULT_TX_GAS_LIMIT_BUFFER           = 98
 	DEFAULT_TX_DESERIALIZATION_GAS_BUFFER = 2 // just because of integer division
-	DEFAULT_TX_FEE_BUFFER                 = 0
-	DEFAULT_KT_TX_FEE_BUFFER              = 20
+	DEFAULT_TX_FEE_BUFFER                 = 10
+	DEFAULT_KT_TX_FEE_BUFFER              = 50
 
 	PAYOUT_FEE_BUFFER  = 1000 // buffer per payout to check baker balance is sufficient
 	MAX_OPERATION_TTL  = 12   // 12 blocks

@@ -25,6 +25,8 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	fee := 0.0
 	gasLimitBuffer := int64(200)
 	deserializationGasBuffer := int64(5)
+	feeBuffer := int64(10)
+	ktFeeBuffer := int64(50)
 
 	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
@@ -64,6 +66,8 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			MinimumAmount:              10.5,
 			TxGasLimitBuffer:           &gasLimitBuffer,
 			TxDeserializationGasBuffer: &deserializationGasBuffer,
+			TxFeeBuffer:                &feeBuffer,
+			KtTxFeeBuffer:              &ktFeeBuffer,
 		},
 		NotificationConfigurations: []json.RawMessage{
 			json.RawMessage(`{
