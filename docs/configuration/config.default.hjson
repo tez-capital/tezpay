@@ -7,8 +7,8 @@
     fee: 0.05
     transaction_gas_limit_buffer: 98
     transaction_deserialization_gas_buffer: 2
-    transaction_fee_buffer: 0
-    kt_transaction_fee_buffer: 20
+    transaction_fee_buffer: 10
+    kt_transaction_fee_buffer: 50
   }
   delegators: {
     requirements: {}

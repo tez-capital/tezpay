@@ -10,6 +10,8 @@
     minimum_payout_amount: 10.5
     transaction_gas_limit_buffer: 200
     transaction_deserialization_gas_buffer: 5
+    transaction_fee_buffer: 10
+    kt_transaction_fee_buffer: 50
   }
   delegators: {
     requirements: {
