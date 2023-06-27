@@ -57,6 +57,8 @@ type PayoutConfigurationV0 struct {
 	IgnoreEmptyAccounts        bool              `json:"ignore_empty_accounts,omitempty"`
 	TxGasLimitBuffer           *int64            `json:"transaction_gas_limit_buffer,omitempty"`
 	TxDeserializationGasBuffer *int64            `json:"transaction_deserialization_gas_buffer,omitempty"`
+	TxFeeBuffer                *int64            `json:"transaction_fee_buffer,omitempty"`
+	KtTxFeeBuffer              *int64            `json:"kt_transaction_fee_buffer,omitempty"`
 }
 
 type ExtensionConfigurationV0 = common.ExtensionDefinition
@@ -82,6 +84,8 @@ type NotificatorConfigurationBase struct {
 func GetDefaultV0() ConfigurationV0 {
 	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
 	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
+	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
+	ktFeeBUffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
 
 	return ConfigurationV0{
 		Version:  0,
@@ -111,6 +115,8 @@ func GetDefaultV0() ConfigurationV0 {
 			MinimumAmount:              constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
 			TxGasLimitBuffer:           &gasLimitBuffer,
 			TxDeserializationGasBuffer: &deserializaGasBuffer,
+			TxFeeBuffer:                &feeBuffer,
+			KtTxFeeBuffer:              &ktFeeBUffer,
 		},
 		NotificationConfigurations: make([]json.RawMessage, 0),
 		SourceBytes:                []byte{},

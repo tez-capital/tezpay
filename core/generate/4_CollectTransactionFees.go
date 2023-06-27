@@ -112,6 +112,11 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 			return nil, err
 		}
 
+		feeBuffer := ctx.configuration.PayoutConfiguration.TxFeeBuffer
+		if batch[i].Recipient.IsContract() {
+			feeBuffer = ctx.configuration.PayoutConfiguration.KtTxFeeBuffer
+		}
+
 		txSerializationGas := (serializationGas * int64(len(bytes))) / int64(totalBytes)
 		result = append(result, PayoutCandidateSimulationResult{
 			AllocationBurn: p.AllocationBurn,
@@ -119,7 +124,7 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 			OpLimits: &common.OpLimits{
 				GasLimit:              p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
 				StorageLimit:          utils.CalculateStorageLimit(p),
-				TransactionFee:        utils.EstimateTransactionFee(op, costs, txSerializationGas+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
+				TransactionFee:        utils.EstimateTransactionFee(op, costs, txSerializationGas+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer) + feeBuffer,
 				SerializationGasLimit: txSerializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 			},
 		})

@@ -46,6 +46,8 @@ type RuntimePayoutConfiguration struct {
 	IgnoreEmptyAccounts        bool              `json:"ignore_empty_accounts,omitempty"`
 	TxGasLimitBuffer           int64             `json:"transaction_gas_limit_buffer,omitempty"`
 	TxDeserializationGasBuffer int64             `json:"transaction_deserialization_gas_buffer,omitempty"`
+	TxFeeBuffer                int64             `json:"transaction_fee_buffer,omitempty"`
+	KtTxFeeBuffer              int64             `json:"kt_transaction_fee_buffer,omitempty"`
 }
 
 type RuntimeConfiguration struct {
@@ -63,6 +65,8 @@ type RuntimeConfiguration struct {
 func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
 	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
+	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
+	ktFeeBuffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
 
 	return RuntimeConfiguration{
 		BakerPKH: tezos.InvalidKey.Address(),
@@ -76,6 +80,8 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			IgnoreEmptyAccounts:        false,
 			TxGasLimitBuffer:           gasLimitBuffer,
 			TxDeserializationGasBuffer: deserializaGasBuffer,
+			TxFeeBuffer:                feeBuffer,
+			KtTxFeeBuffer:              ktFeeBuffer,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

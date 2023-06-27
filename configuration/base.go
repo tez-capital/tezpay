@@ -75,6 +75,16 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		deserializaGasBuffer = *configuration.PayoutConfiguration.TxDeserializationGasBuffer
 	}
 
+	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
+	if configuration.PayoutConfiguration.TxFeeBuffer != nil {
+		feeBuffer = *configuration.PayoutConfiguration.TxFeeBuffer
+	}
+
+	ktFeeBuffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
+	if configuration.PayoutConfiguration.KtTxFeeBuffer != nil {
+		ktFeeBuffer = *configuration.PayoutConfiguration.KtTxFeeBuffer
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -87,6 +97,8 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			IgnoreEmptyAccounts:        configuration.PayoutConfiguration.IgnoreEmptyAccounts,
 			TxGasLimitBuffer:           gasLimitBuffer,
 			TxDeserializationGasBuffer: deserializaGasBuffer,
+			TxFeeBuffer:                feeBuffer,
+			KtTxFeeBuffer:              ktFeeBuffer,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{
