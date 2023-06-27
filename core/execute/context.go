@@ -38,7 +38,9 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 		configuration:               configuration,
 
 		protectedSection: utils.NewProtectedSection("executing payouts, job will be terminated after next batch"),
-		StageData:        &StageData{},
+		StageData:        &StageData{
+			ReportsOfPastSuccesfulPayouts: preparationResult.ReportsOfPastSuccesfulPayouts,
+		},
 
 		Payouts:         preparationResult.Payouts,
 		PayoutBlueprint: preparationResult.Blueprint,
