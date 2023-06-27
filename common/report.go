@@ -22,7 +22,6 @@ type PayoutReport struct {
 	FeeRate          float64                      `json:"fee_rate,omitempty" csv:"fee_rate"`
 	Fee              tezos.Z                      `json:"fee,omitempty" csv:"fee"`
 	TransactionFee   int64                        `json:"tx_fee,omitempty" csv:"tx_fee"`
-	SerializationFee int64                        `json:"serialization_fee,omitempty" csv:"serialization_fee"`
 	OpHash           tezos.OpHash                 `json:"op_hash,omitempty" csv:"op_hash"`
 	IsSuccess        bool                         `json:"success" csv:"success"`
 	Note             string                       `json:"note,omitempty" csv:"note"`

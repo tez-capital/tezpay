@@ -97,7 +97,7 @@ func (payout *PayoutCandidateSimulated) GetAllocationFee() int64 {
 }
 
 func (payout *PayoutCandidateSimulated) GetOperationFeesWithoutAllocation() int64 {
-	return payout.OpLimits.TransactionFee + payout.StorageBurn + payout.OpLimits.SerializationFee
+	return payout.OpLimits.TransactionFee + payout.StorageBurn
 }
 
 func (candidate *PayoutCandidateSimulated) ToValidationContext(config *configuration.RuntimeConfiguration) PayoutSimulatedValidationContext {

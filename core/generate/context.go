@@ -14,7 +14,6 @@ type StageData struct {
 	PayoutCandidatesWithBondAmountAndFees []PayoutCandidateWithBondAmountAndFee
 	PayoutCandidatesSimulated             []PayoutCandidateSimulated
 	PayoutBlueprint                       *common.CyclePayoutBlueprint
-	TxSerializationFee                    int64
 
 	Payouts           []common.PayoutRecipe
 	BakerBondsAmount  tezos.Z

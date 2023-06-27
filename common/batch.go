@@ -36,7 +36,7 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 	if b.UsedStorage+payout.OpLimits.StorageLimit >= b.limits.HardStorageLimitPerOperation {
 		return false
 	}
-	if b.UsedGas+payout.OpLimits.GasLimit+payout.OpLimits.SerializationFee >= b.limits.HardGasLimitPerOperation {
+	if b.UsedGas+payout.OpLimits.GasLimit+payout.OpLimits.SerializationGasLimit >= b.limits.HardGasLimitPerOperation {
 		return false
 	}
 	InjectTransferContents(b.Op, payout.Recipient, &payout)
@@ -44,7 +44,7 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 		return false
 	}
 	b.UsedStorage += payout.OpLimits.StorageLimit
-	b.UsedGas += payout.OpLimits.GasLimit + payout.OpLimits.SerializationFee
+	b.UsedGas += payout.OpLimits.GasLimit + payout.OpLimits.SerializationGasLimit
 	b.Payouts = append(b.Payouts, payout)
 
 	return true
@@ -80,27 +80,23 @@ func SplitIntoBatches(payouts []PayoutRecipe, limits *OperationLimits) ([]Recipe
 func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor TransactorEngine) (*OpExecutionContext, error) {
 	op := codec.NewOp().WithSource(signer.GetPKH())
 	op.WithTTL(constants.MAX_OPERATION_TTL)
-	// shuffle payouts - first payout pays for signature and deserialization so we want to spread randomly (for statistics tools, they may missreport first tx like overpaid)
-	payouts := lo.Shuffle(*b)
-	for _, p := range payouts {
-		InjectTransferContents(op, p.Recipient, &p)
-	}
 
-	serializationFee := lo.Reduce(*b, func(acc int64, p PayoutRecipe, _ int) int64 {
-		return acc + p.OpLimits.SerializationFee
+	serializationGasLimit := lo.Reduce(*b, func(acc int64, p PayoutRecipe, _ int) int64 {
+		return acc + p.OpLimits.SerializationGasLimit
 	}, int64(0))
 
-	op.WithLimits(lo.Map(payouts, func(p PayoutRecipe, i int) tezos.Limits {
+	for i, p := range *b {
+		InjectTransferContents(op, p.Recipient, &p)
 		buffer := int64(0)
 		if i == 0 {
-			buffer = serializationFee
+			buffer = serializationGasLimit
 		}
-		return tezos.Limits{
+		op.Contents[i].WithLimits(tezos.Limits{
 			Fee:          p.OpLimits.TransactionFee,
 			GasLimit:     p.OpLimits.GasLimit + buffer,
 			StorageLimit: p.OpLimits.StorageLimit,
-		}
-	}), 0)
+		})
+	}
 
 	err := transactor.Complete(op, signer.GetKey())
 	if err != nil {

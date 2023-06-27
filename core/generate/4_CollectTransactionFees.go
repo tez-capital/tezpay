@@ -84,7 +84,7 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 		panic("Partial estimate. This should never happen!")
 	}
 
-	serializationFee := costs[0].GasUsed - costs[len(costs)-1].GasUsed
+	serializationGas := costs[0].GasUsed - costs[len(costs)-1].GasUsed
 	// remove first and last contents and limits it is only burn tx to measure serialization cost
 	costs = costs[1 : len(costs)-1]
 	op.Contents = op.Contents[1 : len(op.Contents)-1]
@@ -112,15 +112,15 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 			return nil, err
 		}
 
-		txSerializationFee := (serializationFee * int64(len(bytes))) / int64(totalBytes)
+		txSerializationGas := (serializationGas * int64(len(bytes))) / int64(totalBytes)
 		result = append(result, PayoutCandidateSimulationResult{
 			AllocationBurn: p.AllocationBurn,
 			StorageBurn:    p.StorageBurn,
 			OpLimits: &common.OpLimits{
-				GasLimit:         p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
-				StorageLimit:     utils.CalculateStorageLimit(p),
-				TransactionFee:   utils.EstimateTransactionFee(op, costs, txSerializationFee+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
-				SerializationFee: txSerializationFee + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
+				GasLimit:              p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
+				StorageLimit:          utils.CalculateStorageLimit(p),
+				TransactionFee:        utils.EstimateTransactionFee(op, costs, txSerializationGas+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
+				SerializationGasLimit: txSerializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 			},
 		})
 	}

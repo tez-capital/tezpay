@@ -72,16 +72,16 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		}
 
 		// we use entire serialization cost even with two burn txs, it is used as some offset to avoid exhaustion
-		serializationFee := (costs[0].GasUsed - costs[len(costs)-1].GasUsed)
+		serializationGas := (costs[0].GasUsed - costs[len(costs)-1].GasUsed)
 		op.Contents = op.Contents[1 : len(op.Contents)-1]
 		costs = costs[1 : len(costs)-1]
 		cost := costs[0]
 
 		recipe.OpLimits = &common.OpLimits{
-			GasLimit:         cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
-			StorageLimit:     utils.CalculateStorageLimit(cost),
-			TransactionFee:   utils.EstimateTransactionFee(op, costs, serializationFee+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
-			SerializationFee: serializationFee + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
+			GasLimit:              cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
+			StorageLimit:          utils.CalculateStorageLimit(cost),
+			TransactionFee:        utils.EstimateTransactionFee(op, costs, serializationGas+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer),
+			SerializationGasLimit: serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 		}
 		result = append(result, recipe)
 	}
