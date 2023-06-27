@@ -24,7 +24,20 @@
 			"args": [
 				"--log-level=trace",
 				"pay",
+				"--cycle=620",
 				"--confirm"
+			],
+		},
+		{
+			"name": "debug continual",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "main.go",
+			"args": [
+				"--log-level=trace",
+				"continual",
+				"--cycle=620"
 			],
 		}
 	]

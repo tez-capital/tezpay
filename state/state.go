@@ -23,6 +23,7 @@ type StateInitOptions struct {
 	SignerOverride        common.SignerEngine
 	Debug                 bool
 	DisableDonationPrompt bool
+	PayOnlyAddressPrefix  string
 }
 
 type State struct {
@@ -33,6 +34,8 @@ type State struct {
 	SignerOverride           common.SignerEngine
 	debug                    bool
 	disableDonationPrompt    bool
+
+	payOnlyAddressPrefix string
 }
 
 func Init(workingDirectory string, options StateInitOptions) error {
@@ -49,6 +52,7 @@ func Init(workingDirectory string, options StateInitOptions) error {
 		SignerOverride:           options.SignerOverride,
 		debug:                    options.Debug,
 		disableDonationPrompt:    options.DisableDonationPrompt,
+		payOnlyAddressPrefix:     options.PayOnlyAddressPrefix,
 	}
 
 	return errors.Join(Global.validateReportsDirectory())
@@ -117,6 +121,10 @@ func (state *State) GetRemoteSpecsFilePath() string {
 
 func (state *State) GetIsInDebugMode() bool {
 	return state.debug
+}
+
+func (state *State) GetPayOnlyAddressPrefix() string {
+	return state.payOnlyAddressPrefix
 }
 
 func (state *State) IsDonationPromptDisabled() bool {

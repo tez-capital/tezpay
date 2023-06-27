@@ -50,6 +50,7 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 			IgnoreKtValidator,
 			Emptiedalidator,
 			RecipientNotBaker,
+			NotExcludedByAddressPrefix,
 		).ToPayoutCandidate()
 	})
 

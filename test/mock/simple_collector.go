@@ -103,7 +103,7 @@ func (engine *SimpleColletor) GetExpectedTxCosts() int64 {
 }
 
 func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
-	if engine.opts.SingleOnly && len(o.Contents) > 2 {
+	if engine.opts.SingleOnly && len(o.Contents) > 3 {
 		return nil, errors.New("failed to batch estimate")
 	}
 	if engine.opts.FailWithError != nil {

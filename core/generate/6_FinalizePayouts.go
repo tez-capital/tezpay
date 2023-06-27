@@ -57,8 +57,9 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		// simulate - because of batch spliting
 		op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
 		op.WithTTL(constants.MAX_OPERATION_TTL)
+		op.WithTransfer(tezos.BurnAddress, 0)
 		op.WithTransfer(recipient, recipientPortion.Int64())
-		op.WithTransfer(recipient, recipientPortion.Int64())
+		op.WithTransfer(tezos.BurnAddress, 0)
 
 		receipt, err := ctx.GetCollector().Simulate(op, ctx.PayoutKey)
 
@@ -66,18 +67,15 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 			return []common.PayoutRecipe{}, err
 		}
 		costs := receipt.Costs()
-		if len(costs) < 2 {
+		if len(costs) < 3 {
 			return []common.PayoutRecipe{}, fmt.Errorf("invalid costs length, cannot estimate")
 		}
 
-		// remove last op content as it is stored in first alreedy
-		op.Contents = op.Contents[:len(op.Contents)-1]
-		// we included tx 2x + something eats the signature check so lets make it 2/3 for now
-		serializationFee := ((costs[0].GasUsed - costs[1].GasUsed) * 2) / 3
-
+		// we use entire serialization cost even with two burn txs, it is used as some offset to avoid exhaustion
+		serializationFee := (costs[0].GasUsed - costs[len(costs)-1].GasUsed)
+		op.Contents = op.Contents[1 : len(op.Contents)-1]
+		costs = costs[1 : len(costs)-1]
 		cost := costs[0]
-		cost.GasUsed = costs[1].GasUsed
-		costs = []tezos.Costs{cost}
 
 		recipe.OpLimits = &common.OpLimits{
 			GasLimit:         cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,

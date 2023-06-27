@@ -143,7 +143,7 @@ func TestCollectTransactionFees(t *testing.T) {
 		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 	}
 
-	t.Log("chech batching")
+	t.Log("check batching")
 	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = lo.Map(ctx.StageData.PayoutCandidatesWithBondAmountAndFees, func(v PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
 		v.IsBakerPayingTxFee = false
 		v.IsBakerPayingAllocationTxFee = false

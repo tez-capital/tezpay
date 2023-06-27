@@ -6,6 +6,7 @@ import (
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
+	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
@@ -30,27 +31,32 @@ func rejectCandidatesByTxKind(payouts []PayoutCandidateWithBondAmountAndFee, kin
 	})
 }
 
-func splitIntoBatches(candidates []PayoutCandidateWithBondAmountAndFee) [][]PayoutCandidateWithBondAmountAndFee {
+func splitIntoBatches(candidates []PayoutCandidateWithBondAmountAndFee, capacity int) [][]PayoutCandidateWithBondAmountAndFee {
 	batches := make([][]PayoutCandidateWithBondAmountAndFee, 0)
-
-	for offset := 0; offset < len(candidates); offset += TX_BATCH_CAPACITY {
-		batches = append(batches, lo.Slice(candidates, offset, offset+TX_BATCH_CAPACITY))
+	if capacity == 0 {
+		capacity = TX_BATCH_CAPACITY
+	}
+	for offset := 0; offset < len(candidates); offset += capacity {
+		batches = append(batches, lo.Slice(candidates, offset, offset+capacity))
 	}
 
 	return batches
 }
 
-func buildOpForEstimation(ctx *PayoutGenerationContext, batch []PayoutCandidateWithBondAmountAndFee, doubleFirstTx bool) (*codec.Op, error) {
+func buildOpForEstimation(ctx *PayoutGenerationContext, batch []PayoutCandidateWithBondAmountAndFee, injectBurnTransactions bool) (*codec.Op, error) {
 	var err error
 	op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
 	op.WithTTL(constants.MAX_OPERATION_TTL)
+	if injectBurnTransactions {
+		op.WithTransfer(tezos.BurnAddress, 0)
+	}
 	for _, p := range batch {
 		if err = common.InjectTransferContents(op, ctx.PayoutKey.Address(), &p); err != nil {
 			break
 		}
 	}
-	if doubleFirstTx && err == nil {
-		err = common.InjectTransferContents(op, ctx.PayoutKey.Address(), &batch[0])
+	if injectBurnTransactions {
+		op.WithTransfer(tezos.BurnAddress, 0)
 	}
 	return op, err
 }
@@ -74,18 +80,16 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 	}
 
 	costs := receipt.Op.Costs()
-	if len(costs) < 2 {
+	if len(costs) < 3 {
 		panic("Partial estimate. This should never happen!")
 	}
 
 	serializationFee := costs[0].GasUsed - costs[len(costs)-1].GasUsed
-
-	costs[0].GasUsed = costs[len(costs)-1].GasUsed // we replace with actual costs - without deserialization of everything
-	costs = costs[:len(costs)-1]
+	// remove first and last contents and limits it is only burn tx to measure serialization cost
+	costs = costs[1 : len(costs)-1]
+	op.Contents = op.Contents[1 : len(op.Contents)-1]
 	result := make([]PayoutCandidateSimulationResult, 0)
 
-	// remove last op content as it is stored in first alreedy
-	op.Contents = op.Contents[:len(op.Contents)-1]
 	totalBytes := 0
 	// we intentionally caclculate total bytes on contents without last one (the one used to determinie serialization fee)
 	// to slightly increase per tx serialization fee as a buffer, it is likely going to be eaten be division anyway
@@ -146,9 +150,9 @@ func estimateTransactionFees(payouts []PayoutCandidateWithBondAmountAndFee, ctx 
 	faTxs := filterCandidatesByTxKind(contractTxs, []enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA1_2})
 	others := rejectCandidatesByTxKind(contractTxs, []enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA1_2})
 
-	batches := splitIntoBatches(others)
-	batches = append(batches, splitIntoBatches(faTxs)...)
-	batches = append(batches, splitIntoBatches(standardTxs)...)
+	batches := splitIntoBatches(others, TX_BATCH_CAPACITY)
+	batches = append(batches, splitIntoBatches(faTxs, 1)...)
+	batches = append(batches, splitIntoBatches(standardTxs, 1)...)
 
 	batchesSimulated := lo.Map(batches, func(batch []PayoutCandidateWithBondAmountAndFee, index int) []PayoutCandidateSimulated {
 		simulationResults, err := estimateBatchFees(batch, ctx)

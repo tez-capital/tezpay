@@ -1,9 +1,12 @@
 package generate
 
 import (
+	"strings"
+
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/state"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
@@ -89,12 +92,20 @@ func ValidateRecipientNotBaker(candidate *PayoutCandidate, configuration *config
 	}
 }
 
+func ValidateNotExcludedPrefix(candidate *PayoutCandidate, configuration *configuration.RuntimeConfiguration, _ *configuration.RuntimeDelegatorOverride, ctx *PayoutGenerationContext) {
+	if !strings.HasPrefix(candidate.Recipient.String(), state.Global.GetPayOnlyAddressPrefix()) {
+		candidate.IsInvalid = true
+		candidate.InvalidBecause = enums.INVALID_MANUALLY_EXCLUDED_BY_PREFIX
+	}
+}
+
 // Validators
 var (
-	RecipientValidator      = PayoutCandidateValidator{Id: "RecipientValidator", Validate: ValidateRecipient}
-	MinimumBalanceValidator = PayoutCandidateValidator{Id: "MinimumBalanceValidator", Validate: ValidateMinimumBalance}
-	Emptiedalidator         = PayoutCandidateValidator{Id: "Emptiedalidator", Validate: ValidateEmptied}
-	IsIgnoredValidator      = PayoutCandidateValidator{Id: "IsIgnoredValidator", Validate: ValidateIsIgnored}
-	IgnoreKtValidator       = PayoutCandidateValidator{Id: "IgnoreKtValidator", Validate: ValidateIgnoreKt}
-	RecipientNotBaker       = PayoutCandidateValidator{Id: "RecipientNotBaker", Validate: ValidateRecipientNotBaker}
+	RecipientValidator         = PayoutCandidateValidator{Id: "RecipientValidator", Validate: ValidateRecipient}
+	MinimumBalanceValidator    = PayoutCandidateValidator{Id: "MinimumBalanceValidator", Validate: ValidateMinimumBalance}
+	Emptiedalidator            = PayoutCandidateValidator{Id: "Emptiedalidator", Validate: ValidateEmptied}
+	IsIgnoredValidator         = PayoutCandidateValidator{Id: "IsIgnoredValidator", Validate: ValidateIsIgnored}
+	IgnoreKtValidator          = PayoutCandidateValidator{Id: "IgnoreKtValidator", Validate: ValidateIgnoreKt}
+	RecipientNotBaker          = PayoutCandidateValidator{Id: "RecipientNotBaker", Validate: ValidateRecipientNotBaker}
+	NotExcludedByAddressPrefix = PayoutCandidateValidator{Id: "NotExcludedByAddressPrefix", Validate: ValidateNotExcludedPrefix}
 )
