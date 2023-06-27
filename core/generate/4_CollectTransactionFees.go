@@ -156,8 +156,8 @@ func estimateTransactionFees(payouts []PayoutCandidateWithBondAmountAndFee, ctx 
 	others := rejectCandidatesByTxKind(contractTxs, []enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA1_2})
 
 	batches := splitIntoBatches(others, TX_BATCH_CAPACITY)
-	batches = append(batches, splitIntoBatches(faTxs, 1)...)
-	batches = append(batches, splitIntoBatches(standardTxs, 1)...)
+	batches = append(batches, splitIntoBatches(faTxs, TX_BATCH_CAPACITY)...)
+	batches = append(batches, splitIntoBatches(standardTxs, TX_BATCH_CAPACITY)...)
 
 	batchesSimulated := lo.Map(batches, func(batch []PayoutCandidateWithBondAmountAndFee, index int) []PayoutCandidateSimulated {
 		simulationResults, err := estimateBatchFees(batch, ctx)
