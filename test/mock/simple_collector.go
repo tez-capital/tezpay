@@ -99,7 +99,7 @@ func (engine *SimpleColletor) GetExpectedTxCosts() int64 {
 		AllocationBurn: engine.opts.AllocationBurn,
 		GasUsed:        engine.opts.UsedMilliGas / 1000,
 	}
-	return utils.EstimateTransactionFee(op, []tezos.Costs{costs}, engine.opts.SerializationGasLimit+constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER+constants.DEFAULT_TX_GAS_LIMIT_BUFFER) + engine.opts.StorageBurn + engine.opts.AllocationBurn
+	return utils.EstimateTransactionFee(op, []tezos.Costs{costs}, engine.opts.SerializationGasLimit+constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER+constants.DEFAULT_TX_GAS_LIMIT_BUFFER) + engine.opts.StorageBurn + engine.opts.AllocationBurn + constants.DEFAULT_TX_FEE_BUFFER
 }
 
 func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
