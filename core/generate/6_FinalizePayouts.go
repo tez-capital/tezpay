@@ -57,9 +57,9 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		// simulate - because of batch spliting
 		op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
 		op.WithTTL(constants.MAX_OPERATION_TTL)
-		op.WithTransfer(tezos.BurnAddress, 0)
+		op.WithTransfer(tezos.BurnAddress, 1)
 		op.WithTransfer(recipient, recipientPortion.Int64())
-		op.WithTransfer(tezos.BurnAddress, 0)
+		op.WithTransfer(tezos.BurnAddress, 1)
 
 		receipt, err := ctx.GetCollector().Simulate(op, ctx.PayoutKey)
 

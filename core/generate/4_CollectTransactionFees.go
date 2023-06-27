@@ -48,7 +48,7 @@ func buildOpForEstimation(ctx *PayoutGenerationContext, batch []PayoutCandidateW
 	op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
 	op.WithTTL(constants.MAX_OPERATION_TTL)
 	if injectBurnTransactions {
-		op.WithTransfer(tezos.BurnAddress, 0)
+		op.WithTransfer(tezos.BurnAddress, 1)
 	}
 	for _, p := range batch {
 		if err = common.InjectTransferContents(op, ctx.PayoutKey.Address(), &p); err != nil {
@@ -56,7 +56,7 @@ func buildOpForEstimation(ctx *PayoutGenerationContext, batch []PayoutCandidateW
 		}
 	}
 	if injectBurnTransactions {
-		op.WithTransfer(tezos.BurnAddress, 0)
+		op.WithTransfer(tezos.BurnAddress, 1)
 	}
 	return op, err
 }
