@@ -4,20 +4,21 @@ TEZPAY
 
 ### Synopsis
 
-TEZPAY 0.1.22-alpha - the tezos reward distributor
+TEZPAY 0.1.24-alpha - the tezos reward distributor
 Copyright © 2023 alis.is
 
 
 ### Options
 
 ```
-      --disable-donation-prompt   Disable donation prompt
-  -h, --help                      help for tezpay
-  -l, --log-level string          Sets log level format (trace/debug/info/warn/error) (default "info")
-  -o, --output-format string      Sets output log format (json/text/auto) (default "auto")
-  -p, --path string               path to working directory (default ".")
-      --signer string             Override signer
-      --skip-version-check        Skip version check
+      --disable-donation-prompt          Disable donation prompt
+  -h, --help                             help for tezpay
+  -l, --log-level string                 Sets log level format (trace/debug/info/warn/error) (default "info")
+  -o, --output-format string             Sets output log format (json/text/auto) (default "auto")
+  -p, --path string                      path to working directory (default ".")
+      --pay-only-address-prefix string   Pays only to addresses starting with the prefix (e.g. KT, usually you do not want to use this, just for recovering in case of issues)
+      --signer string                    Override signer
+      --skip-version-check               Skip version check
 ```
 
 ### SEE ALSO

@@ -21,12 +21,13 @@ tezpay transfer <destination> <amount tez> [flags]
 ### Options inherited from parent commands
 
 ```
-      --disable-donation-prompt   Disable donation prompt
-  -l, --log-level string          Sets log level format (trace/debug/info/warn/error) (default "info")
-  -o, --output-format string      Sets output log format (json/text/auto) (default "auto")
-  -p, --path string               path to working directory (default ".")
-      --signer string             Override signer
-      --skip-version-check        Skip version check
+      --disable-donation-prompt          Disable donation prompt
+  -l, --log-level string                 Sets log level format (trace/debug/info/warn/error) (default "info")
+  -o, --output-format string             Sets output log format (json/text/auto) (default "auto")
+  -p, --path string                      path to working directory (default ".")
+      --pay-only-address-prefix string   Pays only to addresses starting with the prefix (e.g. KT, usually you do not want to use this, just for recovering in case of issues)
+      --signer string                    Override signer
+      --skip-version-check               Skip version check
 ```
 
 ### SEE ALSO
