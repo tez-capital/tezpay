@@ -13,7 +13,9 @@
   delegators: {
     requirements: {}
   }
-  income_recipients: {}
+  income_recipients: {
+    donate: 0.05
+  }
   network: {
     rpc_url: https://rpc-mainnet.groktech.xyz/
     tzkt_url: https://api.tzkt.io/

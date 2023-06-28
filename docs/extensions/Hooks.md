@@ -152,3 +152,55 @@ This hook is NOT capable of mutating data *currently*.
 }
 ```
 
+## after_payouts_prepared
+
+This hook is capable of mutating data *currently*.
+```json
+{
+  "payouts": [
+    {
+      "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "cycle": 1,
+      "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "kind": "invalid",
+      "tx_kind": "fa1",
+      "fa_token_id": "10",
+      "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
+      "delegator_balance": "1000000000",
+      "amount": "1000000000",
+      "fee_rate": 5,
+      "fee": "1000000000",
+      "op_limits": {
+        "transaction_fee": 1,
+        "storage_limit": 1,
+        "gas_limit": 1,
+        "serialization_fee": 1
+      },
+      "note": "reason"
+    }
+  ],
+  "reports_of_past_succesful_payouts": [
+    {
+      "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "timestamp": "2023-06-28T21:28:30.788119417Z",
+      "cycle": 1,
+      "kind": "invalid",
+      "tx_kind": "fa1",
+      "contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
+      "token_id": "10",
+      "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "delegator_balance": "1000000000",
+      "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "amount": "1000000000",
+      "fee_rate": 5,
+      "fee": "1000000000",
+      "tx_fee": 2,
+      "op_hash": "oneDGhZacw99EEFaYDTtWfz5QEhUW3PPVFsHa7GShnLPuDn7gSd",
+      "success": true,
+      "note": "reason"
+    }
+  ]
+}
+```
+
