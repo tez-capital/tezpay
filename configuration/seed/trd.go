@@ -163,13 +163,15 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 		}
 	}
 
+	donate := 0.05
+
 	migrated := tezpay_configuration.ConfigurationV0{
 		Version:  0,
 		BakerPKH: address,
 		IncomeRecipients: tezpay_configuration.IncomeRecipientsV0{
 			Bonds:  bondRecipients,
 			Fees:   feeRecipients,
-			Donate: 0.05,
+			Donate: &donate,
 		},
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
 			Requirements: tezpay_configuration.DelegatorRequirementsV0{

@@ -85,6 +85,21 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		ktFeeBuffer = *configuration.PayoutConfiguration.KtTxFeeBuffer
 	}
 
+	donate := float64(0.05)
+	if configuration.IncomeRecipients.Donate != nil {
+		donate = *configuration.IncomeRecipients.Donate
+	}
+
+	donateBonds := donate
+	if configuration.IncomeRecipients.DonateBonds != nil {
+		donateBonds = *configuration.IncomeRecipients.DonateBonds
+	}
+
+	donateFees := donate
+	if configuration.IncomeRecipients.DonateFees != nil {
+		donateFees = *configuration.IncomeRecipients.DonateFees
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -107,9 +122,16 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			Overrides: delegatorOverrides,
 			Ignore:    configuration.Delegators.Ignore,
 		},
-		IncomeRecipients: configuration.IncomeRecipients,
-		Network:          configuration.Network,
-		Overdelegation:   configuration.Overdelegation,
+		// configuration.IncomeRecipients
+		IncomeRecipients: RuntimeIncomeRecipients{
+			Bonds:       configuration.IncomeRecipients.Bonds,
+			Fees:        configuration.IncomeRecipients.Fees,
+			Donations:   configuration.IncomeRecipients.Donations,
+			DonateFees:  donateFees,
+			DonateBonds: donateBonds,
+		},
+		Network:        configuration.Network,
+		Overdelegation: configuration.Overdelegation,
 		NotificationConfigurations: lo.Map(configuration.NotificationConfigurations, func(item json.RawMessage, index int) RuntimeNotificatorConfiguration {
 			var isValid bool
 			var notificatorConfigurationBase tezpay_configuration.NotificatorConfigurationBase

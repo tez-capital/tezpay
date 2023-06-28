@@ -117,7 +117,7 @@ func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayou
 
 	// donations
 	donationDistributionDefinition := configuration.IncomeRecipients.Donations
-	if len(donationDistributionDefinition) == 0 && configuration.IncomeRecipients.Donate > 0 { // inject default destination
+	if len(donationDistributionDefinition) == 0 && configuration.IncomeRecipients.DonateBonds+configuration.IncomeRecipients.DonateFees > 0 { // inject default destination
 		log.Trace("no donation destination found, donating to tezpay")
 		donationDistributionDefinition = map[string]float64{
 			constants.DEFAULT_DONATION_ADDRESS: 100,

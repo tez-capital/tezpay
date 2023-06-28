@@ -68,7 +68,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		}
 	})
 
-	bondsDonate := utils.GetZPortion(bakerBonds, configuration.IncomeRecipients.Donate)
+	bondsDonate := utils.GetZPortion(bakerBonds, configuration.IncomeRecipients.DonateBonds)
 	ctx.StageData.BakerBondsAmount = bakerBonds.Sub(bondsDonate)
 	ctx.StageData.DonateBondsAmount = bondsDonate
 

@@ -11,10 +11,12 @@ import (
 )
 
 type IncomeRecipientsV0 struct {
-	Bonds     map[string]float64 `json:"bonds,omitempty"`
-	Fees      map[string]float64 `json:"fees,omitempty"`
-	Donate    float64            `json:"donate,omitempty"`
-	Donations map[string]float64 `json:"donations,omitempty"`
+	Bonds       map[string]float64 `json:"bonds,omitempty"`
+	Fees        map[string]float64 `json:"fees,omitempty"`
+	Donate      *float64           `json:"donate,omitempty"`
+	DonateFees  *float64           `json:"donate_fees,omitempty"`
+	DonateBonds *float64           `json:"donate_bonds,omitempty"`
+	Donations   map[string]float64 `json:"donations,omitempty"`
 }
 
 type DelegatorRequirementsV0 struct {
@@ -87,6 +89,8 @@ func GetDefaultV0() ConfigurationV0 {
 	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
 	ktFeeBUffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
 
+	donate := 0.05
+
 	return ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidKey.Address(),
@@ -117,6 +121,9 @@ func GetDefaultV0() ConfigurationV0 {
 			TxDeserializationGasBuffer: &deserializaGasBuffer,
 			TxFeeBuffer:                &feeBuffer,
 			KtTxFeeBuffer:              &ktFeeBUffer,
+		},
+		IncomeRecipients: IncomeRecipientsV0{
+			Donate: &donate,
 		},
 		NotificationConfigurations: make([]json.RawMessage, 0),
 		SourceBytes:                []byte{},

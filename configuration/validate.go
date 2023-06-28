@@ -37,8 +37,10 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 
 	_assert(utils.IsPortionWithin0n1(configuration.PayoutConfiguration.Fee),
 		getPortionRangeError("configuration.payouts.fee", configuration.PayoutConfiguration.Fee))
-	_assert(utils.IsPortionWithin0n1(configuration.IncomeRecipients.Donate),
-		getPortionRangeError("configuration.income_recipients.donate", configuration.IncomeRecipients.Donate))
+	_assert(utils.IsPortionWithin0n1(configuration.IncomeRecipients.DonateFees),
+		getPortionRangeError("configuration.income_recipients.donate/fees", configuration.IncomeRecipients.DonateFees))
+	_assert(utils.IsPortionWithin0n1(configuration.IncomeRecipients.DonateBonds),
+		getPortionRangeError("configuration.income_recipients.donate/bonds", configuration.IncomeRecipients.DonateBonds))
 
 	bondsPortions := lo.Reduce(lo.Values(configuration.IncomeRecipients.Bonds), func(agg float64, val float64, _ int) float64 {
 		return agg + val

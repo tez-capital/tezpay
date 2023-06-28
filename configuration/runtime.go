@@ -50,11 +50,19 @@ type RuntimePayoutConfiguration struct {
 	KtTxFeeBuffer              int64             `json:"kt_transaction_fee_buffer,omitempty"`
 }
 
+type RuntimeIncomeRecipients struct {
+	Bonds       map[string]float64 `json:"bonds,omitempty"`
+	Fees        map[string]float64 `json:"fees,omitempty"`
+	DonateFees  float64            `json:"donate_fees,omitempty"`
+	DonateBonds float64            `json:"donate_bonds,omitempty"`
+	Donations   map[string]float64 `json:"donations,omitempty"`
+}
+
 type RuntimeConfiguration struct {
 	BakerPKH                   tezos.Address
 	PayoutConfiguration        RuntimePayoutConfiguration
 	Delegators                 RuntimeDelegatorsConfiguration
-	IncomeRecipients           tezpay_configuration.IncomeRecipientsV0
+	IncomeRecipients           RuntimeIncomeRecipients
 	Network                    tezpay_configuration.TezosNetworkConfigurationV0
 	Overdelegation             tezpay_configuration.OverdelegationConfigurationV0
 	NotificationConfigurations []RuntimeNotificatorConfiguration
@@ -113,5 +121,5 @@ func (configuration *RuntimeConfiguration) IsDonatingToTezCapital() bool {
 		total += v
 	}
 	portion := int64(math.Floor(float64(total) * 10000))
-	return portion < 10000 && configuration.IncomeRecipients.Donate > 0
+	return portion < 10000 && (configuration.IncomeRecipients.DonateBonds > 0 || configuration.IncomeRecipients.DonateFees > 0)
 }

@@ -67,7 +67,7 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		return agg.Add(candidateWithBondsAmountAndFee.Fee)
 	}, tezos.Zero)
 
-	feesDonate := utils.GetZPortion(collectedFees, configuration.IncomeRecipients.Donate)
+	feesDonate := utils.GetZPortion(collectedFees, configuration.IncomeRecipients.DonateFees)
 	ctx.StageData.BakerFeesAmount = collectedFees.Sub(feesDonate)
 	ctx.StageData.DonateFeesAmount = feesDonate
 	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = candidatesWithBondsAndFees

@@ -10,6 +10,7 @@ import (
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core/generate"
+	"github.com/alis-is/tezpay/core/prepare"
 )
 
 func GenerateHookSampleData() {
@@ -94,6 +95,13 @@ func GenerateHookSampleData() {
 		},
 	}
 
+	app := prepare.AfterPayoutsPreapered{
+		Payouts: []common.PayoutRecipe{
+			simulatedCandidate.ToPayoutRecipe(tezos.ZeroAddress, 1, enums.PAYOUT_KIND_DELEGATOR_REWARD),
+		},
+		ReportsOfPastSuccesfulPayouts: common.NewSuccessBatchResult([]common.PayoutRecipe{simulatedCandidate.ToPayoutRecipe(tezos.ZeroAddress, 1, enums.PAYOUT_KIND_DELEGATOR_REWARD)}, tezos.ZeroOpHash).ToReports(),
+	}
+
 	result := "\n"
 	result += "NOTE: *all bellow examples are just sample data to showcase fields used in data passed to hooks.*\n\n"
 
@@ -130,6 +138,13 @@ func GenerateHookSampleData() {
 	result += "```json\n"
 	apgSerialized, _ := json.MarshalIndent(apg, "", "  ")
 	result += string(apgSerialized)
+	result += "\n```\n\n"
+
+	result += fmt.Sprintf("## %s\n\n", enums.EXTENSION_HOOK_AFTER_PAYOUTS_PREPARED)
+	result += "This hook is capable of mutating data *currently*.\n"
+	result += "```json\n"
+	appSerialized, _ := json.MarshalIndent(app, "", "  ")
+	result += string(appSerialized)
 	result += "\n```\n\n"
 
 	// write to docs/extensions/Hooks.md

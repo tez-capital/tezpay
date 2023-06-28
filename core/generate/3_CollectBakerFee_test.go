@@ -91,7 +91,7 @@ func TestCollectBakerFees(t *testing.T) {
 
 	t.Log("check donate")
 	donationRate := float64(0.02)
-	ctx.configuration.IncomeRecipients.Donate = donationRate
+	ctx.configuration.IncomeRecipients.DonateFees = donationRate
 	result, err = CollectBakerFee(ctx, &common.GeneratePayoutsOptions{})
 	assert.Nil(err)
 	donateAmount := lo.Reduce(payoutCandidatesWithBondAmount, func(agg int64, v PayoutCandidateWithBondAmount, _ int) int64 {

@@ -23,6 +23,9 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	feeExtensionConfiguration := json.RawMessage(`{"FEE": 0, "TOKEN": "1", "CONTRACT": "KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV"}`)
 
 	fee := 0.0
+	donate := 0.025
+	donateFees := 0.05
+	donateBonds := 0.03
 	gasLimitBuffer := int64(200)
 	deserializationGasBuffer := int64(5)
 	feeBuffer := int64(10)
@@ -126,7 +129,9 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.455,
 				"tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE": 0.545,
 			},
-			Donate: 0.025,
+			Donate:      &donate,
+			DonateFees:  &donateFees,
+			DonateBonds: &donateBonds,
 			Donations: map[string]float64{
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": 0.10,
 				"tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv": 0.90,
