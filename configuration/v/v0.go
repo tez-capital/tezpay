@@ -89,8 +89,6 @@ func GetDefaultV0() ConfigurationV0 {
 	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
 	ktFeeBUffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
 
-	donate := 0.05
-
 	return ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidKey.Address(),
@@ -122,9 +120,7 @@ func GetDefaultV0() ConfigurationV0 {
 			TxFeeBuffer:                &feeBuffer,
 			KtTxFeeBuffer:              &ktFeeBUffer,
 		},
-		IncomeRecipients: IncomeRecipientsV0{
-			Donate: &donate,
-		},
+		IncomeRecipients:           IncomeRecipientsV0{},
 		NotificationConfigurations: make([]json.RawMessage, 0),
 		SourceBytes:                []byte{},
 	}
