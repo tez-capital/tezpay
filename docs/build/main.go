@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	err := doc.GenMarkdownTree(cmd.RootCmd, "./docs/cmd")
+	err := doc.GenMarkdownTreeCustom(cmd.RootCmd, "./docs/cmd",
+		func(p string) string { return p },
+		func(s string) string { return "/tezpay/reference/cmd/" + s[:len(s)-3] }
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
