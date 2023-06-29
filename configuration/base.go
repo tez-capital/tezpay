@@ -46,6 +46,11 @@ func getDefaultDonatePercentage() float64 {
 }
 
 func preprocessDonationMap(donations map[string]float64) map[string]float64 {
+	if len(donations) == 0 {
+		return map[string]float64{
+			constants.DEFAULT_DONATION_ADDRESS: 1,
+		}
+	}
 	total := 0.0
 	for _, value := range donations {
 		total += value
