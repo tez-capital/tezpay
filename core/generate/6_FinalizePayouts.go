@@ -28,6 +28,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 			Baker:   ctx.GetConfiguration().BakerPKH,
 			Cycle:   options.Cycle,
 			Kind:    kind,
+			TxKind:  enums.PAYOUT_TX_KIND_TEZ,
 			IsValid: true,
 		}
 		recipient, err := tezos.ParseAddress(recipient)

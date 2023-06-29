@@ -45,6 +45,17 @@ func getDefaultDonatePercentage() float64 {
 	return getDefaultDonatePercentageRelativeToDate(time.Now())
 }
 
+func preprocessDonationMap(donations map[string]float64) map[string]float64 {
+	total := 0.0
+	for _, value := range donations {
+		total += value
+	}
+	if total < 1 {
+		donations[constants.DEFAULT_DONATION_ADDRESS] = 1 - total
+	}
+	return donations
+}
+
 func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType) (*RuntimeConfiguration, error) {
 	delegatorFeeOverrides := make(map[string]float64)
 	for k, addresses := range configuration.Delegators.FeeOverrides {
@@ -148,7 +159,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		IncomeRecipients: RuntimeIncomeRecipients{
 			Bonds:       configuration.IncomeRecipients.Bonds,
 			Fees:        configuration.IncomeRecipients.Fees,
-			Donations:   configuration.IncomeRecipients.Donations,
+			Donations:   preprocessDonationMap(configuration.IncomeRecipients.Donations),
 			DonateFees:  donateFees,
 			DonateBonds: donateBonds,
 		},
