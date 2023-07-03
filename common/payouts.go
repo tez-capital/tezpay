@@ -6,6 +6,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/samber/lo"
 )
 
 type OpLimits struct {
@@ -143,6 +144,13 @@ func GetRecipesTotals(recipes []PayoutRecipe) []string {
 		MutezToTezS(totalTx),
 		"",
 	}
+}
+
+func GetRecipesFilteredTotals(recipes []PayoutRecipe, kind enums.EPayoutKind) []string {
+	r := lo.Filter(recipes, func(recipe PayoutRecipe, _ int) bool {
+		return recipe.Kind == kind
+	})
+	return GetRecipesTotals(r)
 }
 
 type CyclePayoutSummary struct {

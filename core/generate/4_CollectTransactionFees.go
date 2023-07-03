@@ -116,6 +116,11 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 		if batch[i].Recipient.IsContract() {
 			feeBuffer = ctx.configuration.PayoutConfiguration.KtTxFeeBuffer
 		}
+		common.InjectLimits(op, []tezos.Limits{{
+			GasLimit:     p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
+			StorageLimit: utils.CalculateStorageLimit(p),
+			Fee:          p.Fee,
+		}})
 
 		txSerializationGas := (serializationGas * int64(len(bytes))) / int64(totalBytes)
 		result = append(result, PayoutCandidateSimulationResult{
@@ -124,7 +129,7 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 			OpLimits: &common.OpLimits{
 				GasLimit:              p.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
 				StorageLimit:          utils.CalculateStorageLimit(p),
-				TransactionFee:        utils.EstimateTransactionFee(op, costs, txSerializationGas+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer) + feeBuffer,
+				TransactionFee:        utils.EstimateTransactionFee(op, []int64{p.GasUsed + txSerializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer}, feeBuffer),
 				SerializationGasLimit: txSerializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 			},
 		})

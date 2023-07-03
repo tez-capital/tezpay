@@ -78,6 +78,12 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		costs = costs[1 : len(costs)-1]
 		cost := costs[0]
 
+		common.InjectLimits(op, []tezos.Limits{{
+			GasLimit:     cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
+			StorageLimit: utils.CalculateStorageLimit(cost),
+			Fee:          cost.Fee,
+		}})
+
 		feeBuffer := ctx.configuration.PayoutConfiguration.TxFeeBuffer
 		if recipient.IsContract() {
 			feeBuffer = ctx.configuration.PayoutConfiguration.KtTxFeeBuffer
@@ -86,7 +92,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		recipe.OpLimits = &common.OpLimits{
 			GasLimit:              cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
 			StorageLimit:          utils.CalculateStorageLimit(cost),
-			TransactionFee:        utils.EstimateTransactionFee(op, costs, serializationGas+ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer+ctx.configuration.PayoutConfiguration.TxGasLimitBuffer) + feeBuffer,
+			TransactionFee:        utils.EstimateTransactionFee(op, []int64{cost.GasUsed + serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer}, feeBuffer),
 			SerializationGasLimit: serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 		}
 		result = append(result, recipe)

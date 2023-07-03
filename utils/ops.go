@@ -10,17 +10,24 @@ import (
 )
 
 // all buffers and additional costs should be added through txExtra
-func EstimateContentFee(content codec.Operation, costs tezos.Costs, params *tezos.Params, txExtra int64) int64 {
+func EstimateContentFee(content codec.Operation, gasUsed int64, params *tezos.Params) int64 {
 	// we add deserialization buffer to gas limit because it is substracted for all tx before broadcast and added to the first tx limit
-	return codec.CalculateMinFee(content, costs.GasUsed, true, params)
+	fee := codec.CalculateMinFee(content, gasUsed, true, params)
+	for content.Limits().Fee != fee {
+		limits := content.Limits()
+		limits.Fee = fee
+		content.WithLimits(limits)
+		fee = codec.CalculateMinFee(content, gasUsed, true, params)
+	}
+	return fee
 }
 
 // all buffers and additional costs should be added through txExtra
-func EstimateTransactionFee(op *codec.Op, costs []tezos.Costs, txExtra int64) int64 {
-	gasFee := lo.Reduce(op.Contents, func(agg int64, content codec.Operation, i int) int64 {
-		return agg + EstimateContentFee(content, costs[i], op.Params, txExtra)
+func EstimateTransactionFee(op *codec.Op, gasUsage []int64, txExtra int64) int64 {
+	fee := lo.Reduce(op.Contents, func(agg int64, content codec.Operation, i int) int64 {
+		return agg + EstimateContentFee(content, gasUsage[i], op.Params)
 	}, 0)
-	return gasFee
+	return fee + txExtra
 }
 
 func CalculateStorageLimit(costs tezos.Costs) int64 {

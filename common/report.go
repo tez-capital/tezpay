@@ -5,6 +5,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/samber/lo"
 )
 
 type PayoutReport struct {
@@ -88,6 +89,13 @@ func GetReportsTotals(reports []PayoutReport) []string {
 		"",
 		"",
 	}
+}
+
+func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind) []string {
+	r := lo.Filter(reports, func(report PayoutReport, _ int) bool {
+		return report.Kind == kind
+	})
+	return GetReportsTotals(r)
 }
 
 type PayoutCycleReport struct {

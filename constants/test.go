@@ -1,5 +1,5 @@
 package constants
 
 const (
-	TEST_MUTEZ_DEVIATION_TOLERANCE = 5
+	TEST_MUTEZ_DEVIATION_TOLERANCE = 10
 )

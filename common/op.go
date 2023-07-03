@@ -78,3 +78,25 @@ func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs)
 	}
 	return nil
 }
+
+func InjectTransferContentsWithLimits(op *codec.Op, source tezos.Address, p ITransferArgs, limits tezos.Limits) error {
+	err := InjectTransferContents(op, source, p)
+	if err != nil {
+		return err
+	}
+	op.Contents[len(op.Contents)-1].WithLimits(limits)
+	return nil
+}
+
+func InjectLimits(op *codec.Op, limits []tezos.Limits) error {
+	if len(limits) == 0 {
+		return nil
+	}
+	if len(limits) != len(op.Contents) {
+		return errors.New("invalid limits count")
+	}
+	for i := range op.Contents {
+		op.Contents[i].WithLimits(limits[i])
+	}
+	return nil
+}

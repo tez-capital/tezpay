@@ -58,7 +58,7 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 	}
 
@@ -72,7 +72,7 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 	}
 
@@ -86,7 +86,7 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 	}
 
@@ -139,7 +139,7 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
 	}
 

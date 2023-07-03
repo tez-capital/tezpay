@@ -94,12 +94,14 @@ func (engine *SimpleColletor) GetExpectedTxCosts() int64 {
 	op := codec.NewOp().WithSource(GetRandomAddress())
 	op.WithTTL(constants.MAX_OPERATION_TTL)
 	op.WithTransfer(GetRandomAddress(), 100000)
-	costs := tezos.Costs{
-		StorageBurn:    engine.opts.StorageBurn,
-		AllocationBurn: engine.opts.AllocationBurn,
-		GasUsed:        engine.opts.UsedMilliGas / 1000,
-	}
-	return utils.EstimateTransactionFee(op, []tezos.Costs{costs}, engine.opts.SerializationGasLimit+constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER+constants.DEFAULT_TX_GAS_LIMIT_BUFFER) + engine.opts.StorageBurn + engine.opts.AllocationBurn + constants.DEFAULT_TX_FEE_BUFFER
+	gasUsed := engine.opts.UsedMilliGas / 1000
+	op.Contents[len(op.Contents)-1].WithLimits(tezos.Limits{
+		GasLimit:     gasUsed,
+		StorageLimit: engine.opts.StorageBurn + engine.opts.AllocationBurn,
+	})
+
+	txFee := utils.EstimateTransactionFee(op, []int64{gasUsed + engine.opts.SerializationGasLimit + constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER + constants.DEFAULT_TX_GAS_LIMIT_BUFFER}, constants.DEFAULT_TX_FEE_BUFFER)
+	return txFee + engine.opts.AllocationBurn + engine.opts.StorageBurn
 }
 
 func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {

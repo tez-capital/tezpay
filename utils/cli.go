@@ -6,13 +6,15 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/samber/lo"
 )
 
 const (
-	TOTAL = "Total"
+	TOTAL_PAYOUTS = "Total Delegator Rewards"
+	TOTAL         = "Total"
 )
 
 func shortenAddress(taddr tezos.Address) string {
@@ -85,6 +87,11 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
+		totalsRewards := replaceZeroFields(common.GetRecipesFilteredTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD), TOTAL_PAYOUTS, true)
+		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
+
+		payoutTable.AppendSeparator()
 		totals := replaceZeroFields(common.GetRecipesTotals(payouts), TOTAL, true)
 		totals = replaceZeroFields(totals, "-", false)
 
@@ -138,6 +145,11 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 	}
 	if printTotals {
+		payoutTable.AppendSeparator()
+		totalsRewards := replaceZeroFields(common.GetFilteredReportsTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD), TOTAL_PAYOUTS, true)
+		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
+
 		payoutTable.AppendSeparator()
 		totals := replaceZeroFields(common.GetReportsTotals(payouts), TOTAL, true)
 		totals = replaceZeroFields(totals, "-", false)
