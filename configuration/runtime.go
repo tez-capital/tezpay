@@ -68,6 +68,7 @@ type RuntimeConfiguration struct {
 	NotificationConfigurations []RuntimeNotificatorConfiguration
 	Extensions                 []tezpay_configuration.ExtensionConfigurationV0
 	SourceBytes                []byte `json:"-"`
+	DisableAnalytics           bool   `json:"disable_analytics,omitempty"`
 }
 
 func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
@@ -109,6 +110,7 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 		},
 		NotificationConfigurations: make([]RuntimeNotificatorConfiguration, 0),
 		SourceBytes:                []byte{},
+		DisableAnalytics:           false,
 	}
 }
 

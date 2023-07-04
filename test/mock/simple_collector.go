@@ -187,3 +187,5 @@ func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.R
 func (engine *SimpleColletor) GetBalance(addr tezos.Address) (tezos.Z, error) {
 	return tezos.NewZ(100).Mul64(constants.MUTEZ_FACTOR), nil
 }
+
+func (engine *SimpleColletor) SendAnalytics(bakerId string, version string) {}

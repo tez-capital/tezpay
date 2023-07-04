@@ -27,6 +27,7 @@ type CollectorEngine interface {
 	Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error)
 	GetBalance(pkh tezos.Address) (tezos.Z, error)
 	CreateCycleMonitor(options CycleMonitorOptions) (CycleMonitor, error)
+	SendAnalytics(bakerId string, version string)
 }
 
 type SignerEngine interface {

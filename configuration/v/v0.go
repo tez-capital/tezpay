@@ -76,6 +76,7 @@ type ConfigurationV0 struct {
 	NotificationConfigurations []json.RawMessage             `json:"notifications,omitempty"`
 	Extensions                 []ExtensionConfigurationV0    `json:"extensions,omitempty"`
 	SourceBytes                []byte                        `json:"-"`
+	DisableAnalytics           bool                          `json:"disable_analytics,omitempty"`
 }
 
 type NotificatorConfigurationBase struct {
@@ -123,5 +124,6 @@ func GetDefaultV0() ConfigurationV0 {
 		IncomeRecipients:           IncomeRecipientsV0{},
 		NotificationConfigurations: make([]json.RawMessage, 0),
 		SourceBytes:                []byte{},
+		DisableAnalytics:           false,
 	}
 }

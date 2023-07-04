@@ -2,7 +2,9 @@ package collector_engines
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"blockwatch.cc/tzgo/codec"
@@ -104,4 +106,15 @@ func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.Cycle
 	log.Info("tracking cycles... (cancel with Ctrl-C/SIGINT)\n\n")
 
 	return monitor, nil
+}
+
+func (engine *DefaultRpcAndTzktColletor) SendAnalytics(bakerId string, version string) {
+	go func() {
+		body := fmt.Sprintf(`{"bakerId": "%s", "version": "%s"}`, bakerId, version)
+		resp, err := http.Post("https://analytics.tez.capital/bake", "application/json", strings.NewReader(body))
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+	}()
 }

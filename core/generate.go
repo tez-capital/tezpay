@@ -24,6 +24,7 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 	}
 
 	ctx, err = WrapContext[*generate.PayoutGenerationContext, *common.GeneratePayoutsOptions](ctx).ExecuteStages(options,
+		generate.SendAnalytics,
 		generate.GeneratePayoutCandidates,
 		// hooks
 		generate.DistributeBonds,

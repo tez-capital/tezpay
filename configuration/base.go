@@ -184,8 +184,9 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 				IsValid:       isValid,
 			}
 		}),
-		Extensions:  configuration.Extensions,
-		SourceBytes: []byte{},
+		Extensions:       configuration.Extensions,
+		SourceBytes:      []byte{},
+		DisableAnalytics: configuration.DisableAnalytics,
 	}, nil
 }
 
