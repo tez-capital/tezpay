@@ -161,6 +161,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 				Configuration: &feeExtensionConfiguration,
 			},
 		},
+		DisableAnalytics: true,
 	}
 }
 
