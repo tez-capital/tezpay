@@ -161,4 +161,5 @@
       ]
     }
   ]
+  disable_analytics: true
 }
