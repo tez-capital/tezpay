@@ -111,7 +111,7 @@ func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.Cycle
 func (engine *DefaultRpcAndTzktColletor) SendAnalytics(bakerId string, version string) {
 	go func() {
 		body := fmt.Sprintf(`{"bakerId": "%s", "version": "%s"}`, bakerId, version)
-		resp, err := http.Post("https://analytics.tez.capital/bake", "application/json", strings.NewReader(body))
+		resp, err := http.Post("https://analytics.tez.capital/pay", "application/json", strings.NewReader(body))
 		if err != nil {
 			return
 		}
