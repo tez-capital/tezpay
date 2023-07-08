@@ -23,12 +23,14 @@ type EPayoutMode string
 const (
 	PAYOUT_MODE_ACTUAL EPayoutMode = "actual"
 	PAYOUT_MODE_IDEAL  EPayoutMode = "ideal"
+	PAYOUT_MODE_BEST   EPayoutMode = "best"
 )
 
 var (
 	SUPPORTED_PAYOUT_MODES = []EPayoutMode{
 		PAYOUT_MODE_ACTUAL,
 		PAYOUT_MODE_IDEAL,
+		PAYOUT_MODE_BEST,
 	}
 )
 

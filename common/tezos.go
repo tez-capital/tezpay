@@ -42,6 +42,8 @@ func (cycleData *BakersCycleData) GetTotalRewards(payoutMode enums.EPayoutMode) 
 	switch payoutMode {
 	case enums.PAYOUT_MODE_IDEAL:
 		return cycleData.getIdealRewards()
+	case enums.PAYOUT_MODE_BEST:
+		return tezos.MaxZ(cycleData.getTotalRewards(), cycleData.getIdealRewards())
 	default:
 		return cycleData.getTotalRewards()
 	}
