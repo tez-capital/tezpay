@@ -30,7 +30,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	deserializationGasBuffer := int64(5)
 	feeBuffer := int64(10)
 	ktFeeBuffer := int64(50)
-	bellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
+	bellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_EVERYONE
 
 	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
