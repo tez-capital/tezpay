@@ -11,7 +11,9 @@
     kt_transaction_fee_buffer: 50
   }
   delegators: {
-    requirements: {}
+    requirements: {
+      below_minimum_reward_destination: none
+    }
   }
   income_recipients: {}
   network: {

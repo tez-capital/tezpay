@@ -16,6 +16,7 @@
   delegators: {
     requirements: {
       minimum_balance: 0.5
+      below_minimum_reward_destination: none
     }
     ignore: [
       tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU
