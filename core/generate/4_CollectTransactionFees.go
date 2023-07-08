@@ -174,7 +174,7 @@ func estimateTransactionFees(payouts []PayoutCandidateWithBondAmountAndFee, ctx 
 					err = fmt.Errorf("unexpected simulation results: %v", simulationResults)
 				}
 				if err != nil {
-					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind)
+					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')\nerror: %s", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind, err.Error())
 					candidate.IsInvalid = true
 					candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS
 					return PayoutCandidateSimulated{

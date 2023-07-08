@@ -34,7 +34,7 @@ func (cycleData *BakersCycleData) getTotalRewards() tezos.Z {
 }
 
 func (cycleData *BakersCycleData) getIdealRewards() tezos.Z {
-	return cycleData.IdealBlockRewards.Add(cycleData.IdealEndorsementRewards)
+	return cycleData.IdealBlockRewards.Add(cycleData.IdealEndorsementRewards).Add(cycleData.BlockFees)
 }
 
 // GetTotalRewards returns the total rewards for the cycle based on payout mode
@@ -42,8 +42,6 @@ func (cycleData *BakersCycleData) GetTotalRewards(payoutMode enums.EPayoutMode) 
 	switch payoutMode {
 	case enums.PAYOUT_MODE_IDEAL:
 		return cycleData.getIdealRewards()
-	case enums.PAYOUT_MODE_BEST:
-		return tezos.MaxZ(cycleData.getTotalRewards(), cycleData.getIdealRewards())
 	default:
 		return cycleData.getTotalRewards()
 	}
