@@ -138,6 +138,11 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		donateFees = *configuration.IncomeRecipients.DonateFees
 	}
 
+	delegatorBellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
+	if configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination != nil {
+		delegatorBellowMinimumBalanceRewardDestination = *configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -155,12 +160,12 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{
-				MinimumBalance: FloatAmountToMutez(configuration.Delegators.Requirements.MinimumBalance),
+				MinimumBalance:                        FloatAmountToMutez(configuration.Delegators.Requirements.MinimumBalance),
+				BellowMinimumBalanceRewardDestination: delegatorBellowMinimumBalanceRewardDestination,
 			},
 			Overrides: delegatorOverrides,
 			Ignore:    configuration.Delegators.Ignore,
 		},
-		// configuration.IncomeRecipients
 		IncomeRecipients: RuntimeIncomeRecipients{
 			Bonds:       configuration.IncomeRecipients.Bonds,
 			Fees:        configuration.IncomeRecipients.Fees,

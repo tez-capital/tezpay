@@ -73,3 +73,17 @@ var (
 		PAYOUT_TX_KIND_FA2,
 	}
 )
+
+type ERewardDestination string
+
+const (
+	REWARD_DESTINATION_NONE     ERewardDestination = "none"
+	REWARD_DESTINATION_EVERYONE ERewardDestination = "everyone"
+)
+
+var (
+	SUPPORTED_DELEGATOR_MINIMUM_BALANCE_REWARD_DESTINATIONS = []ERewardDestination{
+		REWARD_DESTINATION_NONE,
+		REWARD_DESTINATION_EVERYONE,
+	}
+)

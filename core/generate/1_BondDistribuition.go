@@ -44,9 +44,14 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 
 	candidates := ctx.StageData.PayoutCandidates
 	effectiveStakingBalance := lo.Reduce(candidates, func(total tezos.Z, candidate PayoutCandidate, _ int) tezos.Z {
-		// of all delegators, including invalids, except ignored
-		if candidate.IsInvalid && candidate.InvalidBecause == enums.INVALID_DELEGATOR_IGNORED {
-			return total
+		// of all delegators, including invalids, except ignored and possibly excluding bellow minimum balance
+		if candidate.IsInvalid {
+			if candidate.InvalidBecause == enums.INVALID_DELEGATOR_IGNORED {
+				return total
+			}
+			if ctx.configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination == enums.REWARD_DESTINATION_EVERYONE && candidate.InvalidBecause == enums.INVALID_DELEGATOR_LOW_BAlANCE {
+				return total
+			}
 		}
 		return total.Add(candidate.Balance)
 	}, tezos.NewZ(0))

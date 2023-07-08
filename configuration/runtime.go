@@ -12,7 +12,8 @@ import (
 )
 
 type RuntimeDelegatorRequirements struct {
-	MinimumBalance tezos.Z
+	MinimumBalance                        tezos.Z
+	BellowMinimumBalanceRewardDestination enums.ERewardDestination
 }
 
 type RuntimeDelegatorOverride struct {
@@ -94,7 +95,8 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{
-				MinimumBalance: FloatAmountToMutez(constants.DEFAULT_DELEGATOR_MINIMUM_BALANCE),
+				MinimumBalance:                        FloatAmountToMutez(constants.DEFAULT_DELEGATOR_MINIMUM_BALANCE),
+				BellowMinimumBalanceRewardDestination: enums.REWARD_DESTINATION_NONE,
 			},
 			Overrides: make(map[string]RuntimeDelegatorOverride),
 			Ignore:    make([]tezos.Address, 0),

@@ -30,13 +30,15 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	deserializationGasBuffer := int64(5)
 	feeBuffer := int64(10)
 	ktFeeBuffer := int64(50)
+	bellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
 
 	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidAddress,
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
 			Requirements: tezpay_configuration.DelegatorRequirementsV0{
-				MinimumBalance: float64(0.5),
+				MinimumBalance:                        float64(0.5),
+				BellowMinimumBalanceRewardDestination: &bellowMinimumBalanceRewardDestination,
 			},
 			Overrides: map[string]tezpay_configuration.DelegatorOverrideV0{
 				"tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM": {

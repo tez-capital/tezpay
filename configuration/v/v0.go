@@ -20,7 +20,8 @@ type IncomeRecipientsV0 struct {
 }
 
 type DelegatorRequirementsV0 struct {
-	MinimumBalance float64 `json:"minimum_balance,omitempty"`
+	MinimumBalance                        float64                   `json:"minimum_balance,omitempty"`
+	BellowMinimumBalanceRewardDestination *enums.ERewardDestination `json:"below_minimum_reward_destination,omitempty"`
 }
 
 type DelegatorOverrideV0 struct {
@@ -90,12 +91,15 @@ func GetDefaultV0() ConfigurationV0 {
 	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
 	ktFeeBUffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
 
+	delegatorBellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
+
 	return ConfigurationV0{
 		Version:  0,
 		BakerPKH: tezos.InvalidKey.Address(),
 		Delegators: DelegatorsConfigurationV0{
 			Requirements: DelegatorRequirementsV0{
-				MinimumBalance: constants.DEFAULT_DELEGATOR_MINIMUM_BALANCE,
+				MinimumBalance:                        constants.DEFAULT_DELEGATOR_MINIMUM_BALANCE,
+				BellowMinimumBalanceRewardDestination: &delegatorBellowMinimumBalanceRewardDestination,
 			},
 			Overrides: make(map[string]DelegatorOverrideV0),
 			Ignore:    make([]tezos.Address, 0),
