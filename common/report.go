@@ -91,11 +91,12 @@ func GetReportsTotals(reports []PayoutReport) []string {
 	}
 }
 
-func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind) []string {
+// returns total amounts and count of filtered reports
+func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind) ([]string, int) {
 	r := lo.Filter(reports, func(report PayoutReport, _ int) bool {
 		return report.Kind == kind
 	})
-	return GetReportsTotals(r)
+	return GetReportsTotals(r), len(r)
 }
 
 type PayoutCycleReport struct {

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
+	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	collector_engines "github.com/alis-is/tezpay/engines/collector"
@@ -98,4 +100,15 @@ func writePayoutBlueprintToFile(toFile string, blueprint *common.CyclePayoutBlue
 
 type versionInfo struct {
 	Version string `json:"tag_name"`
+}
+
+func GetProtocolWithRetry(collector common.CollectorEngine) tezos.ProtocolHash {
+	protocol, err := collector.GetCurrentProtocol()
+	for err != nil {
+		log.Warnf("failed to get protocol - %s", err.Error())
+		log.Warnf("retrying in 10 seconds")
+		time.Sleep(time.Second * 10)
+		protocol, err = collector.GetCurrentProtocol()
+	}
+	return protocol
 }

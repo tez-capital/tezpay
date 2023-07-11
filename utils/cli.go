@@ -87,12 +87,13 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
-		totalsRewards := replaceZeroFields(common.GetRecipesFilteredTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD), TOTAL_PAYOUTS, true)
+		rewardsTotals, countOfRwards := common.GetRecipesFilteredTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD)
+		totalsRewards := replaceZeroFields(rewardsTotals, fmt.Sprintf("%s (%d)", TOTAL_PAYOUTS, countOfRwards), true)
 		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
 
 		payoutTable.AppendSeparator()
-		totals := replaceZeroFields(common.GetRecipesTotals(payouts), TOTAL, true)
+		totals := replaceZeroFields(common.GetRecipesTotals(payouts), fmt.Sprintf("%s (%d)", TOTAL, len(payouts)), true)
 		totals = replaceZeroFields(totals, "-", false)
 
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
@@ -146,12 +147,13 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 	}
 	if printTotals {
 		payoutTable.AppendSeparator()
-		totalsRewards := replaceZeroFields(common.GetFilteredReportsTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD), TOTAL_PAYOUTS, true)
+		rewardsTotals, countOfRwards := common.GetFilteredReportsTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD)
+		totalsRewards := replaceZeroFields(rewardsTotals, fmt.Sprintf("%s (%d)", TOTAL_PAYOUTS, countOfRwards), true)
 		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
 
 		payoutTable.AppendSeparator()
-		totals := replaceZeroFields(common.GetReportsTotals(payouts), TOTAL, true)
+		totals := replaceZeroFields(common.GetReportsTotals(payouts), fmt.Sprintf("%s (%d)", TOTAL, len(payouts)), true)
 		totals = replaceZeroFields(totals, "-", false)
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
 	}

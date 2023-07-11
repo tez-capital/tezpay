@@ -44,6 +44,7 @@ type TezosNetworkConfigurationV0 struct {
 	TzktUrl                string `json:"tzkt_url,omitempty"`
 	Explorer               string `json:"explorer,omitempty"`
 	DoNotPaySmartContracts bool   `json:"ignore_kt,omitempty"`
+	IgnoreProtocolChanges  bool   `json:"ignore_protocol_changes,omitempty"`
 }
 
 type OverdelegationConfigurationV0 struct {
@@ -109,6 +110,7 @@ func GetDefaultV0() ConfigurationV0 {
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			Explorer:               constants.DEFAULT_EXPLORER_URL,
 			DoNotPaySmartContracts: false,
+			IgnoreProtocolChanges:  false,
 		},
 		Overdelegation: OverdelegationConfigurationV0{
 			IsProtectionEnabled: true,

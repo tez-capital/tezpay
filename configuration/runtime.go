@@ -106,6 +106,7 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			Explorer:               constants.DEFAULT_EXPLORER_URL,
 			DoNotPaySmartContracts: false,
+			IgnoreProtocolChanges:  false,
 		},
 		Overdelegation: tezpay_configuration.OverdelegationConfigurationV0{
 			IsProtectionEnabled: true,

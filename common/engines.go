@@ -28,6 +28,7 @@ type CollectorEngine interface {
 	GetBalance(pkh tezos.Address) (tezos.Z, error)
 	CreateCycleMonitor(options CycleMonitorOptions) (CycleMonitor, error)
 	SendAnalytics(bakerId string, version string)
+	GetCurrentProtocol() (tezos.ProtocolHash, error)
 }
 
 type SignerEngine interface {

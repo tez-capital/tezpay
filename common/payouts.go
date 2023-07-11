@@ -146,11 +146,12 @@ func GetRecipesTotals(recipes []PayoutRecipe) []string {
 	}
 }
 
-func GetRecipesFilteredTotals(recipes []PayoutRecipe, kind enums.EPayoutKind) []string {
+// returns totals and number of filtered recipes
+func GetRecipesFilteredTotals(recipes []PayoutRecipe, kind enums.EPayoutKind) ([]string, int) {
 	r := lo.Filter(recipes, func(recipe PayoutRecipe, _ int) bool {
 		return recipe.Kind == kind
 	})
-	return GetRecipesTotals(r)
+	return GetRecipesTotals(r), len(r)
 }
 
 type CyclePayoutSummary struct {

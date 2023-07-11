@@ -56,6 +56,15 @@ func (engine *DefaultRpcAndTzktColletor) RefreshParams() error {
 	return engine.rpc.Init(context.Background())
 }
 
+func (engine *DefaultRpcAndTzktColletor) GetCurrentProtocol() (tezos.ProtocolHash, error) {
+	params, err := engine.rpc.GetParams(context.Background(), rpc.Head)
+
+	if err != nil {
+		return tezos.ZeroProtocolHash, err
+	}
+	return params.Protocol, nil
+}
+
 func (engine *DefaultRpcAndTzktColletor) GetCurrentCycleNumber() (int64, error) {
 	head, err := engine.rpc.GetHeadBlock(defaultCtx)
 	if err != nil {

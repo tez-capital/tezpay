@@ -34,7 +34,7 @@ var continualCmd = &cobra.Command{
 		fsReporter := reporter_engines.NewFileSystemReporter(config)
 
 		if utils.IsTty() {
-			assertRequireConfirmation("\n\n\t !!! WARNING !!!\\n\n Continual mode is not yet tested well enough and there are no payout confirmations.\n Do you want to proceed?")
+			assertRequireConfirmation("\n\n\t !!! ATTENTION !!!\\n\nPreliminary testing has been conducted on the continual mode, but potential for undiscovered bugs still exists.\n Do you want to proceed?")
 		}
 		if forceConfirmationPrompt {
 			if utils.IsTty() {
@@ -80,10 +80,14 @@ var continualCmd = &cobra.Command{
 
 		notifiedNewVersionAvailable := false
 
+		startupProtocol := GetProtocolWithRetry(collector)
+		if !config.Network.IgnoreProtocolChanges {
+			log.Infof("Continual mode started in safe mode. In the event of a protocol change, TezPay will stop processing payouts and you will be notified.")
+		}
 		defer func() {
 			notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
 		}()
-		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s)", lastProcessedCycle+1, constants.VERSION))
+		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s, protocol %s)", lastProcessedCycle+1, constants.VERSION, startupProtocol))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
 				log.Info("looking for next cycle to pay out")
@@ -100,6 +104,17 @@ var continualCmd = &cobra.Command{
 					return
 				}
 			}
+			if !config.Network.IgnoreProtocolChanges {
+				log.Debugf("Checking current protocol...")
+				currentProtocol := GetProtocolWithRetry(collector)
+				if currentProtocol != startupProtocol {
+					/// we can not exit here. Users may configure recover mechanism in case of crashes/exits so we really want to wait for the operator to take action
+					log.Errorf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol)
+					notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
+					continue
+				}
+			}
+
 			defer extension.CloseScopedExtensions()
 			cycleToProcess = lastProcessedCycle + 1
 

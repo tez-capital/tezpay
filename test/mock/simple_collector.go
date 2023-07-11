@@ -189,3 +189,7 @@ func (engine *SimpleColletor) GetBalance(addr tezos.Address) (tezos.Z, error) {
 }
 
 func (engine *SimpleColletor) SendAnalytics(bakerId string, version string) {}
+
+func (engine *SimpleColletor) GetCurrentProtocol() (tezos.ProtocolHash, error) {
+	return tezos.ZeroProtocolHash, nil
+}
