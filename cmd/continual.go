@@ -34,7 +34,7 @@ var continualCmd = &cobra.Command{
 		fsReporter := reporter_engines.NewFileSystemReporter(config)
 
 		if utils.IsTty() {
-			assertRequireConfirmation("\n\n\t !!! ATTENTION !!!\\n\nPreliminary testing has been conducted on the continual mode, but potential for undiscovered bugs still exists.\n Do you want to proceed?")
+			assertRequireConfirmation("\n\n\t !!! ATTENTION !!!\n\nPreliminary testing has been conducted on the continual mode, but potential for undiscovered bugs still exists.\n Do you want to proceed?")
 		}
 		if forceConfirmationPrompt {
 			if utils.IsTty() {
