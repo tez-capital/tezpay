@@ -43,10 +43,6 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		if candidateWithBondsAmount.BondsAmount.IsZero() || candidateWithBondsAmount.BondsAmount.IsNeg() {
 			candidateWithBondsAmount.IsInvalid = true
 			candidateWithBondsAmount.InvalidBecause = enums.INVALID_PAYOUT_BELLOW_MINIMUM
-			return PayoutCandidateWithBondAmountAndFee{
-				PayoutCandidateWithBondAmount: candidateWithBondsAmount,
-				Fee:                           fee,
-			}
 		}
 		return PayoutCandidateWithBondAmountAndFee{
 			PayoutCandidateWithBondAmount: candidateWithBondsAmount,
