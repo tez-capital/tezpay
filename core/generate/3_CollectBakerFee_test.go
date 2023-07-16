@@ -114,13 +114,23 @@ func TestCollectBakerFees(t *testing.T) {
 	adjustFee(ctx, feeRate)
 	result, err = CollectBakerFee(ctx, &common.GeneratePayoutsOptions{})
 	assert.Nil(err)
+	collectedFee := tezos.Zero
 	for _, v := range result.StageData.PayoutCandidatesWithBondAmountAndFees {
 		if v.TxKind != enums.PAYOUT_TX_KIND_TEZ {
 			continue
 		}
 		assert.True(v.IsInvalid)
 		assert.Equal(v.InvalidBecause, enums.INVALID_PAYOUT_BELLOW_MINIMUM)
+		collectedFee = collectedFee.Add(v.Fee)
 	}
+	totalBonds := lo.Reduce(ctx.StageData.PayoutCandidatesWithBondAmount, func(agg tezos.Z, v PayoutCandidateWithBondAmount, _ int) tezos.Z {
+		if v.TxKind != enums.PAYOUT_TX_KIND_TEZ {
+			return agg
+		}
+		return agg.Add(v.BondsAmount)
+	}, tezos.Zero)
+
+	assert.True(collectedFee.Equal(totalBonds))
 
 	t.Log("invalidCandidates")
 	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(payoutCandidatesWithBondAmount, func(candidate PayoutCandidateWithBondAmount, index int) PayoutCandidateWithBondAmount {
