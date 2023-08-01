@@ -22,6 +22,7 @@ type RuntimeDelegatorOverride struct {
 	MinimumBalance               tezos.Z       `json:"minimum_balance,omitempty"`
 	IsBakerPayingTxFee           *bool         `json:"baker_pays_transaction_fee,omitempty"`
 	IsBakerPayingAllocationTxFee *bool         `json:"baker_pays_allocation_fee,omitempty"`
+	MaximumBalance               *tezos.Z      `json:"maximum_balance,omitempty"`
 }
 
 type RuntimeDelegatorsConfiguration struct {

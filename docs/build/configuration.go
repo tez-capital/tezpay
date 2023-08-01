@@ -31,6 +31,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	feeBuffer := int64(10)
 	ktFeeBuffer := int64(50)
 	bellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_EVERYONE
+	maximumBalance := float64(1000.0)
 
 	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
@@ -45,6 +46,9 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 					Recipient:      tezos.InvalidAddress,
 					Fee:            &fee,
 					MinimumBalance: 2.5,
+				},
+				"tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE": {
+					MaximumBalance: &maximumBalance,
 				},
 			},
 			FeeOverrides: map[string][]tezos.Address{

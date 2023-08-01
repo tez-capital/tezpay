@@ -146,6 +146,7 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 	payoutRecipient := delegator.Address
 	isBakerPayingTxFee := configuration.PayoutConfiguration.IsPayingTxFee
 	IsBakerPayingAllocationTxFee := configuration.PayoutConfiguration.IsPayingAllocationTxFee
+
 	if delegatorOverride, ok := delegatorOverrides[string(pkh)]; ok {
 		if !delegatorOverride.Recipient.Equal(tezos.InvalidAddress) {
 			payoutRecipient = delegatorOverride.Recipient
@@ -159,7 +160,11 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 		if delegatorOverride.IsBakerPayingAllocationTxFee != nil {
 			IsBakerPayingAllocationTxFee = *delegatorOverride.IsBakerPayingAllocationTxFee
 		}
+		if delegatorOverride.MaximumBalance != nil && delegatorOverride.MaximumBalance.IsLess(delegator.Balance) {
+			delegator.Balance = *delegatorOverride.MaximumBalance
+		}
 	}
+
 	return PayoutCandidate{
 		Source:                       delegator.Address,
 		Recipient:                    payoutRecipient,

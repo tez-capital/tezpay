@@ -30,6 +30,7 @@ type DelegatorOverrideV0 struct {
 	MinimumBalance               float64       `json:"minimum_balance,omitempty"`
 	IsBakerPayingTxFee           *bool         `json:"baker_pays_transaction_fee,omitempty"`
 	IsBakerPayingAllocationTxFee *bool         `json:"baker_pays_allocation_fee,omitempty"`
+	MaximumBalance               *float64      `json:"maximum_balance,omitempty"`
 }
 
 type DelegatorsConfigurationV0 struct {

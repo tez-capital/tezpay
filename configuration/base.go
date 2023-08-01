@@ -74,12 +74,18 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	}
 
 	delegatorOverrides := lo.MapEntries(configuration.Delegators.Overrides, func(k string, delegatorOverride tezpay_configuration.DelegatorOverrideV0) (string, RuntimeDelegatorOverride) {
+		var stakeLimit *tezos.Z = nil
+		if delegatorOverride.MaximumBalance != nil {
+			sl := FloatAmountToMutez(*delegatorOverride.MaximumBalance)
+			stakeLimit = &sl
+		}
 		return k, RuntimeDelegatorOverride{
 			Recipient:                    delegatorOverride.Recipient,
 			Fee:                          delegatorOverride.Fee,
 			MinimumBalance:               FloatAmountToMutez(delegatorOverride.MinimumBalance),
 			IsBakerPayingTxFee:           delegatorOverride.IsBakerPayingTxFee,
 			IsBakerPayingAllocationTxFee: delegatorOverride.IsBakerPayingAllocationTxFee,
+			MaximumBalance:               stakeLimit,
 		}
 	})
 	for k, v := range delegatorFeeOverrides {
