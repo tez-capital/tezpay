@@ -28,6 +28,10 @@
         fee: 0
         minimum_balance: 2.5
       }
+      tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE: {
+        recipient: ""
+        maximum_balance: 1000
+      }
     }
     fee_overrides: {
       .5: [
