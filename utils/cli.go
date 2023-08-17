@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -13,21 +12,9 @@ import (
 )
 
 const (
-	TOTAL_PAYOUTS = "Total Delegator Rewards"
+	TOTAL_PAYOUTS = "Rewards"
 	TOTAL         = "Total"
 )
-
-func shortenAddress(taddr tezos.Address) string {
-	if taddr.Equal(tezos.ZeroAddress) || taddr.Equal(tezos.InvalidAddress) {
-		return "-"
-	}
-	addr := taddr.String()
-	total := len(addr)
-	if total <= 13 {
-		return addr
-	}
-	return fmt.Sprintf("%s...%s", addr[:5], addr[total-5:])
-}
 
 func getColumnsByIndexes[T any](row []T, indexes []int) []T {
 	return lo.Filter(row, func(_ T, i int) bool {

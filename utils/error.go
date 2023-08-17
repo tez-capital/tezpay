@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"blockwatch.cc/tzgo/rpc"
@@ -36,12 +35,6 @@ type internalRPCError struct {
 
 func (e *internalRPCError) Error() string {
 	return fmt.Sprintf("%s: %s", e.ID, e.Description)
-}
-
-func extractErrorJson(errMsg string) []string {
-	re := regexp.MustCompile(`\{[^}]+\}`)
-	matches := re.FindAllString(errMsg, -1)
-	return matches
 }
 
 func ExtractInternalRPCerror(errMsg string) error {
