@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 
@@ -26,7 +25,10 @@ var transferCmd = &cobra.Command{
 
 		if len(args)%2 != 0 {
 			log.Error("invalid number of arguments (expects pairs of destination and amount)")
-			os.Exit(EXIT_IVNALID_ARGS)
+			panic(PanicStatus{
+				ExitCode: EXIT_IVNALID_ARGS,
+				Error:    fmt.Errorf("invalid number of arguments (expects pairs of destination and amount)"),
+			})
 		}
 		total := int64(0)
 
@@ -38,13 +40,19 @@ var transferCmd = &cobra.Command{
 			destination, err := tezos.ParseAddress(args[i])
 			if err != nil {
 				log.Errorf("invalid destination address '%s' - '%s'", args[i], err.Error())
-				os.Exit(EXIT_IVNALID_ARGS)
+				panic(PanicStatus{
+					ExitCode: EXIT_IVNALID_ARGS,
+					Error:    fmt.Errorf("invalid destination address '%s' - '%s'", args[i], err.Error()),
+				})
 			}
 
 			amount, err := strconv.ParseFloat(args[i+1], 64)
 			if err != nil {
 				log.Errorf("invalid amount '%s' - '%s'", args[i+1], err.Error())
-				os.Exit(EXIT_IVNALID_ARGS)
+				panic(PanicStatus{
+					ExitCode: EXIT_IVNALID_ARGS,
+					Error:    fmt.Errorf("invalid amount '%s' - '%s'", args[i+1], err.Error()),
+				})
 			}
 			if !mutez {
 				amount *= constants.MUTEZ_FACTOR
@@ -57,7 +65,10 @@ var transferCmd = &cobra.Command{
 		}
 
 		if err := requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", common.MutezToTezS(total), strings.Join(destinations, ", "))); err != nil {
-			os.Exit(EXIT_OPERTION_CANCELED)
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_CANCELED,
+				Error:    fmt.Errorf("operation canceled"),
+			})
 		}
 		log.Infof("transfering tez... waiting for %d confirmations", constants.DEFAULT_REQUIRED_CONFIRMATIONS)
 		opts := rpc.DefaultOptions
@@ -67,11 +78,17 @@ var transferCmd = &cobra.Command{
 		rcpt, err := transactor.Send(op, &opts)
 		if err != nil {
 			log.Errorf("failed to confirm tx - %s", err.Error())
-			os.Exit(EXIT_OPERTION_FAILED)
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_FAILED,
+				Error:    fmt.Errorf("failed to confirm tx - %s", err.Error()),
+			})
 		}
 		if !rcpt.IsSuccess() {
 			log.Errorf("tx failed - %s", rcpt.Error().Error())
-			os.Exit(EXIT_OPERTION_FAILED)
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_FAILED,
+				Error:    fmt.Errorf("tx failed - %s", rcpt.Error().Error()),
+			})
 		}
 		log.Info("transfer successful")
 	},

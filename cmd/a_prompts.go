@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/alis-is/tezpay/constants"
@@ -82,7 +81,10 @@ func promptIfNewVersionAvailable() {
 		err := requireConfirmation(fmt.Sprintf("You are not running latest version of tezpay (new version : '%s', current version: '%s').\n Do you want to continue anyway?", latestVersion, constants.VERSION))
 		if err != nil && err.Error() == "not confirmed" {
 			log.Infof("You can download new version here:\n\nhttps://github.com/%s/releases\n", constants.TEZPAY_REPOSITORY)
-			os.Exit(1)
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_CANCELED,
+				Error:    errors.New("user canceled"),
+			})
 		}
 	}
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/core"
@@ -76,7 +75,10 @@ var payCmd = &cobra.Command{
 			if notificator != "" { // rerun notification through notificator if specified manually
 				notifyPayoutsProcessed(config, &generationResult.Summary, notificator)
 			}
-			os.Exit(0)
+			panic(PanicStatus{
+				ExitCode: EXIT_SUCCESS,
+				Message:  "nothing to pay out",
+			})
 		}
 
 		if !confirmed {
@@ -100,7 +102,10 @@ var payCmd = &cobra.Command{
 		failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })
 		if len(executionResult) > 0 && failedCount > 0 {
 			log.Errorf("%d of operations failed", failedCount)
-			os.Exit(EXIT_OPERTION_FAILED)
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_FAILED,
+				Error:    fmt.Errorf("%d of operations failed", failedCount),
+			})
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)

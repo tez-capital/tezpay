@@ -10,6 +10,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type GeneratePayoutsOptions struct {
+	Cycle            int64
+	SkipBalanceCheck bool
+}
+
+func GeneratePayouts(options GeneratePayoutsOptions) *common.CyclePayoutBlueprint {
+	cycle := options.Cycle
+	config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+	defer extension.CloseExtensions()
+
+	if cycle <= 0 {
+		lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+		cycle = lastCompletedCycle + cycle
+	}
+
+	if !config.IsDonatingToTezCapital() {
+		log.Warn("With your current configuration you are not going to donate to tez.capital")
+	}
+
+	return assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
+		return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+			&common.GeneratePayoutsOptions{
+				Cycle:            cycle,
+				SkipBalanceCheck: options.SkipBalanceCheck,
+			})
+	}, EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
+}
+
 var generatePayoutsCmd = &cobra.Command{
 	Use:   "generate-payouts",
 	Short: "generate payouts",
@@ -17,25 +45,11 @@ var generatePayoutsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
-		config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
-		defer extension.CloseExtensions()
 
-		if cycle <= 0 {
-			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
-			cycle = lastCompletedCycle + cycle
-		}
-
-		if !config.IsDonatingToTezCapital() {
-			log.Warn("With your current configuration you are not going to donate to tez.capital")
-		}
-
-		generationResult := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
-			return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-				&common.GeneratePayoutsOptions{
-					Cycle:            cycle,
-					SkipBalanceCheck: skipBalanceCheck,
-				})
-		}, EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
+		generationResult := GeneratePayouts(GeneratePayoutsOptions{
+			Cycle:            cycle,
+			SkipBalanceCheck: skipBalanceCheck,
+		})
 
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
 		if targetFile != "" {

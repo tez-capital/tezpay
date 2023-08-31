@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"os"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -10,7 +8,10 @@ func assertRunWithErrFmt(toExecute func() error, exitCode int, errorFormat strin
 	err := toExecute()
 	if err != nil {
 		log.Errorf(errorFormat, err.Error())
-		os.Exit(exitCode)
+		panic(PanicStatus{
+			ExitCode: exitCode,
+			Error:    err,
+		})
 	}
 }
 
@@ -22,7 +23,10 @@ func assertRunWithParamWithErrFmt[T interface{}](toExecute func(T) error, param 
 	err := toExecute(param)
 	if err != nil {
 		log.Errorf(errorFormat, err.Error())
-		os.Exit(exitCode)
+		panic(PanicStatus{
+			ExitCode: exitCode,
+			Error:    err,
+		})
 	}
 }
 
@@ -34,7 +38,10 @@ func assertRunWithResultAndErrFmt[T interface{}](toExecute func() (T, error), ex
 	result, err := toExecute()
 	if err != nil {
 		log.Errorf(errorFormat, err.Error())
-		os.Exit(exitCode)
+		panic(PanicStatus{
+			ExitCode: exitCode,
+			Error:    err,
+		})
 	}
 	return result
 }

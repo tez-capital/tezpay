@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/alis-is/tezpay/common"
@@ -74,7 +73,10 @@ var continualCmd = &cobra.Command{
 			log.Infof("================  CYCLE %d PROCESSED ===============", cycleToProcess)
 			if endCycle != 0 && lastProcessedCycle >= endCycle {
 				log.Info("end cycle reached, exiting")
-				os.Exit(0)
+				panic(PanicStatus{
+					ExitCode: EXIT_SUCCESS,
+					Message:  "end cycle reached, exiting",
+				})
 			}
 		}
 

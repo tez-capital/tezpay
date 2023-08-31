@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package collector_engines
 
 import (

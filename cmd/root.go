@@ -95,7 +95,10 @@ Copyright © %d alis.is
 			}
 			if err := state.Init(workingDirectory, stateOptions); err != nil {
 				log.Errorf("Failed to initialize state: %s", err.Error())
-				os.Exit(EXIT_STATE_LOAD_FAILURE)
+				panic(PanicStatus{
+					ExitCode: EXIT_STATE_LOAD_FAILURE,
+					Error:    fmt.Errorf("Failed to initialize state: %s", err.Error()),
+				})
 			}
 
 			skipVersionCheck, _ := cmd.Flags().GetBool(SKIP_VERSION_CHECK_FLAG)
