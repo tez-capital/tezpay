@@ -6,8 +6,8 @@ import (
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants/enums"
+	notificator_engines "github.com/alis-is/tezpay/engines/notificator"
 	"github.com/alis-is/tezpay/extension"
-	"github.com/alis-is/tezpay/notifications"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,7 +37,7 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 		}
 
 		log.Infof("sending notification with %s", notificatorConfiguration.Type)
-		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
+		notificator, err := notificator_engines.LoadNotificators(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
 			log.Warnf("failed to send notification - %s", err.Error())
 			continue
@@ -63,7 +63,7 @@ func notifyAdmin(configuration *configuration.RuntimeConfiguration, msg string) 
 		}
 
 		log.Debugf("sending admin notification with %s", notificatorConfiguration.Type)
-		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
+		notificator, err := notificator_engines.LoadNotificators(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
 			log.Warnf("failed to send notification - %s", err.Error())
 			continue

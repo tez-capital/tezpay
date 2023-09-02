@@ -8,7 +8,6 @@ import (
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/notifications"
 )
 
 type RuntimeDelegatorRequirements struct {
@@ -32,10 +31,10 @@ type RuntimeDelegatorsConfiguration struct {
 }
 
 type RuntimeNotificatorConfiguration struct {
-	Type          notifications.NotificatorKind `json:"type,omitempty"`
-	Configuration json.RawMessage               `json:"-"`
-	IsValid       bool                          `json:"-"`
-	IsAdmin       bool                          `json:"admin"`
+	Type          string          `json:"type,omitempty"`
+	Configuration json.RawMessage `json:"-"`
+	IsValid       bool            `json:"-"`
+	IsAdmin       bool            `json:"admin"`
 }
 
 type RuntimePayoutConfiguration struct {

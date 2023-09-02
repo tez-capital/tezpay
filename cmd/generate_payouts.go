@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package cmd
 
 import (
@@ -11,13 +13,13 @@ import (
 )
 
 type GeneratePayoutsOptions struct {
-	Cycle            int64
-	SkipBalanceCheck bool
+	Cycle            int64 `json:"cycle"`
+	SkipBalanceCheck bool  `json:"skip_balance_check"`
 }
 
-func GeneratePayouts(options GeneratePayoutsOptions) *common.CyclePayoutBlueprint {
+func GeneratePayouts(configurationAndEngines *ConfigurationAndEngines, options GeneratePayoutsOptions) *common.CyclePayoutBlueprint {
 	cycle := options.Cycle
-	config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+	config, collector, signer, _ := configurationAndEngines.Unwrap()
 	defer extension.CloseExtensions()
 
 	if cycle <= 0 {
@@ -46,7 +48,8 @@ var generatePayoutsCmd = &cobra.Command{
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 
-		generationResult := GeneratePayouts(GeneratePayoutsOptions{
+		configurationAndEngines := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE)
+		generationResult := GeneratePayouts(configurationAndEngines, GeneratePayoutsOptions{
 			Cycle:            cycle,
 			SkipBalanceCheck: skipBalanceCheck,
 		})

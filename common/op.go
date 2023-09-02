@@ -5,7 +5,6 @@ import (
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/contract"
-	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants/enums"
 )
@@ -31,7 +30,7 @@ func (ctx *OpExecutionContext) GetOpHash() tezos.OpHash {
 	return ctx.result.GetOpHash()
 }
 
-func (ctx *OpExecutionContext) Dispatch(opts *rpc.CallOptions) error {
+func (ctx *OpExecutionContext) Dispatch(opts *DispatchOptions) error {
 	result, err := ctx.Transactor.Dispatch(ctx.Op, opts)
 	if err != nil {
 		return err

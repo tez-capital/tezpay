@@ -1,7 +1,9 @@
+//go:build !wasm
+
 package cmd
 
 import (
-	"github.com/alis-is/tezpay/notifications"
+	notificator_engines "github.com/alis-is/tezpay/engines/notificator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +21,7 @@ var notificationTestCmd = &cobra.Command{
 			}
 
 			log.Infof("Sending notification with %s", notificatorConfiguration.Type)
-			notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
+			notificator, err := notificator_engines.LoadNotificators(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 			if err != nil {
 				log.Warnf("failed to send notification - %s", err.Error())
 				continue

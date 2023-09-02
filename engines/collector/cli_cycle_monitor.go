@@ -1,4 +1,4 @@
-package common
+package collector_engines
 
 import (
 	"context"
@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"blockwatch.cc/tzgo/rpc"
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	log "github.com/sirupsen/logrus"
 )
 
-type CycleMonitorOptions struct {
-	NotificationDelay int64
-	CheckFrequency    int64
+type CycleMonitorCycleChannelProvider interface {
+	getCycleChannel() chan int64
 }
 
 type cycleMonitor struct {
@@ -21,10 +21,10 @@ type cycleMonitor struct {
 	ctx           context.Context
 	cancelContext context.CancelFunc
 	rpc           *rpc.Client
-	options       CycleMonitorOptions
+	options       common.CycleMonitorOptions
 }
 
-func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorOptions) (CycleMonitor, error) {
+func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options common.CycleMonitorOptions) (common.CycleMonitor, error) {
 	if options.NotificationDelay == 0 {
 		options.NotificationDelay = int64(rand.Intn(constants.CYCLE_MONITOR_MAXIMUM_DELAY) + constants.CYCLE_MONITOR_DELAY_OFFSET)
 	}
@@ -45,19 +45,19 @@ func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorO
 		cancelContext: cancel,
 		options:       options,
 	}
-	return monitor, monitor.CreateBlockHeaderMonitor()
+	return monitor, monitor.createBlockHeaderMonitor()
 }
 
 func (monitor *cycleMonitor) Cancel() {
 	log.Debugf("cycle monitoring canceled")
-	monitor.Terminate()
+	monitor.terminate()
 }
-func (monitor *cycleMonitor) Terminate() {
+func (monitor *cycleMonitor) terminate() {
 	monitor.cancelContext()
 	close(monitor.Cycle)
 }
 
-func (monitor *cycleMonitor) CreateBlockHeaderMonitor() error {
+func (monitor *cycleMonitor) createBlockHeaderMonitor() error {
 	ctx := monitor.ctx
 
 	go func() {
@@ -89,14 +89,14 @@ func (monitor *cycleMonitor) CreateBlockHeaderMonitor() error {
 	return nil
 }
 
-func waitForNextCompletedCycle(lastProcessedCompletedCycle int64, monitor CycleMonitor) (int64, bool) {
+func waitForNextCompletedCycle(lastProcessedCompletedCycle int64, monitor CycleMonitorCycleChannelProvider) (int64, bool) {
 	currentCycle := int64(0)
 	var ok bool
 	for lastProcessedCompletedCycle >= currentCycle-1 {
 		if currentCycle > 0 {
 			log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCompletedCycle)
 		}
-		currentCycle, ok = <-monitor.GetCycleChannel()
+		currentCycle, ok = <-monitor.getCycleChannel()
 		if !ok {
 			return -1, ok
 		}
@@ -112,6 +112,6 @@ func (monitor *cycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64)
 	return cycle, nil
 }
 
-func (monitor *cycleMonitor) GetCycleChannel() chan int64 {
+func (monitor *cycleMonitor) getCycleChannel() chan int64 {
 	return monitor.Cycle
 }

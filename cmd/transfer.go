@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package cmd
 
 import (
@@ -70,26 +72,47 @@ var transferCmd = &cobra.Command{
 				Error:    fmt.Errorf("operation canceled"),
 			})
 		}
-		log.Infof("transfering tez... waiting for %d confirmations", constants.DEFAULT_REQUIRED_CONFIRMATIONS)
-		opts := rpc.DefaultOptions
-		opts.Confirmations = constants.DEFAULT_REQUIRED_CONFIRMATIONS
-		opts.Signer = signer.GetSigner()
-
-		rcpt, err := transactor.Send(op, &opts)
+		err := transactor.Complete(op, signer.GetKey())
 		if err != nil {
-			log.Errorf("failed to confirm tx - %s", err.Error())
+			log.Errorf("failed to complete tx - %s", err.Error())
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_FAILED,
+				Error:    fmt.Errorf("failed to complete tx - %s", err.Error()),
+			})
+		}
+
+		err = signer.Sign(op)
+		if err != nil {
+			log.Errorf("failed to sign tx - %s", err.Error())
+			panic(PanicStatus{
+				ExitCode: EXIT_OPERTION_FAILED,
+				Error:    fmt.Errorf("failed to sign tx - %s", err.Error()),
+			})
+		}
+
+		log.Infof("transfering tez... waiting for %d confirmations", constants.DEFAULT_REQUIRED_CONFIRMATIONS)
+
+		dispatchResult, err := transactor.Dispatch(op, &common.DispatchOptions{
+			Confirmations: constants.DEFAULT_REQUIRED_CONFIRMATIONS,
+			TTL:           rpc.DefaultOptions.TTL,
+		})
+		if err != nil {
+			log.Errorf("failed to dispatch tx - %s", err.Error())
 			panic(PanicStatus{
 				ExitCode: EXIT_OPERTION_FAILED,
 				Error:    fmt.Errorf("failed to confirm tx - %s", err.Error()),
 			})
 		}
-		if !rcpt.IsSuccess() {
-			log.Errorf("tx failed - %s", rcpt.Error().Error())
+
+		err = dispatchResult.WaitForApply()
+		if err != nil {
+			log.Errorf("failed tx - %s", err.Error())
 			panic(PanicStatus{
 				ExitCode: EXIT_OPERTION_FAILED,
-				Error:    fmt.Errorf("tx failed - %s", rcpt.Error().Error()),
+				Error:    fmt.Errorf("failed tx - %s", err.Error()),
 			})
 		}
+
 		log.Info("transfer successful")
 	},
 }

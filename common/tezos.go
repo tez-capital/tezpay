@@ -6,22 +6,22 @@ import (
 )
 
 type Delegator struct {
-	Address tezos.Address
-	Balance tezos.Z
-	Emptied bool
+	Address tezos.Address `json:"address"`
+	Balance tezos.Z       `json:"balance"`
+	Emptied bool          `json:"emptied,omitempty"`
 }
 
 type BakersCycleData struct {
-	StakingBalance          tezos.Z
-	DelegatedBalance        tezos.Z
-	BlockRewards            tezos.Z
-	IdealBlockRewards       tezos.Z
-	EndorsementRewards      tezos.Z
-	IdealEndorsementRewards tezos.Z
-	FrozenDepositLimit      tezos.Z
-	NumDelegators           int32
-	BlockFees               tezos.Z
-	Delegators              []Delegator
+	StakingBalance          tezos.Z     `json:"stakingBalance"`
+	DelegatedBalance        tezos.Z     `json:"delegatedBalance"`
+	BlockRewards            tezos.Z     `json:"blockRewards"`
+	IdealBlockRewards       tezos.Z     `json:"idealBlockRewards"`
+	EndorsementRewards      tezos.Z     `json:"endorsementRewards"`
+	IdealEndorsementRewards tezos.Z     `json:"idealEndorsementRewards"`
+	FrozenDepositLimit      tezos.Z     `json:"frozenDepositLimit"`
+	NumDelegators           int32       `json:"numDelegators"`
+	BlockFees               tezos.Z     `json:"blockFees"`
+	Delegators              []Delegator `json:"delegators"`
 }
 
 type ShareInfo struct {
@@ -52,7 +52,7 @@ func (cycleData *BakersCycleData) GetBakerBalance() tezos.Z {
 }
 
 type OperationLimits struct {
-	HardGasLimitPerOperation     int64
-	HardStorageLimitPerOperation int64
-	MaxOperationDataLength       int
+	HardGasLimitPerOperation     int64 `json:"hard_gas_limit_per_operation"`
+	HardStorageLimitPerOperation int64 `json:"hard_storage_limit_per_operation"`
+	MaxOperationDataLength       int   `json:"max_operation_data_length"`
 }

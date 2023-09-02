@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package cmd
 
 import (
@@ -30,6 +32,10 @@ func requireConfirmation(msg string) error {
 
 func assertRequireConfirmation(msg string) {
 	assertRunWithParam(requireConfirmation, msg, EXIT_OPERTION_CANCELED)
+}
+
+type versionInfo struct {
+	Version string `json:"tag_name"`
 }
 
 func checkForNewVersionAvailable() (bool, string) {

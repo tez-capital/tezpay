@@ -3,7 +3,6 @@ package common
 import (
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
-	"blockwatch.cc/tzgo/signer"
 	"blockwatch.cc/tzgo/tezos"
 )
 
@@ -15,6 +14,19 @@ const (
 	OPERATION_STATUS_NOT_EXISTS OperationStatus = "not exists"
 	OPERATION_STATUS_UNKNOWN    OperationStatus = "unknown"
 )
+
+type CycleMonitorOptions struct {
+	NotificationDelay int64 `json:"notification_delay"`
+	CheckFrequency    int64 `json:"check_frequency"`
+}
+
+type CycleMonitor interface {
+	//GetCycleChannel() chan int64
+	Cancel()
+	//Terminate()
+	//CreateBlockHeaderMonitor() error
+	WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error)
+}
 
 type CollectorEngine interface {
 	GetId() string
@@ -36,7 +48,7 @@ type SignerEngine interface {
 	Sign(op *codec.Op) error
 	GetPKH() tezos.Address
 	GetKey() tezos.Key
-	GetSigner() signer.Signer
+	//GetSigner() signer.Signer
 }
 
 type OpResult interface {
@@ -44,29 +56,26 @@ type OpResult interface {
 	WaitForApply() error
 }
 
+type DispatchOptions struct {
+	TTL           int64 `json:"ttl"`
+	Confirmations int64 `json:"confirmations"`
+}
+
 type TransactorEngine interface {
 	GetId() string
 	RefreshParams() error
 	Complete(op *codec.Op, key tezos.Key) error
-	Dispatch(op *codec.Op, opts *rpc.CallOptions) (OpResult, error)
-	Broadcast(op *codec.Op) (tezos.OpHash, error)
-	Send(op *codec.Op, opts *rpc.CallOptions) (*rpc.Receipt, error)
+	Dispatch(op *codec.Op, opts *DispatchOptions) (OpResult, error)
+	//Broadcast(op *codec.Op) (tezos.OpHash, error)
+	//Send(op *codec.Op, opts *rpc.CallOptions) (*rpc.Receipt, error)
 	GetLimits() (*OperationLimits, error)
-	WaitOpConfirmation(opHash tezos.OpHash, ttl int64, confirmations int64) (*rpc.Receipt, error)
+	//WaitOpConfirmation(opHash tezos.OpHash, ttl int64, confirmations int64) (*rpc.Receipt, error)
 }
 
 type NotificatorEngine interface {
 	PayoutSummaryNotify(summary *CyclePayoutSummary, additionalData map[string]string) error
 	AdminNotify(msg string) error
 	TestNotify() error
-}
-
-type CycleMonitor interface {
-	GetCycleChannel() chan int64
-	Cancel()
-	Terminate()
-	CreateBlockHeaderMonitor() error
-	WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error)
 }
 
 type ReporterEngine interface {

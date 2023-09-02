@@ -1,4 +1,4 @@
-package common
+package collector_engines
 
 import (
 	"fmt"
@@ -13,12 +13,13 @@ type dummyCycleMonitor struct {
 	end   int64
 }
 
-func NewDumyCycleMonitor(start int64, end int64) CycleMonitor {
-	return &dummyCycleMonitor{
+func NewDumyCycleMonitor(start int64, end int64) (*dummyCycleMonitor, error) {
+	result := &dummyCycleMonitor{
 		Cycle: make(chan int64),
 		start: start,
 		end:   end,
 	}
+	return result, result.createBlockHeaderMonitor()
 }
 
 func (dummyCycleMonitor) Cancel() {
@@ -27,7 +28,7 @@ func (dummyCycleMonitor) Cancel() {
 func (dummyCycleMonitor) Terminate() {
 }
 
-func (monitor *dummyCycleMonitor) CreateBlockHeaderMonitor() error {
+func (monitor *dummyCycleMonitor) createBlockHeaderMonitor() error {
 	go func() {
 		for i := monitor.start; i <= monitor.end; i++ {
 			monitor.Cycle <- i
@@ -38,7 +39,7 @@ func (monitor *dummyCycleMonitor) CreateBlockHeaderMonitor() error {
 	return nil
 }
 
-func (monitor *dummyCycleMonitor) GetCycleChannel() chan int64 {
+func (monitor *dummyCycleMonitor) getCycleChannel() chan int64 {
 	return monitor.Cycle
 }
 
@@ -52,16 +53,16 @@ func (monitor *dummyCycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle i
 
 func runMonitoringTest(t *testing.T, start int64, end int64, lastProcessedCycle int64, expectedCycle int64) {
 	assert := assert.New(t)
-	monitor := NewDumyCycleMonitor(start, end)
-	assert.Nil(monitor.CreateBlockHeaderMonitor())
+	monitor, err := NewDumyCycleMonitor(start, end)
+	assert.Nil(err)
 	cycle, _ := monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 	assert.Equal(expectedCycle, cycle)
 }
 
 func runMonitoringTestExpectClosed(t *testing.T, start int64, end int64, lastProcessedCycle int64, expectedCycle int64) {
 	assert := assert.New(t)
-	monitor := NewDumyCycleMonitor(start, end)
-	assert.Nil(monitor.CreateBlockHeaderMonitor())
+	monitor, err := NewDumyCycleMonitor(start, end)
+	assert.Nil(err)
 	_, ok := waitForNextCompletedCycle(lastProcessedCycle, monitor)
 	assert.Equal(ok, false)
 }

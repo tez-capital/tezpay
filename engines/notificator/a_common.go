@@ -1,4 +1,4 @@
-package notifications
+package notificator_engines
 
 import (
 	"fmt"
