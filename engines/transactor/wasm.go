@@ -4,14 +4,13 @@ package transactor_engines
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"syscall/js"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/utils"
+	"github.com/alis-is/tezpay/wasm"
 )
 
 type JsTransactor struct {
@@ -33,15 +32,8 @@ func (result *JsTransactorOpResult) GetOpHash() tezos.OpHash {
 
 func (result *JsTransactorOpResult) WaitForApply() error {
 	funcId := "waitForApply"
-	if !utils.HasJsFunc(result.jsResult, funcId) {
-		return errors.New("function waitForApply not found")
-	}
-
-	res := result.jsResult.Call(funcId)
-	if res.Type() == js.TypeString {
-		return errors.New(res.String())
-	}
-	return nil
+	_, err := wasm.CallJsFunc(result.jsResult, funcId)
+	return err
 }
 func InitJsTransactor(transactor js.Value) (*JsTransactor, error) {
 	if transactor.Type() != js.TypeObject {
@@ -60,27 +52,21 @@ func (transactor *JsTransactor) GetId() string {
 
 func (engine *JsTransactor) RefreshParams() error {
 	funcId := "refreshParams"
-	if !utils.HasJsFunc(engine.transactor, funcId) {
-		return fmt.Errorf("function %s not found", funcId)
-	}
 
-	_ = engine.transactor.Call(funcId)
-	return nil
+	_, err := wasm.CallJsFunc(engine.transactor, funcId)
+	return err
 }
 
 func (engine *JsTransactor) GetLimits() (*common.OperationLimits, error) {
 	funcId := "getLimits"
-	if !utils.HasJsFunc(engine.transactor, funcId) {
-		return nil, fmt.Errorf("function %s not found", funcId)
-	}
 
-	result := engine.transactor.Call(funcId)
-	if result.Type() != js.TypeString {
-		return nil, fmt.Errorf("%s returned invalid data", funcId)
+	result, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeObject)
+	if err != nil {
+		return nil, err
 	}
 
 	var limits common.OperationLimits
-	err := json.Unmarshal([]byte(result.String()), &limits)
+	err = json.Unmarshal([]byte(result.String()), &limits)
 	if err != nil {
 		return nil, err
 	}
@@ -89,17 +75,14 @@ func (engine *JsTransactor) GetLimits() (*common.OperationLimits, error) {
 
 func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) error {
 	funcId := "getChainParams"
-	if !utils.HasJsFunc(engine.transactor, funcId) {
-		return fmt.Errorf("function %s not found", funcId)
-	}
 
-	paramsJson := engine.transactor.Call(funcId)
-	if paramsJson.Type() != js.TypeString {
-		return fmt.Errorf("%s returned invalid data", funcId)
+	paramsJson, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeString)
+	if err != nil {
+		return err
 	}
 
 	var params tezos.Params
-	err := json.Unmarshal([]byte(paramsJson.String()), &params)
+	err = json.Unmarshal([]byte(paramsJson.String()), &params)
 	if err != nil {
 		return err
 	}
@@ -113,9 +96,6 @@ func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) error {
 
 func (engine *JsTransactor) Dispatch(op *codec.Op, opts *common.DispatchOptions) (common.OpResult, error) {
 	funcId := "dispatch"
-	if !utils.HasJsFunc(engine.transactor, funcId) {
-		return nil, fmt.Errorf("function %s not found", funcId)
-	}
 
 	if opts == nil {
 		opts = &common.DispatchOptions{
@@ -133,9 +113,7 @@ func (engine *JsTransactor) Dispatch(op *codec.Op, opts *common.DispatchOptions)
 	if err != nil {
 		return nil, err
 	}
-	result := engine.transactor.Call(funcId, string(opJson), string(optsJson))
-	if result.Type() != js.TypeObject {
-		return nil, fmt.Errorf("%s returned invalid data", funcId)
-	}
-	return &JsTransactorOpResult{jsResult: result}, nil
+
+	result, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeObject, string(opJson), string(optsJson))
+	return &JsTransactorOpResult{jsResult: result}, err
 }

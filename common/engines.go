@@ -16,8 +16,8 @@ const (
 )
 
 type CycleMonitorOptions struct {
-	NotificationDelay int64 `json:"notification_delay"`
-	CheckFrequency    int64 `json:"check_frequency"`
+	NotificationDelay int64 `json:"notificationDelay"`
+	CheckFrequency    int64 `json:"checkFrequency"`
 }
 
 type CycleMonitor interface {

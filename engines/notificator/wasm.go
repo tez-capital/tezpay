@@ -4,12 +4,11 @@ package notificator_engines
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"syscall/js"
 
 	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/utils"
+	"github.com/alis-is/tezpay/wasm"
 )
 
 type NotificatorConfiguration struct {
@@ -35,13 +34,12 @@ func RegisterNotificatorLoader(loader js.Value) error {
 
 func LoadNotificators(kind string, configuration []byte) (common.NotificatorEngine, error) {
 	funcId := "loadNotificators"
-	if !utils.HasJsFunc(notificatorLoader, funcId) {
-		return nil, fmt.Errorf("function %s not found", funcId)
+
+	result, err := wasm.CallJsFuncExpectResultType(notificatorLoader, funcId, js.TypeObject, kind, string(configuration))
+	if err != nil {
+		return nil, err
 	}
-	result := notificatorLoader.Call(funcId, kind, string(configuration))
-	if result.Type() != js.TypeObject {
-		return nil, fmt.Errorf("%s returned invalid data", funcId)
-	}
+
 	return &JsNotificator{
 		notificator: result,
 	}, nil
@@ -49,14 +47,9 @@ func LoadNotificators(kind string, configuration []byte) (common.NotificatorEngi
 
 func ValidateNotificatorConfiguration(kind string, configuration []byte) error {
 	funcId := "validateNotificatorConfiguration"
-	if !utils.HasJsFunc(notificatorLoader, funcId) {
-		return fmt.Errorf("function %s not found", funcId)
-	}
-	result := notificatorLoader.Call(funcId, kind, string(configuration))
-	if result.Type() == js.TypeString {
-		return errors.New(result.String())
-	}
-	return nil
+
+	_, err := wasm.CallJsFunc(notificatorLoader, funcId, kind, string(configuration))
+	return err
 }
 
 func (jn *JsNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
@@ -69,34 +62,16 @@ func (jn *JsNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary,
 		additionalDataJson = string(data)
 	}
 
-	result, err := utils.CallJsFunc(jn.notificator, "send", fmt.Sprintf("Report of cycle #%d", summary.Cycle), additionalDataJson)
-	if err != nil {
-		return err
-	}
-	if result.Type() == js.TypeString {
-		return errors.New(result.String())
-	}
-	return nil
+	_, err := wasm.CallJsFunc(jn.notificator, "send", fmt.Sprintf("Report of cycle #%d", summary.Cycle), additionalDataJson)
+	return err
 }
 
 func (jn *JsNotificator) AdminNotify(msg string) error {
-	result, err := utils.CallJsFunc(jn.notificator, "send", string(ADMIN_NOTIFICATION), msg)
-	if err != nil {
-		return err
-	}
-	if result.Type() == js.TypeString {
-		return errors.New(result.String())
-	}
-	return nil
+	_, err := wasm.CallJsFunc(jn.notificator, "send", string(ADMIN_NOTIFICATION), msg)
+	return err
 }
 
 func (jn *JsNotificator) TestNotify() error {
-	result, err := utils.CallJsFunc(jn.notificator, "send", "test notification", "js notificator test")
-	if err != nil {
-		return err
-	}
-	if result.Type() == js.TypeString {
-		return errors.New(result.String())
-	}
-	return nil
+	_, err := wasm.CallJsFunc(jn.notificator, "send", "test notification", "js notificator test")
+	return err
 }

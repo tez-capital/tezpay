@@ -11,151 +11,163 @@ import (
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/utils"
+	"github.com/alis-is/tezpay/wasm"
+	"github.com/samber/lo"
 )
 
-type DefaultRpcAndTzktColletor struct {
+type JsCollector struct {
 	collector js.Value
 }
 
-func InitJsColletor(collector js.Value) (*DefaultRpcAndTzktColletor, error) {
+func InitJsColletor(collector js.Value) (*JsCollector, error) {
 	if collector.Type() != js.TypeObject {
 		return nil, fmt.Errorf("invalid collector object")
 	}
-	result := &DefaultRpcAndTzktColletor{
+	result := &JsCollector{
 		collector: collector,
 	}
 
 	return result, result.RefreshParams()
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetId() string {
-	return "DefaultRpcAndTzktColletor"
+func (engine *JsCollector) GetId() string {
+	return "JsColletor"
 }
 
-func (engine *DefaultRpcAndTzktColletor) RefreshParams() error {
+func (engine *JsCollector) RefreshParams() error {
 	funcId := "refreshParams"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return fmt.Errorf("function %s not found", funcId)
-	}
 
-	_ = engine.collector.Call(funcId)
-	return nil
+	_, err := wasm.CallJsFunc(engine.collector, funcId)
+	return err
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetCurrentProtocol() (tezos.ProtocolHash, error) {
+func (engine *JsCollector) GetCurrentProtocol() (tezos.ProtocolHash, error) {
 	funcId := "getCurrentProtocol"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return tezos.ZeroProtocolHash, fmt.Errorf("function %s not found", funcId)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeString)
+	if err != nil {
+		return tezos.ZeroProtocolHash, err
 	}
-
-	result := engine.collector.Call(funcId)
-	if result.Type() != js.TypeString {
-		return tezos.ZeroProtocolHash, fmt.Errorf("%s returned invalid data", funcId)
-	}
-
 	return tezos.ParseProtocolHash(result.String())
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetCurrentCycleNumber() (int64, error) {
+func (engine *JsCollector) GetCurrentCycleNumber() (int64, error) {
 	funcId := "getCurrentCycleNumber"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return 0, fmt.Errorf("function %s not found", funcId)
-	}
-
-	result := engine.collector.Call(funcId)
-	if result.Type() != js.TypeNumber {
-		return 0, fmt.Errorf("%s returned invalid data", funcId)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeNumber)
+	if err != nil {
+		return 0, err
 	}
 
 	return int64(result.Int()), nil
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetLastCompletedCycle() (int64, error) {
+func (engine *JsCollector) GetLastCompletedCycle() (int64, error) {
 	cycle, err := engine.GetCurrentCycleNumber()
 	return cycle - 1, err
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
+type delegatorInfo struct {
+	Address string `json:"address"`
+	Balance int64  `json:"balance"`
+	Emptied bool   `json:"emptied,omitempty"`
+}
+
+type bakersCycleData struct {
+	StakingBalance           int64           `json:"stakingBalance"`
+	DelegatedBalance         int64           `json:"delegatedBalance"`
+	BlockRewards             int64           `json:"blockRewards"`
+	MissedBlockRewards       int64           `json:"missedBlockRewards"`
+	EndorsementRewards       int64           `json:"endorsementRewards"`
+	MissedEndorsementRewards int64           `json:"missedEndorsementRewards"`
+	NumDelegators            int32           `json:"numDelegators"`
+	FrozenDepositLimit       int64           `json:"frozenDepositLimit"`
+	BlockFees                int64           `json:"blockFees"`
+	Delegators               []delegatorInfo `json:"delegators"`
+}
+
+func (engine *JsCollector) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
 	funcId := "getCycleData"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return nil, fmt.Errorf("function %s not found", funcId)
-	}
-
-	result := engine.collector.Call(funcId, cycle)
-	if result.Type() != js.TypeString {
-		return nil, fmt.Errorf("%s returned invalid data", funcId)
-	}
-
-	var data common.BakersCycleData
-	err := json.Unmarshal([]byte(result.String()), &data)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeString, baker.String(), cycle)
 	if err != nil {
 		return nil, err
 	}
 
-	return &data, nil
-}
-
-func (engine *DefaultRpcAndTzktColletor) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {
-	funcId := "wasOperationApplied"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return common.OPERATION_STATUS_UNKNOWN, fmt.Errorf("function %s not found", funcId)
+	var responseData bakersCycleData
+	err = json.Unmarshal([]byte(result.String()), &responseData)
+	if err != nil {
+		return nil, err
 	}
 
-	result := engine.collector.Call(funcId, op.String())
-	if result.Type() != js.TypeString {
-		return common.OPERATION_STATUS_UNKNOWN, fmt.Errorf("%s returned invalid data", funcId)
+	data := &common.BakersCycleData{
+		StakingBalance:          tezos.NewZ(responseData.StakingBalance),
+		DelegatedBalance:        tezos.NewZ(responseData.DelegatedBalance),
+		BlockRewards:            tezos.NewZ(responseData.BlockRewards),
+		IdealBlockRewards:       tezos.NewZ(responseData.BlockRewards).Add64(responseData.MissedBlockRewards),
+		EndorsementRewards:      tezos.NewZ(responseData.EndorsementRewards),
+		IdealEndorsementRewards: tezos.NewZ(responseData.EndorsementRewards).Add64(responseData.MissedEndorsementRewards),
+		NumDelegators:           responseData.NumDelegators,
+		FrozenDepositLimit:      tezos.NewZ(responseData.FrozenDepositLimit),
+		BlockFees:               tezos.NewZ(responseData.BlockFees),
+		Delegators: lo.Map(responseData.Delegators, func(delegator delegatorInfo, _ int) common.Delegator {
+			addr, err := tezos.ParseAddress(delegator.Address)
+			if err != nil {
+				panic(err)
+			}
+			return common.Delegator{
+				Address: addr,
+				Balance: tezos.NewZ(delegator.Balance),
+				Emptied: delegator.Emptied,
+			}
+		}),
+	}
+	return data, nil
+}
+
+func (engine *JsCollector) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {
+	funcId := "wasOperationApplied"
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeString, op.String())
+	if err != nil {
+		return common.OPERATION_STATUS_UNKNOWN, err
 	}
 
 	return common.OperationStatus(result.String()), nil
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetBranch(offset int64) (hash tezos.BlockHash, err error) {
+func (engine *JsCollector) GetBranch(offset int64) (hash tezos.BlockHash, err error) {
 	funcId := "getBranch"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return tezos.ZeroBlockHash, fmt.Errorf("function %s not found", funcId)
-	}
-
-	result := engine.collector.Call(funcId, offset)
-	if result.Type() != js.TypeString {
-		return tezos.ZeroBlockHash, fmt.Errorf("%s returned invalid data", funcId)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeString, offset)
+	if err != nil {
+		return tezos.ZeroBlockHash, err
 	}
 	return tezos.ParseBlockHash(result.String())
 }
 
-func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
+func (engine *JsCollector) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
 	funcId := "simulate"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return nil, fmt.Errorf("function %s not found", funcId)
-	}
-
 	opJson, err := o.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
-	result := engine.collector.Call(funcId, string(opJson), publicKey.String())
-	if result.Type() != js.TypeString {
-		return nil, fmt.Errorf("%s returned invalid data", funcId)
-	}
-
-	var receipt rpc.Receipt
-	err = json.Unmarshal([]byte(result.String()), &receipt)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeString, string(opJson), publicKey.String())
 	if err != nil {
 		return nil, err
 	}
-	return &receipt, nil
+
+	var operation rpc.Operation
+	err = json.Unmarshal([]byte(result.String()), &operation)
+	if err != nil {
+		return nil, err
+	}
+	return &rpc.Receipt{
+		Op: &operation,
+	}, nil
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetBalance(addr tezos.Address) (tezos.Z, error) {
+func (engine *JsCollector) GetBalance(addr tezos.Address) (tezos.Z, error) {
 	funcId := "getBalance"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return tezos.Zero, fmt.Errorf("function %s not found", funcId)
-	}
-
-	result := engine.collector.Call(funcId, addr.String())
-	if result.Type() != js.TypeNumber {
-		return tezos.Zero, fmt.Errorf("%s returned invalid data", funcId)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeNumber, addr.String())
+	if err != nil {
+		return tezos.Zero, err
 	}
 
 	return tezos.ParseZ(result.String())
@@ -167,39 +179,29 @@ type JsCycleMonitor struct {
 
 func (monitor *JsCycleMonitor) Cancel() {
 	funcId := "cancel"
-	if !utils.HasJsFunc(monitor.monitor, funcId) {
-		return
-	}
-
-	monitor.monitor.Call(funcId)
+	wasm.CallJsFunc(monitor.monitor, funcId)
 }
 
 func (monitor *JsCycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error) {
 	funcId := "waitForNextCompletedCycle"
-	if !utils.HasJsFunc(monitor.monitor, funcId) {
-		return 0, fmt.Errorf("function %s not found", funcId)
+
+	result, err := wasm.CallJsFuncExpectResultType(monitor.monitor, funcId, js.TypeNumber, lastProcessedCycle)
+	if err != nil {
+		return 0, err
 	}
 
-	result := monitor.monitor.Call(funcId, lastProcessedCycle)
-	if result.Type() != js.TypeNumber {
-		return 0, fmt.Errorf("%s returned invalid data", funcId)
-	}
 	return int64(result.Int()), nil
 }
 
-func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.CycleMonitorOptions) (common.CycleMonitor, error) {
+func (engine *JsCollector) CreateCycleMonitor(options common.CycleMonitorOptions) (common.CycleMonitor, error) {
 	funcId := "createCycleMonitor"
-	if !utils.HasJsFunc(engine.collector, funcId) {
-		return nil, fmt.Errorf("function %s not found", funcId)
-	}
-
 	optionsJson, err := json.Marshal(options)
 	if err != nil {
 		return nil, err
 	}
-	result := engine.collector.Call(funcId, optionsJson)
-	if result.Type() != js.TypeObject {
-		return nil, fmt.Errorf("%s returned invalid data", funcId)
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeObject, optionsJson)
+	if err != nil {
+		return nil, err
 	}
 
 	return &JsCycleMonitor{
@@ -207,14 +209,11 @@ func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.Cycle
 	}, nil
 }
 
-func (engine *DefaultRpcAndTzktColletor) SendAnalytics(bakerId string, version string) {
+func (engine *JsCollector) SendAnalytics(bakerId string, version string) {
 	go func() {
 		funcId := "sendAnalytics"
-		if !utils.HasJsFunc(engine.collector, funcId) {
-			return
-		}
 
 		body := fmt.Sprintf(`{"bakerId": "%s", "version": "%s"}`, bakerId, version)
-		engine.collector.Call(funcId, body)
+		wasm.CallJsFunc(engine.collector, funcId, body)
 	}()
 }

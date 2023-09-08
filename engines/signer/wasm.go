@@ -8,7 +8,7 @@ import (
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/alis-is/tezpay/utils"
+	"github.com/alis-is/tezpay/wasm"
 )
 
 type JsSigner struct {
@@ -30,12 +30,9 @@ func (jsSigner *JsSigner) GetId() string {
 
 func (jsSigner *JsSigner) GetPKH() tezos.Address {
 	funcId := "getPKH"
-	if !utils.HasJsFunc(jsSigner.signer, funcId) {
-		return tezos.ZeroAddress
-	}
 
-	result := jsSigner.signer.Call(funcId)
-	if result.Type() != js.TypeString {
+	result, err := wasm.CallJsFuncExpectResultType(jsSigner.signer, funcId, js.TypeString)
+	if err != nil {
 		return tezos.ZeroAddress
 	}
 
@@ -44,12 +41,9 @@ func (jsSigner *JsSigner) GetPKH() tezos.Address {
 
 func (jsSigner *JsSigner) GetKey() tezos.Key {
 	funcId := "getKey"
-	if !utils.HasJsFunc(jsSigner.signer, funcId) {
-		return tezos.InvalidKey
-	}
 
-	result := jsSigner.signer.Call(funcId)
-	if result.Type() != js.TypeString {
+	result, err := wasm.CallJsFuncExpectResultType(jsSigner.signer, funcId, js.TypeString)
+	if err != nil {
 		return tezos.InvalidKey
 	}
 
@@ -58,16 +52,9 @@ func (jsSigner *JsSigner) GetKey() tezos.Key {
 
 func (jsSigner *JsSigner) Sign(op *codec.Op) error {
 	funcId := "sign"
-	if !utils.HasJsFunc(jsSigner.signer, funcId) {
-		return nil
-	}
 
-	result := jsSigner.signer.Call(funcId, op.Digest())
-	if result.Type() != js.TypeString {
-		return nil
-	}
+	result, err := wasm.CallJsFuncExpectResultType(jsSigner.signer, funcId, js.TypeString, op.Digest())
 
-	var err error
 	op.Signature, err = tezos.ParseSignature(result.String())
 	return err
 }

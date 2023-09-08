@@ -76,8 +76,9 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	for k, v := range configuration.Delegators.Overrides {
 		_, err := tezos.ParseAddress(k)
 		_assert(err == nil, fmt.Sprintf("configuration.delegators.overrides.%s has to be valid PKH", k))
-		_assert(v.Fee == nil || utils.IsPortionWithin0n1(*v.Fee),
-			getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), *v.Fee))
+		if v.Fee != nil && !utils.IsPortionWithin0n1(*v.Fee) {
+			panic(getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), *v.Fee))
+		}
 	}
 
 	for _, v := range configuration.NotificationConfigurations {
