@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"syscall/js"
 
-	"github.com/alis-is/tezpay/cmd"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
@@ -67,7 +66,7 @@ func generatePayouts(this js.Value, args []js.Value) (result wasm.WasmExecutionR
 	// defer recover PanicStatus
 	defer func() {
 		if r := recover(); r != nil {
-			if panicStatus, ok := r.(cmd.PanicStatus); ok {
+			if panicStatus, ok := r.(common.PanicStatus); ok {
 				result = wasm.NewErrorResult(panicStatus.Error)
 				return
 			} else {

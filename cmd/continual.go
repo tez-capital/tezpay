@@ -24,7 +24,7 @@ var continualCmd = &cobra.Command{
 	Short: "continual payout",
 	Long:  "runs payout until stopped manually",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		endCycle, _ := cmd.Flags().GetInt64(END_CYCLE_FLAG)
@@ -53,12 +53,12 @@ var continualCmd = &cobra.Command{
 			return collector.CreateCycleMonitor(common.CycleMonitorOptions{
 				CheckFrequency: 10,
 			})
-		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
+		}, common.EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 
 		// last completed cycle at the time we started continual mode on
 		onchainCompletedCycle := assertRunWithResultAndErrFmt(func() (int64, error) {
 			return monitor.WaitForNextCompletedCycle(0)
-		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+		}, common.EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 
 		lastProcessedCycle := int64(onchainCompletedCycle)
 		if initialCycle != 0 {
@@ -75,8 +75,8 @@ var continualCmd = &cobra.Command{
 			log.Infof("================  CYCLE %d PROCESSED ===============", cycleToProcess)
 			if endCycle != 0 && lastProcessedCycle >= endCycle {
 				log.Info("end cycle reached, exiting")
-				panic(PanicStatus{
-					ExitCode: EXIT_SUCCESS,
+				panic(common.PanicStatus{
+					ExitCode: common.EXIT_SUCCESS,
 					Message:  "end cycle reached, exiting",
 				})
 			}
@@ -152,7 +152,7 @@ var continualCmd = &cobra.Command{
 			log.Info("checking past reports")
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 				return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
-			}, EXIT_OPERTION_FAILED)
+			}, common.EXIT_OPERTION_FAILED)
 
 			if len(preparationResult.Payouts) == 0 {
 				log.Info("nothing to pay out, skipping")
@@ -174,7 +174,7 @@ var continualCmd = &cobra.Command{
 					MixInContractCalls: mixInContractCalls,
 					MixInFATransfers:   mixInFATransfers,
 				})
-			}, EXIT_OPERTION_FAILED)
+			}, common.EXIT_OPERTION_FAILED)
 
 			// notify
 			failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })

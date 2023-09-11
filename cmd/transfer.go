@@ -22,13 +22,13 @@ var transferCmd = &cobra.Command{
 	Short: "transfers tez to specified address",
 	Long:  "transfers tez to specified address from payout wallet",
 	Run: func(cmd *cobra.Command, args []string) {
-		_, _, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		_, _, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		mutez, _ := cmd.Flags().GetBool(MUTEZ_FLAG)
 
 		if len(args)%2 != 0 {
 			log.Error("invalid number of arguments (expects pairs of destination and amount)")
-			panic(PanicStatus{
-				ExitCode: EXIT_IVNALID_ARGS,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_IVNALID_ARGS,
 				Error:    fmt.Errorf("invalid number of arguments (expects pairs of destination and amount)"),
 			})
 		}
@@ -42,8 +42,8 @@ var transferCmd = &cobra.Command{
 			destination, err := tezos.ParseAddress(args[i])
 			if err != nil {
 				log.Errorf("invalid destination address '%s' - '%s'", args[i], err.Error())
-				panic(PanicStatus{
-					ExitCode: EXIT_IVNALID_ARGS,
+				panic(common.PanicStatus{
+					ExitCode: common.EXIT_IVNALID_ARGS,
 					Error:    fmt.Errorf("invalid destination address '%s' - '%s'", args[i], err.Error()),
 				})
 			}
@@ -51,8 +51,8 @@ var transferCmd = &cobra.Command{
 			amount, err := strconv.ParseFloat(args[i+1], 64)
 			if err != nil {
 				log.Errorf("invalid amount '%s' - '%s'", args[i+1], err.Error())
-				panic(PanicStatus{
-					ExitCode: EXIT_IVNALID_ARGS,
+				panic(common.PanicStatus{
+					ExitCode: common.EXIT_IVNALID_ARGS,
 					Error:    fmt.Errorf("invalid amount '%s' - '%s'", args[i+1], err.Error()),
 				})
 			}
@@ -67,16 +67,16 @@ var transferCmd = &cobra.Command{
 		}
 
 		if err := requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", common.MutezToTezS(total), strings.Join(destinations, ", "))); err != nil {
-			panic(PanicStatus{
-				ExitCode: EXIT_OPERTION_CANCELED,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_CANCELED,
 				Error:    fmt.Errorf("operation canceled"),
 			})
 		}
 		err := transactor.Complete(op, signer.GetKey())
 		if err != nil {
 			log.Errorf("failed to complete tx - %s", err.Error())
-			panic(PanicStatus{
-				ExitCode: EXIT_OPERTION_FAILED,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_FAILED,
 				Error:    fmt.Errorf("failed to complete tx - %s", err.Error()),
 			})
 		}
@@ -84,8 +84,8 @@ var transferCmd = &cobra.Command{
 		err = signer.Sign(op)
 		if err != nil {
 			log.Errorf("failed to sign tx - %s", err.Error())
-			panic(PanicStatus{
-				ExitCode: EXIT_OPERTION_FAILED,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_FAILED,
 				Error:    fmt.Errorf("failed to sign tx - %s", err.Error()),
 			})
 		}
@@ -98,8 +98,8 @@ var transferCmd = &cobra.Command{
 		})
 		if err != nil {
 			log.Errorf("failed to dispatch tx - %s", err.Error())
-			panic(PanicStatus{
-				ExitCode: EXIT_OPERTION_FAILED,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_FAILED,
 				Error:    fmt.Errorf("failed to confirm tx - %s", err.Error()),
 			})
 		}
@@ -107,8 +107,8 @@ var transferCmd = &cobra.Command{
 		err = dispatchResult.WaitForApply()
 		if err != nil {
 			log.Errorf("failed tx - %s", err.Error())
-			panic(PanicStatus{
-				ExitCode: EXIT_OPERTION_FAILED,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_FAILED,
 				Error:    fmt.Errorf("failed tx - %s", err.Error()),
 			})
 		}

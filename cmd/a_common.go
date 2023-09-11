@@ -9,12 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type PanicStatus struct {
-	ExitCode int
-	Error    error
-	Message  string
-}
-
 type ConfigurationAndEngines struct {
 	Configuration *configuration.RuntimeConfiguration
 	Collector     common.CollectorEngine

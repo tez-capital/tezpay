@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/hashicorp/go-version"
@@ -31,7 +32,7 @@ func requireConfirmation(msg string) error {
 }
 
 func assertRequireConfirmation(msg string) {
-	assertRunWithParam(requireConfirmation, msg, EXIT_OPERTION_CANCELED)
+	assertRunWithParam(requireConfirmation, msg, common.EXIT_OPERTION_CANCELED)
 }
 
 type versionInfo struct {
@@ -87,8 +88,8 @@ func promptIfNewVersionAvailable() {
 		err := requireConfirmation(fmt.Sprintf("You are not running latest version of tezpay (new version : '%s', current version: '%s').\n Do you want to continue anyway?", latestVersion, constants.VERSION))
 		if err != nil && err.Error() == "not confirmed" {
 			log.Infof("You can download new version here:\n\nhttps://github.com/%s/releases\n", constants.TEZPAY_REPOSITORY)
-			panic(PanicStatus{
-				ExitCode: EXIT_OPERTION_CANCELED,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_CANCELED,
 				Error:    errors.New("user canceled"),
 			})
 		}

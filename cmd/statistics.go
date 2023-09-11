@@ -20,9 +20,9 @@ var statisticsCmd = &cobra.Command{
 		n, _ := cmd.Flags().GetInt(CYCLES_FLAG)
 		lastCycle, _ := cmd.Flags().GetInt64(LAST_CYCLE_FLAG)
 
-		config, collector, _, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, _, _ := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		if lastCycle == 0 {
-			lastCycle = assertRunWithResult(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED)
+			lastCycle = assertRunWithResult(collector.GetLastCompletedCycle, common.EXIT_OPERTION_FAILED)
 		}
 		fsReporter := reporter_engines.NewFileSystemReporter(config)
 

@@ -23,7 +23,7 @@ func GeneratePayouts(configurationAndEngines *ConfigurationAndEngines, options G
 	defer extension.CloseExtensions()
 
 	if cycle <= 0 {
-		lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+		lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, common.EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 		cycle = lastCompletedCycle + cycle
 	}
 
@@ -37,7 +37,7 @@ func GeneratePayouts(configurationAndEngines *ConfigurationAndEngines, options G
 				Cycle:            cycle,
 				SkipBalanceCheck: options.SkipBalanceCheck,
 			})
-	}, EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
+	}, common.EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
 }
 
 var generatePayoutsCmd = &cobra.Command{
@@ -48,7 +48,7 @@ var generatePayoutsCmd = &cobra.Command{
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 
-		configurationAndEngines := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE)
+		configurationAndEngines := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE)
 		generationResult := GeneratePayouts(configurationAndEngines, GeneratePayoutsOptions{
 			Cycle:            cycle,
 			SkipBalanceCheck: skipBalanceCheck,
@@ -58,7 +58,7 @@ var generatePayoutsCmd = &cobra.Command{
 		if targetFile != "" {
 			assertRun(func() error {
 				return writePayoutBlueprintToFile(targetFile, generationResult)
-			}, EXIT_PAYOUT_WRITE_FAILURE)
+			}, common.EXIT_PAYOUT_WRITE_FAILURE)
 			return
 		}
 

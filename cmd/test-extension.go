@@ -3,6 +3,7 @@
 package cmd
 
 import (
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/extension"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +19,7 @@ var extensionTestCmd = &cobra.Command{
 	Short: "extension test",
 	Long:  "initializes and executes test hook agains extensions",
 	Run: func(cmd *cobra.Command, args []string) {
-		assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseScopedExtensions()
 
 		data := testHookData{

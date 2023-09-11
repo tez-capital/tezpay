@@ -97,8 +97,8 @@ Copyright © %d alis.is
 			}
 			if err := state.Init(workingDirectory, stateOptions); err != nil {
 				log.Errorf("Failed to initialize state: %s", err.Error())
-				panic(PanicStatus{
-					ExitCode: EXIT_STATE_LOAD_FAILURE,
+				panic(common.PanicStatus{
+					ExitCode: common.EXIT_STATE_LOAD_FAILURE,
 					Error:    fmt.Errorf("Failed to initialize state: %s", err.Error()),
 				})
 			}

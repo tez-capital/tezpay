@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration/seed"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
@@ -58,13 +59,13 @@ var generateConfigurationCmd = &cobra.Command{
 		// load source bytes
 		sourceBytes := assertRunWithResultAndErrFmt(func() ([]byte, error) {
 			return os.ReadFile(sourceFile)
-		}, EXIT_CONFIGURATION_LOAD_FAILURE, "failed to read source file - %s")
+		}, common.EXIT_CONFIGURATION_LOAD_FAILURE, "failed to read source file - %s")
 
 		seededBytes, err := seed.Generate(sourceBytes, enums.EConfigurationSeedKind(args[0]))
 		if err != nil {
 			log.Errorf("failed to generate configuration - %s", err)
-			panic(PanicStatus{
-				ExitCode: EXIT_CONFIGURATION_GENERATE_FAILURE,
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_CONFIGURATION_GENERATE_FAILURE,
 				Error:    fmt.Errorf("failed to generate configuration - %s", err),
 			})
 		}
@@ -78,7 +79,7 @@ var generateConfigurationCmd = &cobra.Command{
 				}
 			}
 			return os.WriteFile(destiantionFile, seededBytes, 0644)
-		}, EXIT_CONFIGURATION_SAVE_FAILURE, "failed to save configuration file - %s")
+		}, common.EXIT_CONFIGURATION_SAVE_FAILURE, "failed to save configuration file - %s")
 		log.Info("tezpay configuration generated successfully")
 	},
 }
