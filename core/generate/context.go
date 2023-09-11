@@ -53,14 +53,3 @@ func NewPayoutGenerationContext(configuration *configuration.RuntimeConfiguratio
 func (ctx *PayoutGenerationContext) GetConfiguration() *configuration.RuntimeConfiguration {
 	return ctx.configuration
 }
-
-// func (ctx *PayoutGenerationContext) Wrap() WrappedStageResult {
-// 	return WrappedStageResult{
-// 		Ctx: ctx,
-// 		Err: nil,
-// 	}
-// }
-
-// func (ctx *PayoutGenerationContext) Run(stage WrappedStage, options *common.GeneratePayoutsOptions) WrappedStageResult {
-// 	return stage(ctx.Wrap(), options)
-// }

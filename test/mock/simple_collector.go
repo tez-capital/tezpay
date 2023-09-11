@@ -51,6 +51,10 @@ func (engine *SimpleColletor) SetOpts(opts *SimpleCollectorOpts) {
 	engine.opts = opts
 }
 
+func (engine *SimpleColletor) IsRevealed(address tezos.Address) (bool, error) {
+	return true, nil
+}
+
 func (engine *SimpleColletor) GetOpts() *SimpleCollectorOpts {
 	return engine.opts
 }

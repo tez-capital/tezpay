@@ -29,6 +29,7 @@ type CollectorEngine interface {
 	CreateCycleMonitor(options CycleMonitorOptions) (CycleMonitor, error)
 	SendAnalytics(bakerId string, version string)
 	GetCurrentProtocol() (tezos.ProtocolHash, error)
+	IsRevealed(addr tezos.Address) (bool, error)
 }
 
 type SignerEngine interface {

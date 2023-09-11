@@ -3,6 +3,7 @@ package generate
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
@@ -81,14 +82,16 @@ func estimateBatchFees(batch []PayoutCandidateWithBondAmountAndFee, ctx *PayoutG
 
 	costs := receipt.Op.Costs()
 	if len(costs) < 3 {
-		utils.PanicWithMetadata("partial estimate", "db8b7d5f4e34cc8b0fe42ecd43aa1ad7c8649bb3c0cd1f4889a4664a6c99910b", receipt, batch)
+		utils.PanicWithMetadata("partial estimate", "db8b7d5f4e34cc8b0fe42ecd43aa1ad7c8649bb3c0cd1f4889a4664a6c99910b", costs, batch)
 	}
 
 	serializationGas := costs[0].GasUsed - costs[len(costs)-1].GasUsed
 	// remove first and last contents and limits it is only burn tx to measure serialization cost
 	costs = costs[1 : len(costs)-1]
 	if len(costs) != len(batch) {
-		utils.PanicWithMetadata("partial estimate", "d93813b9a34cf314a9dceb648736061ef499836c3a04b4be2239c0c7da2c3c47", receipt, batch)
+		fmt.Println(len(costs), len(batch))
+		os.Exit(1)
+		utils.PanicWithMetadata("partial estimate", "d93813b9a34cf314a9dceb648736061ef499836c3a04b4be2239c0c7da2c3c47", costs, batch)
 	}
 	op.Contents = op.Contents[1 : len(op.Contents)-1]
 	result := make([]PayoutCandidateSimulationResult, 0)
