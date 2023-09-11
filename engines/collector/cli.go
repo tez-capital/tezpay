@@ -67,6 +67,14 @@ func (engine *DefaultRpcAndTzktColletor) GetCurrentProtocol() (tezos.ProtocolHas
 	return params.Protocol, nil
 }
 
+func (engine *DefaultRpcAndTzktColletor) IsRevealed(addr tezos.Address) (bool, error) {
+	state, err := engine.rpc.GetContractExt(defaultCtx, addr, rpc.Head)
+	if err != nil {
+		return false, err
+	}
+	return state.IsRevealed(), nil
+}
+
 func (engine *DefaultRpcAndTzktColletor) GetCurrentCycleNumber() (int64, error) {
 	head, err := engine.rpc.GetHeadBlock(defaultCtx)
 	if err != nil {

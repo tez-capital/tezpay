@@ -3,6 +3,7 @@ package generate
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
