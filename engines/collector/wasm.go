@@ -50,6 +50,16 @@ func (engine *JsCollector) GetCurrentProtocol() (tezos.ProtocolHash, error) {
 	return tezos.ParseProtocolHash(result.String())
 }
 
+func (engine *JsCollector) IsRevealed(addr tezos.Address) (bool, error) {
+	funcId := "IsRevealed"
+	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeBoolean, addr.String())
+	if err != nil {
+		return false, err
+	}
+
+	return result.Bool(), nil
+}
+
 func (engine *JsCollector) GetCurrentCycleNumber() (int64, error) {
 	funcId := "getCurrentCycleNumber"
 	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeNumber)
