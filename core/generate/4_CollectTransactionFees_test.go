@@ -206,7 +206,6 @@ func TestCollectTransactionFees(t *testing.T) {
 	})
 	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
 	assert.Panics(func() {
-
 		_, err := CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
 		t.Log(err)
 	})
