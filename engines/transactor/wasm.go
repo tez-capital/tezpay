@@ -78,6 +78,10 @@ type JsTezosParams struct {
 	BlockLevel int64 `json:"block_level"`
 }
 
+func (params *JsTezosParams) getParams() *JsTezosParams {
+	params := jsParams.WithProtocol(jsParams.Protocol).WithBlock(jsParams.BlockLevel)
+}
+
 func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) error {
 	funcId := "getChainParams"
 

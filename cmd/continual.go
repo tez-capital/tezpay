@@ -9,6 +9,7 @@ import (
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/extension"
@@ -17,6 +18,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var continualCmd = &cobra.Command{
@@ -182,6 +184,13 @@ var continualCmd = &cobra.Command{
 				log.Errorf("%d of operations failed, retries in 5 minutes", failedCount)
 				time.Sleep(time.Minute * 5)
 				continue
+			}
+			// TODO: this should be probably configurable - let admin choose which invalid payouts should be notified about
+			payoutsToNotifyAdminAbout := lo.Filter(preparationResult.Payouts, func(item common.PayoutRecipe, index int) bool {
+				return !item.IsValid && slices.Contains(enums.INVALID_REASONS_TO_BE_NOTIFIED_ABOUT, enums.EPayoutInvalidReason(item.Note))
+			})
+			if len(payoutsToNotifyAdminAbout) > 0 {
+				notifyAdmin(config, fmt.Sprintf("During payout of cycle %d we found %d problematic payouts", cycleToProcess, len(payoutsToNotifyAdminAbout)))
 			}
 			if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 				notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)

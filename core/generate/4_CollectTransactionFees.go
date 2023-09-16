@@ -173,10 +173,10 @@ func estimateTransactionFees(payouts []PayoutCandidateWithBondAmountAndFee, ctx 
 			log.Tracef("failed to estimate tx costs of batch n.%d (falling back to one by one estimate) - %s", index, err.Error())
 			return lo.Map(batch, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 				simulationResults, err := estimateBatchFees([]PayoutCandidateWithBondAmountAndFee{candidate}, ctx)
-				if len(simulationResults) == 0 {
-					err = fmt.Errorf("unexpected simulation results: %v", simulationResults)
-				}
-				if err != nil {
+				if err != nil || len(simulationResults) == 0 {
+					if err == nil {
+						err = fmt.Errorf("unexpected simulation results: %v", simulationResults)
+					}
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')\nerror: %s", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind, err.Error())
 					candidate.IsInvalid = true
 					candidate.InvalidBecause = enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS

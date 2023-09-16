@@ -99,7 +99,7 @@ Copyright © %d alis.is
 				log.Errorf("Failed to initialize state: %s", err.Error())
 				panic(common.PanicStatus{
 					ExitCode: common.EXIT_STATE_LOAD_FAILURE,
-					Error:    fmt.Errorf("Failed to initialize state: %s", err.Error()),
+					Error:    fmt.Errorf("failed to initialize state: %s", err.Error()),
 				})
 			}
 
