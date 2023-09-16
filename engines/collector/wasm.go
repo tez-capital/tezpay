@@ -51,7 +51,7 @@ func (engine *JsCollector) GetCurrentProtocol() (tezos.ProtocolHash, error) {
 }
 
 func (engine *JsCollector) IsRevealed(addr tezos.Address) (bool, error) {
-	funcId := "IsRevealed"
+	funcId := "isRevealed"
 	result, err := wasm.CallJsFuncExpectResultType(engine.collector, funcId, js.TypeBoolean, addr.String())
 	if err != nil {
 		return false, err

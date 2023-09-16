@@ -60,7 +60,7 @@ func (engine *JsTransactor) RefreshParams() error {
 func (engine *JsTransactor) GetLimits() (*common.OperationLimits, error) {
 	funcId := "getLimits"
 
-	result, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeObject)
+	result, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeString)
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +73,11 @@ func (engine *JsTransactor) GetLimits() (*common.OperationLimits, error) {
 	return &limits, nil
 }
 
+type JsTezosParams struct {
+	tezos.Params
+	BlockLevel int64 `json:"block_level"`
+}
+
 func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) error {
 	funcId := "getChainParams"
 
@@ -81,15 +86,16 @@ func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) error {
 		return err
 	}
 
-	var params tezos.Params
-	err = json.Unmarshal([]byte(paramsJson.String()), &params)
+	var jsParams JsTezosParams
+	err = json.Unmarshal([]byte(paramsJson.String()), &jsParams)
 	if err != nil {
 		return err
 	}
-
-	op = op.WithParams(&params)
+	params := jsParams.WithProtocol(jsParams.Protocol).WithBlock(jsParams.BlockLevel)
 
 	// TODO: counter and branch
+
+	op = op.WithParams(params)
 
 	return err
 }
