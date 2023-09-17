@@ -3,6 +3,7 @@
 package transactor_engines
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"syscall/js"
@@ -65,12 +66,13 @@ func (engine *JsTransactor) GetLimits() (*common.OperationLimits, error) {
 		return nil, err
 	}
 
-	var limits common.OperationLimits
-	err = json.Unmarshal([]byte(result.String()), &limits)
+	var jsLimits common.OperationLimits
+	err = json.Unmarshal([]byte(result.String()), &jsLimits)
 	if err != nil {
 		return nil, err
 	}
-	return &limits, nil
+
+	return &jsLimits, nil
 }
 
 type JsTezosParams struct {
@@ -78,30 +80,69 @@ type JsTezosParams struct {
 	BlockLevel int64 `json:"block_level"`
 }
 
-func (params *JsTezosParams) getParams() *JsTezosParams {
-	params := jsParams.WithProtocol(jsParams.Protocol).WithBlock(jsParams.BlockLevel)
-}
-
-func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) error {
+func (engine *JsTransactor) getParams() (*tezos.Params, error) {
 	funcId := "getChainParams"
 
 	paramsJson, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeString)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var jsParams JsTezosParams
 	err = json.Unmarshal([]byte(paramsJson.String()), &jsParams)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	params := jsParams.WithProtocol(jsParams.Protocol).WithBlock(jsParams.BlockLevel)
+	params := jsParams.WithChainId(jsParams.ChainId).WithProtocol(jsParams.Protocol).WithBlock(jsParams.BlockLevel)
+	return params, nil
+}
 
-	// TODO: counter and branch
+type JsTezosOperationContextExtra struct {
+	ChainId *tezos.ChainIdHash `json:"chain_id"` // optional, used for remote signing only
+	TTL     int64              `json:"ttl"`      // optional, specify TTL in blocks
+	Params  *tezos.Params      `json:"params"`   // optional, define protocol to encode for
+	Source  tezos.Address      `json:"source"`   // optional, used as manager/sender
+}
+
+type JsTezosOperationContext struct {
+	Operation *codec.Op                    `json:"operation"`
+	Extra     JsTezosOperationContextExtra `json:"extra"`
+}
+
+func (op *JsTezosOperationContext) ToOp() *codec.Op {
+	op.Operation.ChainId = op.Extra.ChainId
+	op.Operation.TTL = op.Extra.TTL
+	op.Operation.Params = op.Extra.Params
+	op.Operation.Source = op.Extra.Source
+	return op.Operation
+}
+
+func (engine *JsTransactor) Complete(op *codec.Op, key tezos.Key) (*codec.Op, error) {
+	funcId := "complete"
+
+	params, err := engine.getParams()
+	if err != nil {
+		return nil, err
+	}
 
 	op = op.WithParams(params)
+	operation := JsTezosOperationContext{op, JsTezosOperationContextExtra{op.ChainId, op.TTL, op.Params, op.Source}}
+	operationJson, err := json.Marshal(operation)
+	if err != nil {
+		return nil, err
+	}
+	jsResult, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeString, string(operationJson), key.String())
+	if err != nil {
+		return nil, err
+	}
 
-	return err
+	err = json.Unmarshal([]byte(jsResult.String()), &operation)
+	if err != nil {
+		return nil, err
+	}
+
+	result := operation.ToOp()
+	return result, err
 }
 
 func (engine *JsTransactor) Dispatch(op *codec.Op, opts *common.DispatchOptions) (common.OpResult, error) {
@@ -114,16 +155,14 @@ func (engine *JsTransactor) Dispatch(op *codec.Op, opts *common.DispatchOptions)
 		}
 	}
 
-	opJson, err := op.MarshalJSON()
-	if err != nil {
-		return nil, err
-	}
+	opBytes := op.Bytes()
+	opHex := hex.EncodeToString(opBytes)
 
 	optsJson, err := json.Marshal(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeObject, string(opJson), string(optsJson))
+	result, err := wasm.CallJsFuncExpectResultType(engine.transactor, funcId, js.TypeObject, opHex, string(optsJson))
 	return &JsTransactorOpResult{jsResult: result}, err
 }

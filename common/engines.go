@@ -35,7 +35,7 @@ type CollectorEngine interface {
 	GetLastCompletedCycle() (int64, error)
 	GetCycleData(baker tezos.Address, cycle int64) (*BakersCycleData, error)
 	WasOperationApplied(opHash tezos.OpHash) (OperationStatus, error)
-	GetBranch(offset int64) (tezos.BlockHash, error)
+	//GetBranch(offset int64) (tezos.BlockHash, error)
 	Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error)
 	GetBalance(pkh tezos.Address) (tezos.Z, error)
 	CreateCycleMonitor(options CycleMonitorOptions) (CycleMonitor, error)
@@ -65,7 +65,7 @@ type DispatchOptions struct {
 type TransactorEngine interface {
 	GetId() string
 	RefreshParams() error
-	Complete(op *codec.Op, key tezos.Key) error
+	Complete(op *codec.Op, key tezos.Key) (*codec.Op, error)
 	Dispatch(op *codec.Op, opts *DispatchOptions) (OpResult, error)
 	//Broadcast(op *codec.Op) (tezos.OpHash, error)
 	//Send(op *codec.Op, opts *rpc.CallOptions) (*rpc.Receipt, error)

@@ -72,7 +72,7 @@ var transferCmd = &cobra.Command{
 				Error:    fmt.Errorf("operation canceled"),
 			})
 		}
-		err := transactor.Complete(op, signer.GetKey())
+		op, err := transactor.Complete(op, signer.GetKey())
 		if err != nil {
 			log.Errorf("failed to complete tx - %s", err.Error())
 			panic(common.PanicStatus{

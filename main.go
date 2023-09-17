@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/alis-is/tezpay/cmd"
@@ -12,14 +13,26 @@ import (
 
 func main() {
 	defer func() {
-		if r := recover(); r != nil {
-			if panicStatus, ok := r.(common.PanicStatus); ok {
-				os.Exit(panicStatus.ExitCode)
-			} else {
-				log.Fatal("Unhandled panic")
+		if !containsDebugFlag(os.Args) {
+			if r := recover(); r != nil {
+				if panicStatus, ok := r.(common.PanicStatus); ok {
+					os.Exit(panicStatus.ExitCode)
+				} else {
+					fmt.Println(r)
+					log.Fatal("Unhandled panic")
+				}
 			}
 		}
 	}()
 
 	cmd.Execute()
+}
+
+func containsDebugFlag(args []string) bool {
+	for _, arg := range args {
+		if arg == "--"+cmd.DEBUG_FLAG {
+			return true
+		}
+	}
+	return false
 }

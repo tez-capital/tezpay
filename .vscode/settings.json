@@ -2,7 +2,7 @@
 	"go.inferGopath": false,
 	"liveServer.settings.port": 5558,
 	"go.toolsEnvVars": {
-		// "GOARCH": "wasm",
-		// "GOOS": "js"
+		"GOARCH": "wasm",
+		"GOOS": "js"
 	}
 }

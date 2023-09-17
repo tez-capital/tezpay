@@ -97,7 +97,7 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 		})
 	}
 
-	err := transactor.Complete(op, signer.GetKey())
+	op, err := transactor.Complete(op, signer.GetKey())
 	if err != nil {
 		return nil, err
 	}

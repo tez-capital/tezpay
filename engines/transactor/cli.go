@@ -127,10 +127,10 @@ func (transactor *DefaultRpcTransactor) GetLimits() (*common.OperationLimits, er
 	}, nil
 }
 
-func (transactor *DefaultRpcTransactor) Complete(op *codec.Op, key tezos.Key) error {
+func (transactor *DefaultRpcTransactor) Complete(op *codec.Op, key tezos.Key) (*codec.Op, error) {
 	op = op.WithParams(transactor.rpc.Params)
 	err := transactor.rpc.Complete(context.Background(), op, key)
-	return err
+	return op, err
 }
 
 func (transactor *DefaultRpcTransactor) initOpResult(opHash tezos.OpHash, opts *common.DispatchOptions) (*DefaultRpcTransactorOpResult, error) {

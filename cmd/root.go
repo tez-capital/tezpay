@@ -121,6 +121,8 @@ func init() {
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
 	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
+	RootCmd.PersistentFlags().Bool(DEBUG_FLAG, false, "run in debug mode")
+	RootCmd.PersistentFlags().MarkHidden(DEBUG_FLAG)
 	RootCmd.PersistentFlags().Bool(DISABLE_DONATION_PROMPT_FLAG, false, "Disable donation prompt")
 	RootCmd.PersistentFlags().String(PAY_ONLY_ADDRESS_PREFIX, "", "Pays only to addresses starting with the prefix (e.g. KT, usually you do not want to use this, just for recovering in case of issues)")
 	RootCmd.PersistentFlags().SetInterspersed(false)

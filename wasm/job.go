@@ -10,7 +10,7 @@ type Job struct {
 	Id            string
 	This          js.Value
 	Args          []js.Value
-	ResultChannel chan WasmExecutionResult
+	ResultChannel chan *WasmExecutionResult
 }
 
 func NewJob(id string, this js.Value, args []js.Value) Job {
@@ -18,7 +18,7 @@ func NewJob(id string, this js.Value, args []js.Value) Job {
 		Id:            id,
 		This:          this,
 		Args:          args,
-		ResultChannel: make(chan WasmExecutionResult),
+		ResultChannel: make(chan *WasmExecutionResult),
 	}
 }
 

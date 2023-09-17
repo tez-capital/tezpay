@@ -15,6 +15,7 @@ var (
 	ErrorFailedToLoadConfiguration           = errors.New("failed to load configuration")
 	ErrorFailedToInitiaiizeCollector         = errors.New("failed to initialize collector")
 	ErrorFailedToInitiaiizeSigner            = errors.New("failed to initialize signer")
+	ErrorFailedToInitiaiizeTransactor        = errors.New("failed to initialize transactor")
 	ErrorFailedToInitiaiizeNotificatorLoader = errors.New("failed to initialize notificator loader")
 	ErrorInvalidPayoutOptions                = errors.New("invalid payout options")
 	ErrorFailedToUnmarshalPayoutOptions      = errors.New("failed to unmarshal payout options")
@@ -29,15 +30,15 @@ type WasmExecutionResult struct {
 	Error   error       `json:"error,omitempty"`
 }
 
-func NewErrorResult(err error) WasmExecutionResult {
-	return WasmExecutionResult{
+func NewErrorResult(err error) *WasmExecutionResult {
+	return &WasmExecutionResult{
 		Success: false,
 		Error:   err,
 	}
 }
 
-func NewSuccessResult(data interface{}) WasmExecutionResult {
-	return WasmExecutionResult{
+func NewSuccessResult(data interface{}) *WasmExecutionResult {
+	return &WasmExecutionResult{
 		Success: true,
 		Data:    data,
 	}

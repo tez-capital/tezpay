@@ -3,6 +3,7 @@
 package signer_engines
 
 import (
+	"encoding/hex"
 	"fmt"
 	"syscall/js"
 
@@ -53,7 +54,12 @@ func (jsSigner *JsSigner) GetKey() tezos.Key {
 func (jsSigner *JsSigner) Sign(op *codec.Op) error {
 	funcId := "sign"
 
-	result, err := wasm.CallJsFuncExpectResultType(jsSigner.signer, funcId, js.TypeString, op.Digest())
+	opBytes := op.Bytes()
+	opHex := hex.EncodeToString(opBytes)
+	result, err := wasm.CallJsFuncExpectResultType(jsSigner.signer, funcId, js.TypeString, opHex)
+	if err != nil {
+		return err
+	}
 
 	op.Signature, err = tezos.ParseSignature(result.String())
 	return err
