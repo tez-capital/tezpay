@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package reporter_engines
 
 import (
