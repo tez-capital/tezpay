@@ -4,7 +4,9 @@
 Hey👋 I am PayBuddy close friend of your BakeBuddy 👨‍🍳 you likely know. I am determined to provide you best experience with your baker payouts.
 Because of that I prepared something special for you - TEZPAY.
 
-See [Command Reference](docs/cmd) for details about commands. 
+See [Command Reference](https://docs.tez.capital/tezpay/reference/) for details about commands. 
+
+⚠️ **Please note that this repository is under active development and is not yet audited for security. Use it at your own risk.** ⚠️
 
 ## Contributing
 
