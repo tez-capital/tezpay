@@ -6,7 +6,7 @@ Because of that I prepared something special for you - TEZPAY.
 
 See [Command Reference](https://docs.tez.capital/tezpay/reference/) for details about commands. 
 
-⚠️ **Please note that this repository is under active development and is not yet audited for security. Use it at your own risk.** ⚠️
+⚠️ **This repo is in active development and hasn't been security audited. Use at your own risk.** ⚠️
 
 ## Contributing
 
