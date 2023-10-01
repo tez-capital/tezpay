@@ -58,6 +58,20 @@ func Init(workingDirectory string, options StateInitOptions) error {
 	return errors.Join(Global.validateReportsDirectory())
 }
 
+// TODO: coinsolidate to reflect WASM properties/configurables
+func InitWASMState(options StateInitOptions) error {
+	Global = &State{
+		workingDirectory:         "",
+		wantsJsonOutput:          options.WantsJsonOutput,
+		hasInjectedConfiguration: false,
+		SignerOverride:           options.SignerOverride,
+		debug:                    options.Debug,
+		disableDonationPrompt:    options.DisableDonationPrompt,
+		payOnlyAddressPrefix:     options.PayOnlyAddressPrefix,
+	}
+	return nil
+}
+
 func (state *State) validateReportsDirectory() error {
 	reportsDirectoryPath := state.GetReportsDirectory()
 	if _, err := os.Stat(reportsDirectoryPath); os.IsNotExist(err) {

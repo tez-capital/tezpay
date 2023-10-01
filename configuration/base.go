@@ -3,7 +3,6 @@ package configuration
 import (
 	"encoding/json"
 	"math"
-	"os"
 	"strconv"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -201,40 +199,6 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	}, nil
 }
 
-func Load() (*RuntimeConfiguration, error) {
-	hasInjectedConfiguration, configurationBytes := state.Global.GetInjectedConfiguration()
-	if !hasInjectedConfiguration {
-		log.Debugf("loading configuration from '%s'", state.Global.GetConfigurationFilePath())
-		// we load configuration from file if it wasnt injected
-		var err error
-		configurationBytes, err = os.ReadFile(state.Global.GetConfigurationFilePath())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		log.Debug("using injected configuration")
-	}
-
-	log.Debug("loading version info")
-	versionInfo := common.ConfigurationVersionInfo{}
-	err := hjson.Unmarshal(configurationBytes, &versionInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Trace("migrating if required")
-	configuration, err := Migrate(configurationBytes, &versionInfo, !hasInjectedConfiguration)
-	if err != nil {
-		return nil, err
-	}
-	runtime, err := ConfigurationToRuntimeConfiguration(configuration)
-	if err != nil {
-		return nil, err
-	}
-	err = runtime.Validate()
-	return runtime, err
-}
-
 func LoadFromString(configurationBytes []byte) (*RuntimeConfiguration, error) {
 	log.Debug("loading version info")
 	versionInfo := common.ConfigurationVersionInfo{}
@@ -244,7 +208,7 @@ func LoadFromString(configurationBytes []byte) (*RuntimeConfiguration, error) {
 	}
 
 	log.Trace("migrating if required")
-	configuration, err := Migrate(configurationBytes, &versionInfo, false)
+	configuration, err := Migrate(configurationBytes, &versionInfo)
 	if err != nil {
 		return nil, err
 	}

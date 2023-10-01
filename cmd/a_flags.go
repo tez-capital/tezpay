@@ -1,6 +1,7 @@
 package cmd
 
 const (
+	DEBUG_FLAG                       = "debug"
 	CYCLE_FLAG                       = "cycle"
 	END_CYCLE_FLAG                   = "end-cycle"
 	CONFIRM_FLAG                     = "confirm"

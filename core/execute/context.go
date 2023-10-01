@@ -7,10 +7,9 @@ import (
 )
 
 type StageData struct {
-	Limits                        *common.OperationLimits
-	ReportsOfPastSuccesfulPayouts []common.PayoutReport
-	Batches                       []common.RecipeBatch
-	BatchResults                  common.BatchResults
+	Limits       *common.OperationLimits
+	Batches      []common.RecipeBatch
+	BatchResults common.BatchResults
 }
 
 type PayoutExecutionContext struct {
@@ -20,8 +19,9 @@ type PayoutExecutionContext struct {
 	protectedSection *utils.ProtectedSection
 	StageData        *StageData
 
-	Payouts         []common.PayoutRecipe
-	PayoutBlueprint *common.CyclePayoutBlueprint
+	Payouts                       []common.PayoutRecipe
+	ReportsOfPastSuccesfulPayouts []common.PayoutReport
+	PayoutBlueprint               *common.CyclePayoutBlueprint
 }
 
 func (ctx *PayoutExecutionContext) GetConfiguration() *configuration.RuntimeConfiguration {
@@ -38,11 +38,10 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 		configuration:               configuration,
 
 		protectedSection: utils.NewProtectedSection("executing payouts, job will be terminated after next batch"),
-		StageData:        &StageData{
-			ReportsOfPastSuccesfulPayouts: preparationResult.ReportsOfPastSuccesfulPayouts,
-		},
+		StageData:        &StageData{},
 
-		Payouts:         preparationResult.Payouts,
-		PayoutBlueprint: preparationResult.Blueprint,
+		ReportsOfPastSuccesfulPayouts: preparationResult.ReportsOfPastSuccesfulPayouts,
+		Payouts:                       preparationResult.Payouts,
+		PayoutBlueprint:               preparationResult.Blueprint,
 	}, nil
 }

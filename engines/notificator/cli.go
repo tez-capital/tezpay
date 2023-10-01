@@ -1,4 +1,6 @@
-package notifications
+//go:build !wasm
+
+package notificator_engines
 
 import (
 	"fmt"
@@ -6,8 +8,8 @@ import (
 	"github.com/alis-is/tezpay/common"
 )
 
-func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.NotificatorEngine, error) {
-	switch kind {
+func LoadNotificators(kind string, configuration []byte) (common.NotificatorEngine, error) {
+	switch NotificatorKind(kind) {
 	case TWITTER_NOTIFICATOR:
 		return InitTwitterNotificator(configuration)
 	case DISCORD_NOTIFICATOR:
@@ -23,8 +25,8 @@ func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.Notifi
 	}
 }
 
-func ValidateNotificatorConfiguration(kind NotificatorKind, configuration []byte) error {
-	switch kind {
+func ValidateNotificatorConfiguration(kind string, configuration []byte) error {
+	switch NotificatorKind(kind) {
 	case TWITTER_NOTIFICATOR:
 		return ValidateTwitterConfiguration(configuration)
 	case DISCORD_NOTIFICATOR:

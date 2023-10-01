@@ -38,7 +38,7 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 		return ctx, fmt.Errorf("failed to collect cycle data through collector %s - %s", ctx.GetCollector().GetId(), err.Error())
 	}
 
-	log.Debugf("genrating payout candidates")
+	log.Debugf("genrating payout candidates for %d delegators", len(ctx.StageData.CycleData.Delegators))
 
 	payoutCandidates := lo.Map(ctx.StageData.CycleData.Delegators, func(delegator common.Delegator, _ int) PayoutCandidate {
 		payoutCandidate := DelegatorToPayoutCandidate(delegator, configuration)

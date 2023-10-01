@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package collector_engines
 
 import (
@@ -115,7 +117,7 @@ func (engine *DefaultRpcAndTzktColletor) GetBalance(addr tezos.Address) (tezos.Z
 
 func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.CycleMonitorOptions) (common.CycleMonitor, error) {
 	ctx := context.Background()
-	monitor, err := common.NewCycleMonitor(ctx, engine.rpc, options)
+	monitor, err := NewCycleMonitor(ctx, engine.rpc, options)
 	if err != nil {
 		return nil, err
 	}

@@ -1,13 +1,15 @@
+//go:build !wasm
+
 package cmd
 
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/extension"
@@ -16,6 +18,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var continualCmd = &cobra.Command{
@@ -23,7 +26,7 @@ var continualCmd = &cobra.Command{
 	Short: "continual payout",
 	Long:  "runs payout until stopped manually",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		endCycle, _ := cmd.Flags().GetInt64(END_CYCLE_FLAG)
@@ -52,12 +55,12 @@ var continualCmd = &cobra.Command{
 			return collector.CreateCycleMonitor(common.CycleMonitorOptions{
 				CheckFrequency: 10,
 			})
-		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
+		}, common.EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 
 		// last completed cycle at the time we started continual mode on
 		onchainCompletedCycle := assertRunWithResultAndErrFmt(func() (int64, error) {
 			return monitor.WaitForNextCompletedCycle(0)
-		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+		}, common.EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 
 		lastProcessedCycle := int64(onchainCompletedCycle)
 		if initialCycle != 0 {
@@ -74,7 +77,10 @@ var continualCmd = &cobra.Command{
 			log.Infof("================  CYCLE %d PROCESSED ===============", cycleToProcess)
 			if endCycle != 0 && lastProcessedCycle >= endCycle {
 				log.Info("end cycle reached, exiting")
-				os.Exit(0)
+				panic(common.PanicStatus{
+					ExitCode: common.EXIT_SUCCESS,
+					Message:  "end cycle reached, exiting",
+				})
 			}
 		}
 
@@ -148,7 +154,7 @@ var continualCmd = &cobra.Command{
 			log.Info("checking past reports")
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 				return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
-			}, EXIT_OPERTION_FAILED)
+			}, common.EXIT_OPERTION_FAILED)
 
 			if len(preparationResult.Payouts) == 0 {
 				log.Info("nothing to pay out, skipping")
@@ -170,7 +176,7 @@ var continualCmd = &cobra.Command{
 					MixInContractCalls: mixInContractCalls,
 					MixInFATransfers:   mixInFATransfers,
 				})
-			}, EXIT_OPERTION_FAILED)
+			}, common.EXIT_OPERTION_FAILED)
 
 			// notify
 			failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })
@@ -178,6 +184,13 @@ var continualCmd = &cobra.Command{
 				log.Errorf("%d of operations failed, retries in 5 minutes", failedCount)
 				time.Sleep(time.Minute * 5)
 				continue
+			}
+			// TODO: this should be probably configurable - let admin choose which invalid payouts should be notified about
+			payoutsToNotifyAdminAbout := lo.Filter(preparationResult.Payouts, func(item common.PayoutRecipe, index int) bool {
+				return !item.IsValid && slices.Contains(enums.INVALID_REASONS_TO_BE_NOTIFIED_ABOUT, enums.EPayoutInvalidReason(item.Note))
+			})
+			if len(payoutsToNotifyAdminAbout) > 0 {
+				notifyAdmin(config, fmt.Sprintf("During payout of cycle %d we found %d problematic payouts", cycleToProcess, len(payoutsToNotifyAdminAbout)))
 			}
 			if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 				notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)

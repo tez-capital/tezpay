@@ -1,4 +1,6 @@
-package notifications
+//go:build !wasm
+
+package notificator_engines
 
 import (
 	"encoding/json"

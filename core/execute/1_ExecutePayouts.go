@@ -61,7 +61,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 	ctx.StageData.BatchResults = batchesResults
 	failureDetected := false
 
-	if err := reporter.ReportPayouts(append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)); err != nil {
+	if err := reporter.ReportPayouts(append(ctx.StageData.BatchResults.ToReports(), ctx.ReportsOfPastSuccesfulPayouts...)); err != nil {
 		log.Warnf("failed to report sent payouts - %s", err.Error())
 		failureDetected = true
 	}

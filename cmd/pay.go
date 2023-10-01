@@ -1,8 +1,9 @@
+//go:build !wasm
+
 package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/core"
@@ -20,7 +21,7 @@ var payCmd = &cobra.Command{
 	Short: "manual payout",
 	Long:  "runs manual payout",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
@@ -37,7 +38,7 @@ var payCmd = &cobra.Command{
 		}
 
 		if cycle <= 0 {
-			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, common.EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 			cycle = lastCompletedCycle + cycle
 		}
 
@@ -46,7 +47,7 @@ var payCmd = &cobra.Command{
 		if fromFile != "" {
 			generationResult = assertRunWithResult(func() (*common.GeneratePayoutsResult, error) {
 				return loadGeneratePayoutsResultFromFile(fromFile)
-			}, EXIT_PAYOUTS_READ_FAILURE)
+			}, common.EXIT_PAYOUTS_READ_FAILURE)
 		} else {
 			generationResult = assertRunWithResult(func() (*common.GeneratePayoutsResult, error) {
 				return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
@@ -54,12 +55,12 @@ var payCmd = &cobra.Command{
 						Cycle:            cycle,
 						SkipBalanceCheck: skipBalanceCheck,
 					})
-			}, EXIT_OPERTION_FAILED)
+			}, common.EXIT_OPERTION_FAILED)
 		}
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 			return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
-		}, EXIT_OPERTION_FAILED)
+		}, common.EXIT_OPERTION_FAILED)
 
 		if state.Global.GetWantsOutputJson() {
 			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
@@ -76,7 +77,10 @@ var payCmd = &cobra.Command{
 			if notificator != "" { // rerun notification through notificator if specified manually
 				notifyPayoutsProcessed(config, &generationResult.Summary, notificator)
 			}
-			os.Exit(0)
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_SUCCESS,
+				Message:  "nothing to pay out",
+			})
 		}
 
 		if !confirmed {
@@ -94,13 +98,16 @@ var payCmd = &cobra.Command{
 				MixInContractCalls: mixInContractCalls,
 				MixInFATransfers:   mixInFATransfers,
 			})
-		}, EXIT_OPERTION_FAILED)
+		}, common.EXIT_OPERTION_FAILED)
 
 		// notify
 		failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })
 		if len(executionResult) > 0 && failedCount > 0 {
 			log.Errorf("%d of operations failed", failedCount)
-			os.Exit(EXIT_OPERTION_FAILED)
+			panic(common.PanicStatus{
+				ExitCode: common.EXIT_OPERTION_FAILED,
+				Error:    fmt.Errorf("%d of operations failed", failedCount),
+			})
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)

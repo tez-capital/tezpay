@@ -1,7 +1,10 @@
+//go:build !wasm
+
 package cmd
 
 import (
-	"github.com/alis-is/tezpay/notifications"
+	"github.com/alis-is/tezpay/common"
+	notificator_engines "github.com/alis-is/tezpay/engines/notificator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +14,7 @@ var notificationTestCmd = &cobra.Command{
 	Short: "notification test",
 	Long:  "sends test notification",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, _, _, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		config, _, _, _ := assertRunWithResult(loadConfigurationEnginesExtensions, common.EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 		for _, notificatorConfiguration := range config.NotificationConfigurations {
 			if notificator != "" && string(notificatorConfiguration.Type) != notificator {
@@ -19,7 +22,7 @@ var notificationTestCmd = &cobra.Command{
 			}
 
 			log.Infof("Sending notification with %s", notificatorConfiguration.Type)
-			notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
+			notificator, err := notificator_engines.LoadNotificators(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 			if err != nil {
 				log.Warnf("failed to send notification - %s", err.Error())
 				continue

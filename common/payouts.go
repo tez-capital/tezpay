@@ -232,8 +232,8 @@ func (engines *GeneratePayoutsEngineContext) Validate() error {
 
 type GeneratePayoutsOptions struct {
 	Cycle                    int64 `json:"cycle,omitempty"`
-	SkipBalanceCheck         bool  `json:"skip_balance_check,omitempty"`
-	WaitForSufficientBalance bool  `json:"wait_for_sufficient_balance,omitempty"`
+	SkipBalanceCheck         bool  `json:"skipBalanceCheck,omitempty"`
+	WaitForSufficientBalance bool  `json:"waitForSufficientBalance,omitempty"`
 }
 
 type GeneratePayoutsResult = CyclePayoutBlueprint

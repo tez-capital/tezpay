@@ -6,7 +6,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/notifications"
+	notificator_engines "github.com/alis-is/tezpay/engines/notificator"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 )
@@ -76,15 +76,16 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	for k, v := range configuration.Delegators.Overrides {
 		_, err := tezos.ParseAddress(k)
 		_assert(err == nil, fmt.Sprintf("configuration.delegators.overrides.%s has to be valid PKH", k))
-		_assert(v.Fee == nil || utils.IsPortionWithin0n1(*v.Fee),
-			getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), *v.Fee))
+		if v.Fee != nil && !utils.IsPortionWithin0n1(*v.Fee) {
+			panic(getPortionRangeError(fmt.Sprintf("configuration.delegators.overrides.%s fee", k), *v.Fee))
+		}
 	}
 
 	for _, v := range configuration.NotificationConfigurations {
 		if !v.IsValid {
 			continue
 		}
-		err := notifications.ValidateNotificatorConfiguration(v.Type, v.Configuration)
+		err := notificator_engines.ValidateNotificatorConfiguration(v.Type, v.Configuration)
 		_assert(err == nil, fmt.Sprintf("configuration.notifications.%s has invalid configuration - %s", v.Type, err.Error()))
 	}
 

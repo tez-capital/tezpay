@@ -7,7 +7,6 @@ import (
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/notifications"
 )
 
 type IncomeRecipientsV0 struct {
@@ -83,8 +82,8 @@ type ConfigurationV0 struct {
 }
 
 type NotificatorConfigurationBase struct {
-	Type  notifications.NotificatorKind `json:"type"`
-	Admin bool                          `json:"admin"`
+	Type  string `json:"type"`
+	Admin bool   `json:"admin"`
 }
 
 func GetDefaultV0() ConfigurationV0 {
