@@ -1,4 +1,4 @@
-FROM alpine:3.18
+FROM alpine:3.18 as build
 LABEL org.opencontainers.image.source = "https://github.com/tez-capital/tezpay"
 
 RUN apk add wget
@@ -18,6 +18,11 @@ fi\n' > /usr/local/bin/auth_wget && chmod +x /usr/local/bin/auth_wget
 RUN auth_wget https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && sh /tmp/install.sh
 WORKDIR /tezpay-bin
 RUN auth_wget https://raw.githubusercontent.com/tez-capital/tezpay/main/install.sh -O /tmp/install.sh && sh /tmp/install.sh
+
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /tezpay-bin/tezpay /tezpay-bin/tezpay
+COPY --from=build /usr/local/bin/auth_wget /usr/local/bin/auth_wget
+
 WORKDIR /tezpay
 
 ENTRYPOINT [ "/tezpay-bin/tezpay" ]
