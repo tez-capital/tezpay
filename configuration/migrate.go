@@ -2,7 +2,7 @@ package configuration
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"os"
 
 	"github.com/alis-is/tezpay/common"
@@ -59,7 +59,7 @@ func Migrate(sourceBytes []byte, versionInfo *common.ConfigurationVersionInfo, p
 		os.Rename(source, source+constants.CONFIG_FILE_BACKUP_SUFFIX)
 		err := WriteMigratedConfiguration(source, configuration)
 		if err != nil {
-			return nil, fmt.Errorf("failed to write migrated configuration - %s", err.Error())
+			return nil, errors.Join(constants.ErrConfigurationMigrationFailed, err)
 		}
 	}
 

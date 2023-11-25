@@ -1,9 +1,11 @@
 package generate
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/extension"
 	"github.com/samber/lo"
@@ -35,7 +37,7 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 	var err error
 	ctx.StageData.CycleData, err = ctx.GetCollector().GetCycleData(configuration.BakerPKH, options.Cycle)
 	if err != nil {
-		return ctx, fmt.Errorf("failed to collect cycle data through collector %s - %s", ctx.GetCollector().GetId(), err.Error())
+		return ctx, errors.Join(constants.ErrCycleDataCollectionFailed, fmt.Errorf("collector: %s", ctx.GetCollector().GetId()), err)
 	}
 
 	log.Debugf("genrating payout candidates")

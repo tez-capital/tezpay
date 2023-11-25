@@ -2,13 +2,13 @@ package extension
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/alis-is/jsonrpc2/rpc"
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/echa/log"
 	"github.com/google/uuid"
@@ -77,7 +77,7 @@ func CloseExtensions() {
 
 func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string, data *TData) error {
 	if data == nil {
-		return errors.New("no data forwarded to hook, cannot execute")
+		return constants.ErrExtensionHookMissingData
 	}
 
 	for _, ext := range extensionStore.extensions {

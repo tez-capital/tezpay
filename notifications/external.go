@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,7 +49,7 @@ func ValidateExternalConfiguration(configurationBytes []byte) error {
 	}
 
 	if configuration.Path == "" {
-		return errors.New("invalid external notificator path")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid external notificator path"))
 	}
 	return nil
 }

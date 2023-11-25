@@ -94,7 +94,7 @@ var continualCmd = &cobra.Command{
 				var err error
 				onchainCompletedCycle, err = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 				if err != nil {
-					if err.Error() == "canceled" {
+					if errors.Is(err, constants.ErrMonitoringCanceled) {
 						log.Info("cycle monitoring canceled")
 						notifyAdmin(config, "Cycle monitoring canceled.")
 					} else {
@@ -140,6 +140,11 @@ var continualCmd = &cobra.Command{
 					WaitForSufficientBalance: true,
 				})
 			if err != nil {
+				if errors.Is(err, constants.ErrNoCycleDataAvailable) {
+					log.Infof("no data available for cycle %d, skipping...", cycleToProcess)
+					completeCycle()
+					continue
+				}
 				log.Errorf("failed to generate payout - %s, retries in 5 minutes", err.Error())
 				time.Sleep(time.Minute * 5)
 				continue

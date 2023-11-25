@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/nikoksr/notify/service/telegram"
 	log "github.com/sirupsen/logrus"
 )
@@ -61,10 +62,10 @@ func ValidateTelegramConfiguration(configurationBytes []byte) error {
 		return err
 	}
 	if configuration.Token == "" {
-		return errors.New("invalid telegram api token")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid telegram api token"))
 	}
 	if len(configuration.Receivers) == 0 {
-		return errors.New("no telegram receivers specified")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("no telegram receivers specified"))
 	}
 	return nil
 }

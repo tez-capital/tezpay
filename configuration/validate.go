@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/utils"
@@ -25,7 +26,7 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 	defer func() {
 		msg, _ := recover().(string)
 		if msg != "" {
-			err = errors.New(msg)
+			err = errors.Join(constants.ErrConfigurationValidationFailed, errors.New(msg))
 		}
 	}()
 

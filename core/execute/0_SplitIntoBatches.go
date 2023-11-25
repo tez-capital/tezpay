@@ -1,19 +1,42 @@
 package execute
 
 import (
-	"fmt"
+	"errors"
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/utils"
+	"github.com/samber/lo"
 )
+
+func splitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLimits) ([]common.RecipeBatch, error) {
+	batches := make([]common.RecipeBatch, 0)
+	batchBlueprint := common.NewBatch(limits)
+
+	for _, payout := range payouts {
+		if !batchBlueprint.AddPayout(payout) {
+			batches = append(batches, batchBlueprint.ToBatch())
+			batchBlueprint = common.NewBatch(limits)
+			if !batchBlueprint.AddPayout(payout) {
+				return nil, constants.ErrPayoutDidNotFitTheBatch
+			}
+		}
+	}
+	// append last
+	batches = append(batches, batchBlueprint.ToBatch())
+
+	return lo.Filter(batches, func(batch common.RecipeBatch, _ int) bool {
+		return len(batch) > 0
+	}), nil
+}
 
 func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayoutsOptions) (*PayoutExecutionContext, error) {
 	var err error
 	ctx.StageData.Limits, err = ctx.GetTransactor().GetLimits()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tezos chain limits - %s, retries in 5 minutes", err.Error())
+		return nil, errors.Join(constants.ErrGetChainLimitsFailed, err)
 	}
 	payouts := utils.OnlyValidPayouts(ctx.Payouts) // make sure we are batching only valid payouts
 	payoutsWithoutFa := utils.RejectPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)
@@ -37,7 +60,7 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 
 	stageBatches := make([]common.RecipeBatch, 0)
 	for _, batch := range toBatch {
-		batches, err := common.SplitIntoBatches(batch, ctx.StageData.Limits)
+		batches, err := splitIntoBatches(batch, ctx.StageData.Limits)
 		if err != nil {
 			return nil, err
 		}

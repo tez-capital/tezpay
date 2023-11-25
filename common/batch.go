@@ -1,8 +1,6 @@
 package common
 
 import (
-	"errors"
-
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
@@ -18,7 +16,7 @@ type batchBlueprint struct {
 	limits      OperationLimits
 }
 
-func newBatch(limits *OperationLimits) batchBlueprint {
+func NewBatch(limits *OperationLimits) batchBlueprint {
 	return batchBlueprint{
 		Payouts:     make([]PayoutRecipe, 0),
 		UsedStorage: 0,
@@ -55,27 +53,6 @@ func (b *batchBlueprint) ToBatch() RecipeBatch {
 }
 
 type RecipeBatch []PayoutRecipe
-
-func SplitIntoBatches(payouts []PayoutRecipe, limits *OperationLimits) ([]RecipeBatch, error) {
-	batches := make([]RecipeBatch, 0)
-	batchBlueprint := newBatch(limits)
-
-	for _, payout := range payouts {
-		if !batchBlueprint.AddPayout(payout) {
-			batches = append(batches, batchBlueprint.ToBatch())
-			batchBlueprint = newBatch(limits)
-			if !batchBlueprint.AddPayout(payout) {
-				return nil, errors.New("payout did not fit the batch, this should never happen")
-			}
-		}
-	}
-	// append last
-	batches = append(batches, batchBlueprint.ToBatch())
-
-	return lo.Filter(batches, func(batch RecipeBatch, _ int) bool {
-		return len(batch) > 0
-	}), nil
-}
 
 func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor TransactorEngine) (*OpExecutionContext, error) {
 	op := codec.NewOp().WithSource(signer.GetPKH())

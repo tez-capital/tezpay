@@ -1,11 +1,12 @@
 package signer_engines
 
 import (
-	"fmt"
+	"errors"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/signer"
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants"
 )
 
 type InMemorySigner struct {
@@ -15,7 +16,7 @@ type InMemorySigner struct {
 func InitInMemorySigner(key string) (*InMemorySigner, error) {
 	tkey, err := tezos.ParsePrivateKey(key)
 	if err != nil {
-		return nil, fmt.Errorf("invalid key '%s' - %s", key, err.Error())
+		return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 	}
 	return &InMemorySigner{
 		Key: tkey,

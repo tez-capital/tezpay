@@ -1,9 +1,9 @@
 package common
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/alis-is/tezpay/constants"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +45,7 @@ func (monitor *dummyCycleMonitor) GetCycleChannel() chan int64 {
 func (monitor *dummyCycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error) {
 	cycle, ok := waitForNextCompletedCycle(lastProcessedCycle, monitor)
 	if !ok {
-		return 0, fmt.Errorf("canceled")
+		return 0, constants.ErrMonitoringCanceled
 	}
 	return cycle, nil
 }

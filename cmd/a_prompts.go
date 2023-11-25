@@ -24,7 +24,7 @@ func requireConfirmation(msg string) error {
 		survey.AskOne(prompt, &proceed)
 	}
 	if !proceed {
-		return errors.New("not confirmed")
+		return constants.ErrUserNotConfirmed
 	}
 	return nil
 }
@@ -80,7 +80,7 @@ func checkForNewVersionAvailable() (bool, string) {
 func promptIfNewVersionAvailable() {
 	if available, latestVersion := checkForNewVersionAvailable(); available {
 		err := requireConfirmation(fmt.Sprintf("You are not running latest version of tezpay (new version : '%s', current version: '%s').\n Do you want to continue anyway?", latestVersion, constants.VERSION))
-		if err != nil && err.Error() == "not confirmed" {
+		if errors.Is(err, constants.ErrUserNotConfirmed) {
 			log.Infof("You can download new version here:\n\nhttps://github.com/%s/releases\n", constants.TEZPAY_REPOSITORY)
 			os.Exit(1)
 		}

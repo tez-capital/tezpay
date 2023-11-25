@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	log "github.com/sirupsen/logrus"
 )
@@ -34,7 +35,7 @@ func RegisterExtension(ctx context.Context, def common.ExtensionDefinition) (Ext
 		return newTcpExtension(ctx, def), nil
 		// TODO: http and WS
 	default:
-		return nil, fmt.Errorf("unknown extension kind - \"%s\"", def.Kind)
+		return nil, errors.Join(constants.ErrUnsupportedExtensionKind, fmt.Errorf("kind - \"%s\"", def.Kind))
 	}
 }
 
@@ -65,7 +66,7 @@ func LoadExtension(ext Extension) error {
 	if result.Success {
 		return nil
 	}
-	return errors.New(result.Message)
+	return errors.Join(constants.ErrExtensionLoadFailed, errors.New(result.Message))
 }
 
 type ExtensionBase struct {

@@ -2,7 +2,6 @@ package transactor_engines
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"blockwatch.cc/tzgo/codec"
@@ -10,6 +9,7 @@ import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/engines/tzkt"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
@@ -60,7 +60,7 @@ func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 	cancel() // cancel fallback
 	switch <-appliedChan {
 	case common.OPERATION_STATUS_FAILED:
-		return errors.New("operation failed")
+		return constants.ErrOperationFailed
 	case common.OPERATION_STATUS_APPLIED:
 		return nil
 	}

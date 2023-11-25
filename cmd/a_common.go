@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
+	"github.com/alis-is/tezpay/constants"
 	collector_engines "github.com/alis-is/tezpay/engines/collector"
 	signer_engines "github.com/alis-is/tezpay/engines/signer"
 	transactor_engines "github.com/alis-is/tezpay/engines/transactor"
@@ -33,21 +35,21 @@ func (cae *configurationAndEngines) Unwrap() (*configuration.RuntimeConfiguratio
 func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	config, err := configuration.Load()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load configuration - %s", err.Error())
+		return nil, errors.Join(constants.ErrConfigurationLoadFailed, err)
 	}
 
 	signerEngine := state.Global.SignerOverride
 	if signerEngine == nil {
 		signerEngine, err = signer_engines.Load(string(config.PayoutConfiguration.WalletMode))
 		if err != nil {
-			return nil, fmt.Errorf("failed to load signer - %s", err.Error())
+			return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 		}
 	}
 	// for testing point transactor to testnet
 	// transactorEngine, err := clients.InitDefaultTransactor("https://rpc.tzkt.io/ghostnet/", "https://api.ghostnet.tzkt.io/") // (config.Network.RpcUrl, config.Network.TzktUrl)
 	transactorEngine, err := transactor_engines.InitDefaultTransactor(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load transactor - %s", err.Error())
+		return nil, errors.Join(constants.ErrTransactorLoadFailed, err)
 	}
 
 	collector, err := collector_engines.InitDefaultRpcAndTzktColletor(config)
@@ -65,7 +67,7 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 		PayoutPKH: signerEngine.GetPKH().String(),
 	}
 	if err = extension.InitializeExtensionStore(context.Background(), config.Extensions, extEnv); err != nil {
-		return nil, fmt.Errorf("failed to initialize extension store - %s", err.Error())
+		return nil, errors.Join(constants.ErrExtensionStoreInitializationFailed, err)
 	}
 
 	return &configurationAndEngines{
@@ -80,11 +82,11 @@ func loadGeneratePayoutsResultFromFile(fromFile string) (*common.CyclePayoutBlue
 	log.Infof("reading payouts from '%s'", fromFile)
 	data, err := os.ReadFile(fromFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read payouts from file - %s", err.Error())
+		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, err)
 	}
 	payouts, err := utils.PayoutBlueprintFromJson(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse payouts from file - %s", err.Error())
+		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, err)
 	}
 	return payouts, nil
 }
@@ -93,7 +95,7 @@ func writePayoutBlueprintToFile(toFile string, blueprint *common.CyclePayoutBlue
 	log.Infof("writing payouts to '%s'", toFile)
 	err := os.WriteFile(toFile, utils.PayoutBlueprintToJson(blueprint), 0644)
 	if err != nil {
-		return fmt.Errorf("failed to write generated payouts to file - %s", err.Error())
+		return errors.Join(constants.ErrPayoutsSaveToFileFailed, err)
 	}
 	return nil
 }

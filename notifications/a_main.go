@@ -1,9 +1,11 @@
 package notifications
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 )
 
 func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.NotificatorEngine, error) {
@@ -19,7 +21,7 @@ func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.Notifi
 	case EXTERNAL_NOTIFICATOR:
 		return InitExternalNotificator(configuration)
 	default:
-		return nil, fmt.Errorf("not supported notificator %s", kind)
+		return nil, errors.Join(constants.ErrUnsupportedNotificator, fmt.Errorf("kind: %s", kind))
 	}
 }
 
@@ -36,6 +38,6 @@ func ValidateNotificatorConfiguration(kind NotificatorKind, configuration []byte
 	case EXTERNAL_NOTIFICATOR:
 		return ValidateExternalConfiguration(configuration)
 	default:
-		return fmt.Errorf("not supported notificator %s", kind)
+		return errors.Join(constants.ErrUnsupportedNotificator, fmt.Errorf("kind: %s", kind))
 	}
 }

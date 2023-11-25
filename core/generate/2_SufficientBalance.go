@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -90,7 +91,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, check func(*CheckBalanceHookD
 				notificatorTrigger++
 				continue
 			}
-			return fmt.Errorf("insufficient balance - %s", data.Message)
+			return errors.Join(constants.ErrInsufficientBalance, errors.New(data.Message))
 		}
 		break
 	}

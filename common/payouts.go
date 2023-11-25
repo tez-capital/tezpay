@@ -1,10 +1,11 @@
 package common
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
 )
@@ -222,10 +223,10 @@ func (engines *GeneratePayoutsEngineContext) AdminNotify(msg string) {
 
 func (engines *GeneratePayoutsEngineContext) Validate() error {
 	if engines.signer == nil {
-		return fmt.Errorf("signer engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingSignerEngine)
 	}
 	if engines.collector == nil {
-		return fmt.Errorf("collector engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingCollectorEngine)
 	}
 	return nil
 }
@@ -268,10 +269,10 @@ func (engines *PreparePayoutsEngineContext) AdminNotify(msg string) {
 
 func (engines *PreparePayoutsEngineContext) Validate() error {
 	if engines.collector == nil {
-		return fmt.Errorf("collector engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingCollectorEngine)
 	}
 	if engines.reporter == nil {
-		return fmt.Errorf("reporter engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingReporterEngine)
 	}
 	return nil
 }
@@ -321,13 +322,13 @@ func (engines *ExecutePayoutsEngineContext) AdminNotify(msg string) {
 
 func (engines *ExecutePayoutsEngineContext) Validate() error {
 	if engines.signer == nil {
-		return fmt.Errorf("signer engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingSignerEngine)
 	}
 	if engines.transactor == nil {
-		return fmt.Errorf("transactor engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingTransactorEngine)
 	}
 	if engines.reporter == nil {
-		return fmt.Errorf("reporter engine is not set")
+		return errors.Join(constants.ErrMissingEngine, constants.ErrMissingReporterEngine)
 	}
 	return nil
 }

@@ -1,11 +1,13 @@
 package signer_engines
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
@@ -22,7 +24,7 @@ func Load(kind string) (common.SignerEngine, error) {
 		logrus.Debugf("Loading private key from file '%s'", privateKeyFile)
 		keyBytes, err := os.ReadFile(privateKeyFile)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 		}
 		return InitInMemorySigner(strings.TrimSpace(string(keyBytes)))
 	case string(enums.WALLET_MODE_REMOTE_SIGNER2):
@@ -33,12 +35,12 @@ func Load(kind string) (common.SignerEngine, error) {
 		logrus.Debugf("Loading remote specification from file '%s'", remoteSpecsFile)
 		remoteSpecsBytes, err := os.ReadFile(remoteSpecsFile)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 		}
 		remoteSpecs := RemoteSignerSpecs{}
 		err = hjson.Unmarshal(remoteSpecsBytes, &remoteSpecs)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal remote specs - %s", err.Error())
+			return nil, errors.Join(constants.ErrSignerLoadFailed, errors.New("failed to unmarshal remote specs"), err)
 		}
 		return InitRemoteSignerFromSpecs(remoteSpecs)
 	}
@@ -53,10 +55,10 @@ func Load(kind string) (common.SignerEngine, error) {
 		specs := strings.TrimPrefix(kind, "remote:")
 		parts := strings.Split(specs, "@")
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid remote specs '%s' from paramters", specs)
+			return nil, errors.Join(constants.ErrSignerLoadFailed, fmt.Errorf("invalid remote specs '%s'", specs))
 		}
 		return InitRemoteSigner(parts[0], parts[1])
 	}
 
-	return nil, fmt.Errorf("invalid payout wallet specification: '%s'", kind)
+	return nil, errors.Join(constants.ErrSignerLoadFailed, fmt.Errorf("invalid payout wallet specification: '%s'", kind))
 }

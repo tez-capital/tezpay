@@ -1,10 +1,12 @@
 package prepare
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/utils"
@@ -21,12 +23,12 @@ func ExecuteAfterPayoutsPrepared(data *AfterPayoutsPreapered) error {
 
 func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOptions) (*PayoutPrepareContext, error) {
 	if ctx.PayoutBlueprint == nil {
-		return nil, fmt.Errorf("payout blueprint not specified")
+		return nil, constants.ErrMissingPayoutBlueprint
 	}
 
 	reports, err := ctx.GetReporter().GetExistingReports(ctx.PayoutBlueprint.Cycle)
 	if err != nil && !os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to read old payout reports from cycle #%d - %s, retries in 5 minutes", ctx.PayoutBlueprint.Cycle, err.Error())
+		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, fmt.Errorf("cycle: %d", ctx.PayoutBlueprint.Cycle), err)
 	}
 	reportResidues := utils.FilterReportsByBaker(reports, ctx.configuration.BakerPKH)
 	// we match already paid even against invalid set of payouts in case they were paid under different conditions

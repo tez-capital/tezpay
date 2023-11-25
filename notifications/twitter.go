@@ -73,16 +73,16 @@ func ValidateTwitterConfiguration(configurationBytes []byte) error {
 		return err
 	}
 	if configuration.AccessToken == "" {
-		return errors.New("invalid twitter access token")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid twitter access token"))
 	}
 	if configuration.AccessTokenSecret == "" {
-		return errors.New("invalid twitter access token secret")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid twitter access token secret"))
 	}
 	if configuration.ConsumerKey == "" {
-		return errors.New("invalid twitter consumer key")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid twitter consumer key"))
 	}
 	if configuration.ConsumerSecret == "" {
-		return errors.New("invalid twitter consumer secret")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid twitter consumer secret"))
 	}
 
 	return nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 )
 
 func CheckConditions(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
@@ -13,10 +14,10 @@ func CheckConditions(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	payoutAddress := ctx.PayoutKey.Address()
 	revealed, err := collector.IsRevealed(payoutAddress)
 	if err != nil {
-		return ctx, errors.Join(fmt.Errorf("failed to check if payout address - %s - is revealed", payoutAddress), err)
+		return ctx, errors.Join(constants.ErrRevealCheckFailed, fmt.Errorf("address - %s", payoutAddress), err)
 	}
 	if !revealed {
-		return ctx, fmt.Errorf("payout address - %s - is not revealed", payoutAddress)
+		return ctx, errors.Join(constants.ErrNotRevealed, fmt.Errorf("address - %s", payoutAddress))
 	}
 
 	return ctx, nil

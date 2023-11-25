@@ -94,20 +94,20 @@ func ValidateDiscordConfiguration(configurationBytes []byte) error {
 			id = matched[1]
 			token = matched[2]
 		} else {
-			return errors.New("failed to parse discord webhook")
+			return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("failed to parse discord webhook"))
 		}
 	}
 	if id == "" {
 		if configuration.WebhookUrl != "" {
-			return errors.New("invalid discord webhook url - failed to parse id")
+			return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid discord webhook url - failed to parse id"))
 		}
-		return errors.New("invalid discord webhook id")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid discord webhook id"))
 	}
 	if token == "" {
 		if configuration.WebhookUrl != "" {
-			return errors.New("invalid discord webhook url - failed to parse token")
+			return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid discord webhook url - failed to parse token"))
 		}
-		return errors.New("invalid discord webhook token")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid discord webhook token"))
 	}
 	return nil
 }

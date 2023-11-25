@@ -1,9 +1,11 @@
 package execute
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -13,14 +15,14 @@ func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch commo
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
 	if err != nil {
 		log.Warnf("batch %s - %s", batchId, err.Error())
-		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to create operation context - %s", err.Error()))
+		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
 	}
 
 	log.Infof("broadcasting batch %s", batchId)
 	err = opExecCtx.Dispatch(nil)
 	if err != nil {
 		log.Warnf("failed to broadcast batch %s - %s", batchId, utils.TryUnwrapRPCError(err).Error())
-		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to broadcast - %s", err.Error()))
+		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationBroadcastFailed, err))
 	}
 
 	log.Infof("waiting for confirmation of batch %s (%s)", batchId, utils.GetOpReference(opExecCtx.GetOpHash(), ctx.configuration.Network.Explorer))
@@ -29,7 +31,7 @@ func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch commo
 	ctx.protectedSection.Resume() // resume protected section
 	if err != nil {
 		log.Warnf("failed to apply batch %s - %s", batchId, err.Error())
-		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), fmt.Errorf("failed to confirm - %s", err.Error()))
+		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationConfirmationFailed, err))
 	}
 
 	log.Infof("batch %s - success", batchId)
@@ -49,7 +51,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 		}
 
 		if ctx.protectedSection.Signaled() {
-			batchesResults = append(batchesResults, *common.NewFailedBatchResult(batch, fmt.Errorf("terminated by user")))
+			batchesResults = append(batchesResults, *common.NewFailedBatchResult(batch, constants.ErrExecutePayoutsUserTerminated))
 			ctx.AdminNotify("Payouts execution terminated by user")
 			continue
 		}

@@ -8,6 +8,7 @@ import (
 	"net"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/nikoksr/notify/service/mail"
 	log "github.com/sirupsen/logrus"
 )
@@ -70,10 +71,10 @@ func ValidateEmailConfiguration(configurationBytes []byte) error {
 		return err
 	}
 	if configuration.Sender == "" {
-		return errors.New("invalid email sender")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("invalid email sender"))
 	}
 	if len(configuration.Recipients) == 0 {
-		return errors.New("no email recipients specified")
+		return errors.Join(constants.ErrInvalidNotificatorConfiguration, errors.New("no email recipients specified"))
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -84,11 +86,11 @@ func unmarshallTzktResponse[T any](resp *http.Response, result *T) error {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read cycle data (tzkt) - %s", err.Error())
+		return errors.Join(constants.ErrCycleDataUnmarshalFailed, err)
 	}
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return fmt.Errorf("failed to parse cycle data (tzkt) - %s", err.Error())
+		return errors.Join(constants.ErrCycleDataUnmarshalFailed, err)
 	}
 	return nil
 }
@@ -99,7 +101,7 @@ func (client *Client) getDelegatorsCycleData(ctx context.Context, baker []byte, 
 	log.Debugf("getting delegators data of '%s' for cycle %d (%s)", baker, cycle, u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
+		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
 	}
 	data := &tzktBakersCycleData{}
 	err = unmarshallTzktResponse(resp, data)
@@ -114,7 +116,7 @@ func (client *Client) getBakerData(ctx context.Context, baker []byte) (*bakerDat
 	log.Debugf("getting baker data of '%s' (%s)", baker, u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
+		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
 	}
 	data := &bakerData{}
 	err = unmarshallTzktResponse(resp, data)
@@ -129,10 +131,10 @@ func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int6
 	log.Debugf("getting cycle data of '%s' for cycle %d (%s)", baker, cycle, u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch cycle data (tzkt) - %s", err.Error())
+		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
 	}
 	if resp.StatusCode == 204 {
-		return nil, fmt.Errorf("no cycle data available for baker '%s'", baker)
+		return nil, errors.Join(constants.ErrNoCycleDataAvailable, fmt.Errorf("baker: %s", baker))
 	}
 	tzktBakerCycleData := &tzktBakersCycleData{}
 	err = unmarshallTzktResponse(resp, tzktBakerCycleData)
@@ -209,7 +211,7 @@ func (client *Client) WasOperationApplied(ctx context.Context, opHash tezos.OpHa
 	path := fmt.Sprintf("v1/operations/transactions/%s/status", op)
 	resp, err := client.Get(ctx, path)
 	if err != nil {
-		return common.OPERATION_STATUS_UNKNOWN, fmt.Errorf("failed to check operation stuats - %s", err.Error())
+		return common.OPERATION_STATUS_UNKNOWN, errors.Join(constants.ErrOperationStatusCheckFailed, err)
 	}
 	if resp.StatusCode == 204 {
 		return common.OPERATION_STATUS_NOT_EXISTS, nil
@@ -218,7 +220,7 @@ func (client *Client) WasOperationApplied(ctx context.Context, opHash tezos.OpHa
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return common.OPERATION_STATUS_UNKNOWN, fmt.Errorf("failed to check operation status response body - %s", err.Error())
+		return common.OPERATION_STATUS_UNKNOWN, errors.Join(constants.ErrOperationStatusCheckFailed, err)
 	}
 	if bytes.Equal(body, []byte("true")) {
 		return common.OPERATION_STATUS_APPLIED, nil

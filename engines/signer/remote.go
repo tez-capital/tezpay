@@ -2,13 +2,14 @@ package signer_engines
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/url"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/signer"
 	"blockwatch.cc/tzgo/signer/remote"
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants"
 )
 
 type RemoteSignerSpecs struct {
@@ -28,20 +29,20 @@ func InitRemoteSignerFromSpecs(specs RemoteSignerSpecs) (*RemoteSigner, error) {
 
 func InitRemoteSigner(address string, remoteUrl string) (*RemoteSigner, error) {
 	if _, err := url.Parse(remoteUrl); err != nil {
-		return nil, fmt.Errorf("invalid remote url '%s' - %s", remoteUrl, err.Error())
+		return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 	}
 	rs, err := remote.New(remoteUrl, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to connect to remote - %s", err.Error())
+		return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 	}
 	addr, err := tezos.ParseAddress(address)
 	if err != nil {
-		return nil, fmt.Errorf("invalid address '%s' - %s", address, err.Error())
+		return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 	}
 
 	key, err := rs.GetKey(context.Background(), addr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get public key of '%s' - %s", address, err.Error())
+		return nil, errors.Join(constants.ErrSignerLoadFailed, err)
 	}
 
 	return &RemoteSigner{

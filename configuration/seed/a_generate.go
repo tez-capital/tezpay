@@ -2,9 +2,11 @@ package seed
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/echa/log"
 	"github.com/hjson/hjson-go/v4"
@@ -23,7 +25,7 @@ func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, er
 	case enums.BC_CONFIGURATION_SEED:
 		err := json.Unmarshal(sourceBytes, &versionInfo)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal version info: %w", err)
+			return nil, errors.Join(constants.ErrInvalidSourceVersionInfo, err)
 		}
 		if versionInfo.TPVersion == nil && versionInfo.Version == nil {
 			return MigrateBcv0ToTPv0(sourceBytes)
@@ -31,11 +33,11 @@ func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, er
 
 		/*future bc generators*/
 
-		return nil, fmt.Errorf("unsupported bc version: (%v/%v)", versionInfo.TPVersion, versionInfo.Version)
+		return nil, errors.Join(constants.ErrUnsupportedBCVersion, fmt.Errorf("version: %v/%v", versionInfo.TPVersion, versionInfo.Version))
 	case enums.TRD_CONFIGURATION_SEED:
 		err := yaml.Unmarshal(sourceBytes, &versionInfo)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal version info: %w", err)
+			return nil, errors.Join(constants.ErrInvalidSourceVersionInfo, err)
 		}
 		if versionInfo.Version == nil {
 			defVer := "1.0"
@@ -49,10 +51,10 @@ func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, er
 		/* future TRD generators*/
 
 		default:
-			return nil, fmt.Errorf("unsupported trd version: %v", versionInfo.Version)
+			return nil, errors.Join(constants.ErrUnsupportedTRDVersion, fmt.Errorf("version: %v", versionInfo.Version))
 		}
 
 	default:
-		return nil, fmt.Errorf("invalid seed kind: %s", kind)
+		return nil, constants.ErrInvalidConfigurationImportSource
 	}
 }

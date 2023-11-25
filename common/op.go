@@ -1,12 +1,11 @@
 package common
 
 import (
-	"errors"
-
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/contract"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 )
 
@@ -42,7 +41,7 @@ func (ctx *OpExecutionContext) Dispatch(opts *rpc.CallOptions) error {
 
 func (ctx *OpExecutionContext) WaitForApply() error {
 	if ctx.result == nil {
-		return errors.New("operation was not dispatched yet")
+		return constants.ErrOperationNotDispatched
 	}
 	return ctx.result.WaitForApply()
 }
@@ -59,7 +58,7 @@ func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs)
 	switch p.GetTxKind() {
 	case enums.PAYOUT_TX_KIND_FA1_2:
 		if p.GetFAContract().Equal(tezos.ZeroAddress) || p.GetFAContract().Equal(tezos.InvalidAddress) {
-			return errors.New("invalid contract address")
+			return constants.ErrOperationInvalidContractAddress
 		}
 		args := contract.NewFA1TransferArgs().WithTransfer(source, p.GetDestination(), p.GetAmount()).
 			WithSource(source).
@@ -67,7 +66,7 @@ func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs)
 		op.WithContents(args.Encode())
 	case enums.PAYOUT_TX_KIND_FA2:
 		if p.GetFAContract().Equal(tezos.ZeroAddress) || p.GetFAContract().Equal(tezos.InvalidAddress) {
-			return errors.New("invalid contract address")
+			return constants.ErrOperationInvalidContractAddress
 		}
 		args := contract.NewFA2TransferArgs().WithTransfer(source, p.GetDestination(), p.GetFATokenId(), p.GetAmount()).
 			WithSource(source).
@@ -93,7 +92,7 @@ func InjectLimits(op *codec.Op, limits []tezos.Limits) error {
 		return nil
 	}
 	if len(limits) != len(op.Contents) {
-		return errors.New("invalid limits count")
+		return constants.ErrOperationInvalidLimits
 	}
 	for i := range op.Contents {
 		op.Contents[i].WithLimits(limits[i])

@@ -2,7 +2,6 @@ package common
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -107,7 +106,7 @@ func waitForNextCompletedCycle(lastProcessedCompletedCycle int64, monitor CycleM
 func (monitor *cycleMonitor) WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error) {
 	cycle, ok := waitForNextCompletedCycle(lastProcessedCycle, monitor)
 	if !ok {
-		return -1, fmt.Errorf("canceled")
+		return -1, constants.ErrMonitoringCanceled
 	}
 	return cycle, nil
 }

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -38,10 +39,10 @@ var generateConfigurationCmd = &cobra.Command{
 
 		seedKind := enums.EConfigurationSeedKind(args[0])
 		if !slices.Contains(enums.SUPPORTED_CONFIGURATION_SEED_KINDS, seedKind) {
-			return fmt.Errorf("invalid seed kind: %s", seedKind)
+			return errors.Join(constants.ErrInvalidConfigurationImportSource, fmt.Errorf("invalid seed: %s", seedKind))
 		}
 		if _, err := os.Stat(args[1]); err != nil {
-			return fmt.Errorf("invalid source file: %s", args[1])
+			return errors.Join(constants.ErrInvalidConfigurationImportSource, fmt.Errorf("invalid source: %s", args[1]))
 		}
 		return nil
 	},

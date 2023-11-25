@@ -1,16 +1,15 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core/execute"
 )
 
 func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *configuration.RuntimeConfiguration, engineContext *common.ExecutePayoutsEngineContext, options *common.ExecutePayoutsOptions) (common.ExecutePayoutsResult, error) {
 	if config == nil {
-		return nil, fmt.Errorf("configuration not specified")
+		return nil, constants.ErrMissingConfiguration
 	}
 
 	ctx, err := execute.NewPayoutExecutionContext(preparationResult, config, engineContext, options)
