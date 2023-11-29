@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"errors"
+	"os"
+
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core"
 	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/state"
@@ -29,13 +33,19 @@ var generatePayoutsCmd = &cobra.Command{
 			log.Warn("With your current configuration you are not going to donate to tez.capital")
 		}
 
-		generationResult := assertRunWithResultAndErrFmt(func() (*common.CyclePayoutBlueprint, error) {
-			return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-				&common.GeneratePayoutsOptions{
-					Cycle:            cycle,
-					SkipBalanceCheck: skipBalanceCheck,
-				})
-		}, EXIT_OPERTION_FAILED, "failed to generate payouts - %s")
+		generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+			&common.GeneratePayoutsOptions{
+				Cycle:            cycle,
+				SkipBalanceCheck: skipBalanceCheck,
+			})
+		if errors.Is(err, constants.ErrNoCycleDataAvailable) {
+			log.Infof("no data available for cycle %d, nothing to pay out...", cycle)
+			return
+		}
+		if err != nil {
+			log.Errorf("failed to generate payouts - %s", err)
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
 
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
 		if targetFile != "" {

@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/alis-is/tezpay/common"
+	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/core"
 	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
 	"github.com/alis-is/tezpay/extension"
@@ -48,13 +50,20 @@ var payCmd = &cobra.Command{
 				return loadGeneratePayoutsResultFromFile(fromFile)
 			}, EXIT_PAYOUTS_READ_FAILURE)
 		} else {
-			generationResult = assertRunWithResult(func() (*common.GeneratePayoutsResult, error) {
-				return core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-					&common.GeneratePayoutsOptions{
-						Cycle:            cycle,
-						SkipBalanceCheck: skipBalanceCheck,
-					})
-			}, EXIT_OPERTION_FAILED)
+			var err error
+			generationResult, err = core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+				&common.GeneratePayoutsOptions{
+					Cycle:            cycle,
+					SkipBalanceCheck: skipBalanceCheck,
+				})
+			if errors.Is(err, constants.ErrNoCycleDataAvailable) {
+				log.Infof("no data available for cycle %d, nothing to pay out...", cycle)
+				return
+			}
+			if err != nil {
+				log.Errorf("failed to generate payouts - %s", err)
+				os.Exit(EXIT_OPERTION_FAILED)
+			}
 		}
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
