@@ -177,7 +177,7 @@ func estimateTransactionFees(payouts []PayoutCandidateWithBondAmountAndFee, ctx 
 			return lo.Map(batch, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateSimulated {
 				simulationResults, err := estimateBatchFees([]PayoutCandidateWithBondAmountAndFee{candidate}, ctx)
 				if len(simulationResults) == 0 {
-					err = fmt.Errorf("unexpected simulation results: %v", simulationResults)
+					err = errors.Join(fmt.Errorf("unexpected simulation results: %v", simulationResults), err)
 				}
 				if err != nil {
 					log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')\nerror: %s", candidate.Recipient, candidate.Source, candidate.BondsAmount.Int64(), candidate.TxKind, err.Error())

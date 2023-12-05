@@ -100,13 +100,24 @@ func (engine *DefaultRpcAndTzktColletor) GetBranch(offset int64) (hash tezos.Blo
 	return
 }
 
-func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error) {
+func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.Key) (rcpt *rpc.Receipt, err error) {
 	o = o.WithParams(engine.rpc.Params)
-	err := engine.rpc.Complete(context.Background(), o, publicKey)
-	if err != nil {
-		return nil, err
+	for i := 0; i < 5; i++ {
+		err = engine.rpc.Complete(context.Background(), o, publicKey)
+		if err != nil {
+			continue
+		}
+
+		rcpt, err = engine.rpc.Simulate(context.Background(), o, nil)
+		if err != nil && (rcpt == nil || err == rcpt.Error()) {
+			log.Debug("Internal simulate error - likely networking, retrying: ", err)
+			// sleep 5s * i
+			time.Sleep(time.Duration(i*5) * time.Second)
+			continue
+		}
+		break
 	}
-	return engine.rpc.Simulate(context.Background(), o, nil)
+	return rcpt, err
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetBalance(addr tezos.Address) (tezos.Z, error) {
