@@ -17,7 +17,7 @@
   }
   income_recipients: {}
   network: {
-    rpc_url: https://rpc.tez.capital/
+    rpc_url: https://eu.rpc.tez.capital/
     tzkt_url: https://api.tzkt.io/
     explorer: https://tzkt.io/
   }
