@@ -109,7 +109,7 @@ func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.K
 		}
 
 		rcpt, err = engine.rpc.Simulate(context.Background(), o, nil)
-		if err != nil && (rcpt == nil || err == rcpt.Error()) {
+		if err != nil && rcpt == nil { // we do not retry on receipt errors
 			log.Debug("Internal simulate error - likely networking, retrying: ", err)
 			// sleep 5s * i
 			time.Sleep(time.Duration(i*5) * time.Second)
