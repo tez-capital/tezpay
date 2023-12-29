@@ -9,6 +9,8 @@
     transaction_deserialization_gas_buffer: 2
     transaction_fee_buffer: 10
     kt_transaction_fee_buffer: 50
+    minimum_delay_blocks: 500
+    maximum_delay_blocks: 1500
   }
   delegators: {
     requirements: {
