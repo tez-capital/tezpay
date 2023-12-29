@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
@@ -50,7 +51,8 @@ var continualCmd = &cobra.Command{
 
 		monitor := assertRunWithResultAndErrFmt(func() (common.CycleMonitor, error) {
 			return collector.CreateCycleMonitor(common.CycleMonitorOptions{
-				CheckFrequency: 10,
+				CheckFrequency:    10,
+				NotificationDelay: rand.Int63n(config.PayoutConfiguration.MaximumDelayBlocks-config.PayoutConfiguration.MinimumDelayBlocks) + config.PayoutConfiguration.MinimumDelayBlocks,
 			})
 		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 

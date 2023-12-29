@@ -12,7 +12,8 @@
 			"program": "main.go",
 			"args": [
 				"--log-level=trace",
-				"generate-payouts"
+				"generate-payouts",
+				"--skip-balance-check"
 			],
 		},
 		{

@@ -50,6 +50,8 @@ type RuntimePayoutConfiguration struct {
 	TxDeserializationGasBuffer int64             `json:"transaction_deserialization_gas_buffer,omitempty"`
 	TxFeeBuffer                int64             `json:"transaction_fee_buffer,omitempty"`
 	KtTxFeeBuffer              int64             `json:"kt_transaction_fee_buffer,omitempty"`
+	MinimumDelayBlocks         int64             `json:"minimum_delay_blocks,omitempty"`
+	MaximumDelayBlocks         int64             `json:"maximum_delay_blocks,omitempty"`
 }
 
 type RuntimeIncomeRecipients struct {
@@ -78,6 +80,8 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
 	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
 	ktFeeBuffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
+	minimumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
+	maximumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY
 
 	return RuntimeConfiguration{
 		BakerPKH: tezos.InvalidKey.Address(),
@@ -93,6 +97,8 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			TxDeserializationGasBuffer: deserializaGasBuffer,
 			TxFeeBuffer:                feeBuffer,
 			KtTxFeeBuffer:              ktFeeBuffer,
+			MinimumDelayBlocks:         minimumPayoutDelayBlocks,
+			MaximumDelayBlocks:         maximumPayoutDelayBlocks,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

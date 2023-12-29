@@ -32,6 +32,8 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	ktFeeBuffer := int64(50)
 	bellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_EVERYONE
 	maximumBalance := float64(1000.0)
+	minimumDelayBlocks := int64(10)
+	maximumDelayBlocks := int64(250)
 
 	return &tezpay_configuration.ConfigurationV0{
 		Version:  0,
@@ -77,6 +79,8 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			TxDeserializationGasBuffer: &deserializationGasBuffer,
 			TxFeeBuffer:                &feeBuffer,
 			KtTxFeeBuffer:              &ktFeeBuffer,
+			MinimumDelayBlocks:         &minimumDelayBlocks,
+			MaximumDelayBlocks:         &maximumDelayBlocks,
 		},
 		NotificationConfigurations: []json.RawMessage{
 			json.RawMessage(`{

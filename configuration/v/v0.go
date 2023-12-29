@@ -64,6 +64,8 @@ type PayoutConfigurationV0 struct {
 	TxDeserializationGasBuffer *int64            `json:"transaction_deserialization_gas_buffer,omitempty"`
 	TxFeeBuffer                *int64            `json:"transaction_fee_buffer,omitempty"`
 	KtTxFeeBuffer              *int64            `json:"kt_transaction_fee_buffer,omitempty"`
+	MinimumDelayBlocks         *int64            `json:"minimum_delay_blocks,omitempty"`
+	MaximumDelayBlocks         *int64            `json:"maximum_delay_blocks,omitempty"`
 }
 
 type ExtensionConfigurationV0 = common.ExtensionDefinition
@@ -92,6 +94,8 @@ func GetDefaultV0() ConfigurationV0 {
 	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
 	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
 	ktFeeBUffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
+	minimumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
+	maximumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY
 
 	delegatorBellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
 
@@ -127,6 +131,8 @@ func GetDefaultV0() ConfigurationV0 {
 			TxDeserializationGasBuffer: &deserializaGasBuffer,
 			TxFeeBuffer:                &feeBuffer,
 			KtTxFeeBuffer:              &ktFeeBUffer,
+			MinimumDelayBlocks:         &minimumPayoutDelayBlocks,
+			MaximumDelayBlocks:         &maximumPayoutDelayBlocks,
 		},
 		IncomeRecipients:           IncomeRecipientsV0{},
 		NotificationConfigurations: make([]json.RawMessage, 0),

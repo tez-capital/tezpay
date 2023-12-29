@@ -35,6 +35,9 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 		fmt.Sprintf("configuration.payouts.wallet_mode - '%s' not supported", configuration.PayoutConfiguration.WalletMode))
 	_assert(lo.Contains(enums.SUPPORTED_PAYOUT_MODES, configuration.PayoutConfiguration.PayoutMode),
 		fmt.Sprintf("configuration.payouts.payout_mode - '%s' not supported", configuration.PayoutConfiguration.PayoutMode))
+	_assert(configuration.PayoutConfiguration.MinimumDelayBlocks <= configuration.PayoutConfiguration.MaximumDelayBlocks,
+		"configuration.payouts.minimum_delay_blocks must be less or equal to configuration.payouts.maximum_delay_blocks")
+
 	_assert(lo.Contains(enums.SUPPORTED_DELEGATOR_MINIMUM_BALANCE_REWARD_DESTINATIONS, configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination),
 		fmt.Sprintf("configuration.delegators.requirements.below_minimum_reward_destination - '%s' not supported", configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination))
 

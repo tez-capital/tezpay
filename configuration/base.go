@@ -149,6 +149,16 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		delegatorBellowMinimumBalanceRewardDestination = *configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination
 	}
 
+	minimumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
+	if configuration.PayoutConfiguration.MinimumDelayBlocks != nil && *configuration.PayoutConfiguration.MaximumDelayBlocks > 0 {
+		minimumPayoutDelayBlocks = *configuration.PayoutConfiguration.MinimumDelayBlocks
+	}
+
+	maximumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY
+	if configuration.PayoutConfiguration.MaximumDelayBlocks != nil && *configuration.PayoutConfiguration.MaximumDelayBlocks > 0 {
+		maximumPayoutDelayBlocks = *configuration.PayoutConfiguration.MaximumDelayBlocks
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -163,6 +173,8 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			TxDeserializationGasBuffer: deserializaGasBuffer,
 			TxFeeBuffer:                feeBuffer,
 			KtTxFeeBuffer:              ktFeeBuffer,
+			MinimumDelayBlocks:         minimumPayoutDelayBlocks,
+			MaximumDelayBlocks:         maximumPayoutDelayBlocks,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

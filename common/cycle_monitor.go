@@ -25,7 +25,7 @@ type cycleMonitor struct {
 
 func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorOptions) (CycleMonitor, error) {
 	if options.NotificationDelay == 0 {
-		options.NotificationDelay = int64(rand.Intn(constants.CYCLE_MONITOR_MAXIMUM_DELAY) + constants.CYCLE_MONITOR_DELAY_OFFSET)
+		options.NotificationDelay = rand.Int63n(constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY-constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY) + constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
 	}
 
 	if options.CheckFrequency < 2 {
