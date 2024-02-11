@@ -24,20 +24,36 @@ const (
 
 type splitDelegator struct {
 	Address string `json:"address"`
-	Balance int64  `json:"balance"`
-	Emptied bool   `json:"emptied,omitempty"`
+
+	DelegatedBalance int64 `json:"delegatedBalance"`
+	// Balance int64  `json:"balance"` // DelegatedBalance
+	StakedBalance int64 `json:"stakedBalance"`
+
+	Emptied bool `json:"emptied,omitempty"`
 }
 
 type tzktBakersCycleData struct {
-	StakingBalance           int64            `json:"stakingBalance"`
-	DelegatedBalance         int64            `json:"delegatedBalance"`
-	BlockRewards             int64            `json:"blockRewards"`
-	MissedBlockRewards       int64            `json:"missedBlockRewards"`
-	EndorsementRewards       int64            `json:"endorsementRewards"`
-	MissedEndorsementRewards int64            `json:"missedEndorsementRewards"`
-	NumDelegators            int32            `json:"numDelegators"`
-	BlockFees                int64            `json:"blockFees"`
-	Delegators               []splitDelegator `json:"delegators"`
+	OwnDelegatedBalance      int64 `json:"ownDelegatedBalance"`
+	ExternalDelegatedBalance int64 `json:"externalDelegatedBalance"`
+	// StakingBalance           int64            `json:"stakingBalance"` // OwnDelegatedBalance + ExternalDelegatedBalance
+	// DelegatedBalance         int64            `json:"delegatedBalance"` // ExternalDelegatedBalance
+
+	BlockRewardsLiquid int64 `json:"blockRewardsLiquid"`
+	// BlockRewardsStakedOwn    int64 `json:"blockRewardsStakedOwn"`
+	// BlockRewardsStakedShared int64 `json:"blockRewardsStakedShared"`
+	// BlockRewards             int64            `json:"blockRewards"` // BlockRewardsLiquid
+	MissedBlockRewards int64 `json:"missedBlockRewards"`
+
+	EndorsementRewardsLiquid int64 `json:"endorsementRewardsLiquid"`
+	// EndorsementRewardsStakedOwn    int64 `json:"endorsementRewardsStakedOwn"`
+	// EndorsementRewardsStakedShared int64 `json:"endorsementRewardsStakedShared"`
+	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid
+	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
+
+	DelegatorsCount int32 `json:"delegatorsCount"`
+	// NumDelegators            int32            `json:"numDelegators"` // DelegatorsCount
+	BlockFees  int64            `json:"blockFees"`
+	Delegators []splitDelegator `json:"delegators"`
 }
 
 type bakerData struct {
@@ -180,13 +196,13 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 	log.Tracef("fetched baker data with %d delegators", len(collectedDelegators))
 
 	return &common.BakersCycleData{
-		StakingBalance:          tezos.NewZ(tzktBakerCycleData.StakingBalance),
-		DelegatedBalance:        tezos.NewZ(tzktBakerCycleData.DelegatedBalance),
-		BlockRewards:            tezos.NewZ(tzktBakerCycleData.BlockRewards),
-		IdealBlockRewards:       tezos.NewZ(tzktBakerCycleData.BlockRewards).Add64(tzktBakerCycleData.MissedBlockRewards),
-		EndorsementRewards:      tezos.NewZ(tzktBakerCycleData.EndorsementRewards),
-		IdealEndorsementRewards: tezos.NewZ(tzktBakerCycleData.EndorsementRewards).Add64(tzktBakerCycleData.MissedEndorsementRewards),
-		NumDelegators:           tzktBakerCycleData.NumDelegators,
+		StakingBalance:          tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add(tezos.NewZ(tzktBakerCycleData.ExternalDelegatedBalance)),
+		DelegatedBalance:        tezos.NewZ(tzktBakerCycleData.ExternalDelegatedBalance),
+		BlockRewards:            tezos.NewZ(tzktBakerCycleData.BlockRewardsLiquid),
+		IdealBlockRewards:       tezos.NewZ(tzktBakerCycleData.BlockRewardsLiquid).Add64(tzktBakerCycleData.MissedBlockRewards),
+		EndorsementRewards:      tezos.NewZ(tzktBakerCycleData.EndorsementRewardsLiquid),
+		IdealEndorsementRewards: tezos.NewZ(tzktBakerCycleData.EndorsementRewardsLiquid).Add64(tzktBakerCycleData.MissedEndorsementRewards),
+		NumDelegators:           tzktBakerCycleData.DelegatorsCount,
 		FrozenDepositLimit:      tezos.NewZ(tzktBakerData.FrozenDepositLimit),
 		BlockFees:               tezos.NewZ(tzktBakerCycleData.BlockFees),
 		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) common.Delegator {
@@ -196,7 +212,7 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 			}
 			return common.Delegator{
 				Address: addr,
-				Balance: tezos.NewZ(delegator.Balance),
+				Balance: tezos.NewZ(delegator.DelegatedBalance),
 				Emptied: delegator.Emptied,
 			}
 		}),
