@@ -5,7 +5,6 @@ import (
 	"math"
 	"os"
 	"strconv"
-	"time"
 
 	"blockwatch.cc/tzgo/tezos"
 
@@ -22,27 +21,6 @@ import (
 func FloatAmountToMutez(amount float64) tezos.Z {
 	mutez := amount * constants.MUTEZ_FACTOR
 	return tezos.NewZ(int64(math.Floor(mutez)))
-}
-
-func getDefaultDonatePercentageRelativeToDate(currentDate time.Time) float64 {
-	startDate := time.Date(2023, time.June, 28, 0, 0, 0, 0, time.UTC)
-	donate := float64(0.0)
-	daysPassed := int(currentDate.Sub(startDate).Hours() / 24)
-	increments := daysPassed / 30
-
-	for i := 0; i < increments; i++ {
-		if donate < 0.05 {
-			donate += 0.01
-		} else {
-			break
-		}
-	}
-
-	return donate
-}
-
-func getDefaultDonatePercentage() float64 {
-	return getDefaultDonatePercentageRelativeToDate(time.Now())
 }
 
 func preprocessDonationMap(donations map[string]float64) map[string]float64 {
@@ -129,7 +107,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		ktFeeBuffer = *configuration.PayoutConfiguration.KtTxFeeBuffer
 	}
 
-	donate := getDefaultDonatePercentage()
+	donate := constants.DEFAULT_DONATION_PERCENTAGE
 	if configuration.IncomeRecipients.Donate != nil {
 		donate = *configuration.IncomeRecipients.Donate
 	}
