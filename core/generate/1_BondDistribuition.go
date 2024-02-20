@@ -32,6 +32,7 @@ func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsS
 	}
 	bakerAmount := totalRewards.Div64(constants.DELEGATION_CAPACITY_FACTOR)
 	stakingBalance := effectiveDelegatorsStakingBalance.Add(bakerBalance)
+
 	if !overdelegationLimit.Mul64(constants.DELEGATION_CAPACITY_FACTOR).Sub(stakingBalance).IsNeg() || !configuration.Overdelegation.IsProtectionEnabled { // not overdelegated
 		bakerAmount = totalRewards.Mul(bakerBalance).Div(stakingBalance)
 	}
@@ -53,7 +54,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 				return total
 			}
 		}
-		return total.Add(candidate.Balance)
+		return total.Add(candidate.GetEffectiveBalance())
 	}, tezos.NewZ(0))
 
 	bakerBonds := getBakerBondsAmount(ctx.StageData.CycleData, effectiveStakingBalance, configuration)
@@ -68,7 +69,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		}
 		return PayoutCandidateWithBondAmount{
 			PayoutCandidate: candidate,
-			BondsAmount:     availableRewards.Mul(candidate.Balance).Div(effectiveStakingBalance),
+			BondsAmount:     availableRewards.Mul(candidate.GetEffectiveBalance()).Div(effectiveStakingBalance),
 			TxKind:          enums.PAYOUT_TX_KIND_TEZ,
 		}
 	})

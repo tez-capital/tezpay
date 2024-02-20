@@ -69,13 +69,14 @@ func (engine *SimpleColletor) GetLastCompletedCycle() (int64, error) {
 
 func (engine *SimpleColletor) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
 	return &common.BakersCycleData{
-		StakingBalance:     tezos.NewZ(100_000).Mul64(constants.MUTEZ_FACTOR),
-		DelegatedBalance:   tezos.NewZ(1_000_000).Mul64(constants.MUTEZ_FACTOR),
-		BlockRewards:       tezos.NewZ(100).Mul64(constants.MUTEZ_FACTOR),
-		EndorsementRewards: tezos.NewZ(50).Mul64(constants.MUTEZ_FACTOR),
-		FrozenDepositLimit: tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
-		NumDelegators:      2,
-		BlockFees:          tezos.NewZ(25).Mul64(constants.MUTEZ_FACTOR),
+		OwnStakingBalance:        tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
+		OwnDelegatedBalance:      tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
+		ExternalDelegatedBalance: tezos.NewZ(1_000_000).Mul64(constants.MUTEZ_FACTOR),
+		BlockRewards:             tezos.NewZ(100).Mul64(constants.MUTEZ_FACTOR),
+		EndorsementRewards:       tezos.NewZ(50).Mul64(constants.MUTEZ_FACTOR),
+		FrozenDepositLimit:       tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
+		DelegatorsCount:          2,
+		BlockFees:                tezos.NewZ(25).Mul64(constants.MUTEZ_FACTOR),
 		// TODO:
 		Delegators: []common.Delegator{},
 	}, nil

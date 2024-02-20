@@ -6,22 +6,26 @@ import (
 )
 
 type Delegator struct {
-	Address tezos.Address
-	Balance tezos.Z
-	Emptied bool
+	Address          tezos.Address
+	DelegatedBalance tezos.Z
+	StakedBalance    tezos.Z
+	Emptied          bool
 }
 
 type BakersCycleData struct {
-	StakingBalance          tezos.Z
-	DelegatedBalance        tezos.Z
-	BlockRewards            tezos.Z
-	IdealBlockRewards       tezos.Z
-	EndorsementRewards      tezos.Z
-	IdealEndorsementRewards tezos.Z
-	FrozenDepositLimit      tezos.Z
-	NumDelegators           int32
-	BlockFees               tezos.Z
-	Delegators              []Delegator
+	OwnStakingBalance        tezos.Z
+	ExternalStakingBalance   tezos.Z
+	OwnDelegatedBalance      tezos.Z
+	ExternalDelegatedBalance tezos.Z
+	BlockRewards             tezos.Z
+	IdealBlockRewards        tezos.Z
+	EndorsementRewards       tezos.Z
+	IdealEndorsementRewards  tezos.Z
+	FrozenDepositLimit       tezos.Z
+	DelegatorsCount          int32
+	StakersCount             int32
+	BlockFees                tezos.Z
+	Delegators               []Delegator
 }
 
 type ShareInfo struct {
@@ -48,7 +52,7 @@ func (cycleData *BakersCycleData) GetTotalRewards(payoutMode enums.EPayoutMode) 
 }
 
 func (cycleData *BakersCycleData) GetBakerBalance() tezos.Z {
-	return cycleData.StakingBalance.Sub(cycleData.DelegatedBalance)
+	return cycleData.OwnStakingBalance.Add(cycleData.OwnDelegatedBalance)
 }
 
 type OperationLimits struct {

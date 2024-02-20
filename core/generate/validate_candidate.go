@@ -58,7 +58,7 @@ func ValidateMinimumBalance(candidate *PayoutCandidate, configuration *configura
 		}
 	}
 
-	if candidate.Balance.Sub(treshhold).IsNeg() || candidate.Balance.Sub(treshhold).IsZero() {
+	if candidate.GetEffectiveBalance().Sub(treshhold).IsNeg() || candidate.GetEffectiveBalance().Sub(treshhold).IsZero() {
 		candidate.IsInvalid = true
 		candidate.InvalidBecause = enums.INVALID_DELEGATOR_LOW_BAlANCE
 	}

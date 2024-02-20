@@ -11,12 +11,17 @@ type PayoutCandidate struct {
 	Source                       tezos.Address              `json:"source,omitempty"`
 	Recipient                    tezos.Address              `json:"recipient,omitempty"`
 	FeeRate                      float64                    `json:"fee_rate,omitempty"`
-	Balance                      tezos.Z                    `json:"balance,omitempty"`
+	StakingBalance               tezos.Z                    `json:"balance,omitempty"`
+	DelegatedBalance             tezos.Z                    `json:"delegated_balance,omitempty"`
 	IsInvalid                    bool                       `json:"is_invalid,omitempty"`
 	IsEmptied                    bool                       `json:"is_emptied,omitempty"`
 	IsBakerPayingTxFee           bool                       `json:"is_baker_paying_tx_fee,omitempty"`
 	IsBakerPayingAllocationTxFee bool                       `json:"is_baker_paying_allocation_tx_fee,omitempty"`
 	InvalidBecause               enums.EPayoutInvalidReason `json:"invalid_because,omitempty"`
+}
+
+func (candidate *PayoutCandidate) GetEffectiveBalance() tezos.Z {
+	return candidate.StakingBalance.Add(candidate.DelegatedBalance)
 }
 
 func (candidate *PayoutCandidate) ToValidationContext(ctx *PayoutGenerationContext) PayoutValidationContext {
@@ -127,7 +132,8 @@ func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycl
 		TxKind:           payout.TxKind,
 		Delegator:        payout.Source,
 		Recipient:        payout.Recipient,
-		DelegatedBalance: payout.Balance,
+		DelegatedBalance: payout.DelegatedBalance,
+		StakingBalance:   payout.StakingBalance,
 		FATokenId:        payout.FATokenId,
 		FAContract:       payout.FAContract,
 		Amount:           payout.BondsAmount,
@@ -160,8 +166,8 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 		if delegatorOverride.IsBakerPayingAllocationTxFee != nil {
 			IsBakerPayingAllocationTxFee = *delegatorOverride.IsBakerPayingAllocationTxFee
 		}
-		if delegatorOverride.MaximumBalance != nil && delegatorOverride.MaximumBalance.IsLess(delegator.Balance) {
-			delegator.Balance = *delegatorOverride.MaximumBalance
+		if delegatorOverride.MaximumBalance != nil && delegatorOverride.MaximumBalance.IsLess(delegator.DelegatedBalance) {
+			delegator.DelegatedBalance = *delegatorOverride.MaximumBalance
 		}
 	}
 
@@ -169,7 +175,8 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 		Source:                       delegator.Address,
 		Recipient:                    payoutRecipient,
 		FeeRate:                      payoutFeeRate,
-		Balance:                      delegator.Balance,
+		StakingBalance:               delegator.DelegatedBalance,
+		DelegatedBalance:             delegator.StakedBalance,
 		IsEmptied:                    delegator.Emptied,
 		IsBakerPayingTxFee:           isBakerPayingTxFee,
 		IsBakerPayingAllocationTxFee: IsBakerPayingAllocationTxFee,

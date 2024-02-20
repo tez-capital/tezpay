@@ -18,6 +18,7 @@ type PayoutReport struct {
 	FATokenId        tezos.Z                      `json:"token_id,omitempty" csv:"token_id"`
 	Delegator        tezos.Address                `json:"delegator,omitempty" csv:"delegator"`
 	DelegatedBalance tezos.Z                      `json:"delegator_balance,omitempty" csv:"delegator_balance"`
+	StakingBalance   tezos.Z                      `json:"-" csv:"-"` // enable when relevant
 	Recipient        tezos.Address                `json:"recipient,omitempty" csv:"recipient"`
 	Amount           tezos.Z                      `json:"amount,omitempty" csv:"amount"`
 	FeeRate          float64                      `json:"fee_rate,omitempty" csv:"fee_rate"`

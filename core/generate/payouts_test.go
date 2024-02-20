@@ -26,30 +26,30 @@ func TestDelegatorToPayoutCandidate(t *testing.T) {
 
 	delegators := []common.Delegator{
 		{
-			Address: tezos.MustParseAddress("tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM"),
-			Balance: tezos.NewZ(100000000),
+			Address:          tezos.MustParseAddress("tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM"),
+			DelegatedBalance: tezos.NewZ(100000000),
 		},
 		{
-			Address: tezos.MustParseAddress("tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE"),
-			Balance: tezos.NewZ(200000000),
+			Address:          tezos.MustParseAddress("tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE"),
+			DelegatedBalance: tezos.NewZ(200000000),
 		},
 	}
 
 	delegator := delegators[0]
 	candidate := DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.Balance.Equal(tezos.MinZ(delegator.Balance, maximumBalance)))
+	assert.True(candidate.GetEffectiveBalance().Equal(tezos.MinZ(delegator.DelegatedBalance, maximumBalance)))
 
 	delegator = delegators[1]
 	candidate = DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.Balance.Equal(tezos.MinZ(delegator.Balance, maximumBalance)))
+	assert.True(candidate.GetEffectiveBalance().Equal(tezos.MinZ(delegator.DelegatedBalance, maximumBalance)))
 
 	config.Delegators.Overrides = map[string]configuration.RuntimeDelegatorOverride{}
 
 	delegator = delegators[0]
 	candidate = DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.Balance.Equal(delegator.Balance))
+	assert.True(candidate.GetEffectiveBalance().Equal(delegator.DelegatedBalance))
 
 	delegator = delegators[1]
 	candidate = DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.Balance.Equal(delegator.Balance))
+	assert.True(candidate.GetEffectiveBalance().Equal(delegator.DelegatedBalance))
 }
