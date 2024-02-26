@@ -188,7 +188,7 @@ This hook is capable of mutating data *currently*.
   "reports_of_past_succesful_payouts": [
     {
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2024-02-26T16:00:43.781885169Z",
+      "timestamp": "2024-02-26T20:24:46.734261314Z",
       "cycle": 1,
       "kind": "invalid",
       "tx_kind": "fa1",
