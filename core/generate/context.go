@@ -21,6 +21,9 @@ type StageData struct {
 	BakerFeesAmount   tezos.Z
 	DonateFeesAmount  tezos.Z
 	PaidDelegators    int
+
+	// protocol, signature etc.
+	BatchMetadataDeserializationGasLimit int64
 }
 
 type PayoutGenerationContext struct {

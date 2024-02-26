@@ -137,6 +137,11 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		maximumPayoutDelayBlocks = *configuration.PayoutConfiguration.MaximumDelayBlocks
 	}
 
+	simulationBatchSize := constants.DEFAULT_SIMULATION_TX_BATCH_SIZE
+	if configuration.PayoutConfiguration.SimulationBatchSize != nil && *configuration.PayoutConfiguration.SimulationBatchSize > 0 {
+		simulationBatchSize = *configuration.PayoutConfiguration.SimulationBatchSize
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -153,6 +158,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			KtTxFeeBuffer:              ktFeeBuffer,
 			MinimumDelayBlocks:         minimumPayoutDelayBlocks,
 			MaximumDelayBlocks:         maximumPayoutDelayBlocks,
+			SimulationBatchSize:        simulationBatchSize,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

@@ -11,14 +11,14 @@ import (
 	"github.com/samber/lo"
 )
 
-func splitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLimits) ([]common.RecipeBatch, error) {
+func splitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLimits, metadataDeserializationGasLimit int64) ([]common.RecipeBatch, error) {
 	batches := make([]common.RecipeBatch, 0)
-	batchBlueprint := common.NewBatch(limits)
+	batchBlueprint := common.NewBatch(limits, metadataDeserializationGasLimit)
 
 	for _, payout := range payouts {
 		if !batchBlueprint.AddPayout(payout) {
 			batches = append(batches, batchBlueprint.ToBatch())
-			batchBlueprint = common.NewBatch(limits)
+			batchBlueprint = common.NewBatch(limits, metadataDeserializationGasLimit)
 			if !batchBlueprint.AddPayout(payout) {
 				return nil, constants.ErrPayoutDidNotFitTheBatch
 			}
@@ -60,7 +60,7 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 
 	stageBatches := make([]common.RecipeBatch, 0)
 	for _, batch := range toBatch {
-		batches, err := splitIntoBatches(batch, ctx.StageData.Limits)
+		batches, err := splitIntoBatches(batch, ctx.StageData.Limits, ctx.PayoutBlueprint.BatchMetadataDeserializationGasLimit)
 		if err != nil {
 			return nil, err
 		}

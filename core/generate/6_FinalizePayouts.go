@@ -73,7 +73,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 		}
 
 		// we use entire serialization cost even with two burn txs, it is used as some offset to avoid exhaustion
-		serializationGas := (costs[0].GasUsed - costs[len(costs)-1].GasUsed)
+		serializationGas := (costs[0].GasUsed - costs[len(costs)-1].GasUsed) - ctx.StageData.BatchMetadataDeserializationGasLimit
 		op.Contents = op.Contents[1 : len(op.Contents)-1]
 		costs = costs[1 : len(costs)-1]
 		cost := costs[0]
@@ -89,11 +89,16 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 			feeBuffer = ctx.configuration.PayoutConfiguration.KtTxFeeBuffer
 		}
 
+		totalOpGasUsed := cost.GasUsed + serializationGas +
+			ctx.configuration.PayoutConfiguration.TxGasLimitBuffer + // buffer for gas limit
+			ctx.StageData.BatchMetadataDeserializationGasLimit + // potential gas used for deserialization if only one tx in batch
+			ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer // buffer for deserialization gas limit
+
 		recipe.OpLimits = &common.OpLimits{
-			GasLimit:              cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
-			StorageLimit:          utils.CalculateStorageLimit(cost),
-			TransactionFee:        utils.EstimateTransactionFee(op, []int64{cost.GasUsed + serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer}, feeBuffer),
-			SerializationGasLimit: serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
+			GasLimit:                cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
+			StorageLimit:            utils.CalculateStorageLimit(cost),
+			TransactionFee:          utils.EstimateTransactionFee(op, []int64{totalOpGasUsed}, feeBuffer),
+			DeserializationGasLimit: serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 		}
 		result = append(result, recipe)
 	}

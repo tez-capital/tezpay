@@ -156,7 +156,7 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:     true,
 	})
 	ops := []PayoutCandidateWithBondAmountAndFee{}
-	for len(ops) < TX_BATCH_CAPACITY*2.5 {
+	for len(ops) < constants.DEFAULT_SIMULATION_TX_BATCH_SIZE*2.5 {
 		ops = append(ops, payoutCandidatesWithBondAmountAndFees...)
 	}
 

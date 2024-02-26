@@ -49,6 +49,7 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 			DonatedTotal:        stageData.DonateFeesAmount.Add(stageData.DonateBondsAmount),
 			Timestamp:           time.Now(),
 		},
+		BatchMetadataDeserializationGasLimit: stageData.BatchMetadataDeserializationGasLimit,
 	}
 
 	err = ExecuteAfterPayoutsBlueprintGenerated(blueprint)

@@ -52,6 +52,7 @@ type RuntimePayoutConfiguration struct {
 	KtTxFeeBuffer              int64             `json:"kt_transaction_fee_buffer,omitempty"`
 	MinimumDelayBlocks         int64             `json:"minimum_delay_blocks,omitempty"`
 	MaximumDelayBlocks         int64             `json:"maximum_delay_blocks,omitempty"`
+	SimulationBatchSize        int               `json:"simulation_batch_size,omitempty"`
 }
 
 type RuntimeIncomeRecipients struct {
@@ -76,13 +77,6 @@ type RuntimeConfiguration struct {
 }
 
 func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
-	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
-	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
-	feeBuffer := int64(constants.DEFAULT_TX_FEE_BUFFER)
-	ktFeeBuffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
-	minimumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
-	maximumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY
-
 	return RuntimeConfiguration{
 		BakerPKH: tezos.InvalidKey.Address(),
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -93,12 +87,13 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			IsPayingAllocationTxFee:    false,
 			MinimumAmount:              FloatAmountToMutez(constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT),
 			IgnoreEmptyAccounts:        false,
-			TxGasLimitBuffer:           gasLimitBuffer,
-			TxDeserializationGasBuffer: deserializaGasBuffer,
-			TxFeeBuffer:                feeBuffer,
-			KtTxFeeBuffer:              ktFeeBuffer,
-			MinimumDelayBlocks:         minimumPayoutDelayBlocks,
-			MaximumDelayBlocks:         maximumPayoutDelayBlocks,
+			TxGasLimitBuffer:           constants.DEFAULT_TX_GAS_LIMIT_BUFFER,
+			TxDeserializationGasBuffer: constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER,
+			TxFeeBuffer:                constants.DEFAULT_TX_FEE_BUFFER,
+			KtTxFeeBuffer:              constants.DEFAULT_KT_TX_FEE_BUFFER,
+			MinimumDelayBlocks:         constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY,
+			MaximumDelayBlocks:         constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY,
+			SimulationBatchSize:        constants.DEFAULT_SIMULATION_TX_BATCH_SIZE,
 		},
 		Delegators: RuntimeDelegatorsConfiguration{
 			Requirements: RuntimeDelegatorRequirements{

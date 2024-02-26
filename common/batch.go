@@ -16,11 +16,11 @@ type batchBlueprint struct {
 	limits      OperationLimits
 }
 
-func NewBatch(limits *OperationLimits) batchBlueprint {
+func NewBatch(limits *OperationLimits, metadataDeserializationGasLimit int64) batchBlueprint {
 	return batchBlueprint{
 		Payouts:     make([]PayoutRecipe, 0),
 		UsedStorage: 0,
-		UsedGas:     0,
+		UsedGas:     metadataDeserializationGasLimit,
 		Op:          codec.NewOp().WithSource(tezos.ZeroAddress), // dummy address
 		limits: OperationLimits{
 			HardGasLimitPerOperation:     limits.HardGasLimitPerOperation * 95 / 100,     // little reserve
@@ -34,7 +34,7 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 	if b.UsedStorage+payout.OpLimits.StorageLimit >= b.limits.HardStorageLimitPerOperation {
 		return false
 	}
-	if b.UsedGas+payout.OpLimits.GasLimit+payout.OpLimits.SerializationGasLimit >= b.limits.HardGasLimitPerOperation {
+	if b.UsedGas+payout.OpLimits.GasLimit+payout.OpLimits.DeserializationGasLimit >= b.limits.HardGasLimitPerOperation {
 		return false
 	}
 	InjectTransferContents(b.Op, payout.Recipient, &payout)
@@ -42,7 +42,7 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 		return false
 	}
 	b.UsedStorage += payout.OpLimits.StorageLimit
-	b.UsedGas += payout.OpLimits.GasLimit + payout.OpLimits.SerializationGasLimit
+	b.UsedGas += payout.OpLimits.GasLimit + payout.OpLimits.DeserializationGasLimit
 	b.Payouts = append(b.Payouts, payout)
 
 	return true
@@ -59,7 +59,7 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 	op.WithTTL(constants.MAX_OPERATION_TTL)
 
 	serializationGasLimit := lo.Reduce(*b, func(acc int64, p PayoutRecipe, _ int) int64 {
-		return acc + p.OpLimits.SerializationGasLimit
+		return acc + p.OpLimits.DeserializationGasLimit
 	}, int64(0))
 
 	for i, p := range *b {

@@ -66,6 +66,7 @@ type PayoutConfigurationV0 struct {
 	KtTxFeeBuffer              *int64            `json:"kt_transaction_fee_buffer,omitempty"`
 	MinimumDelayBlocks         *int64            `json:"minimum_delay_blocks,omitempty"`
 	MaximumDelayBlocks         *int64            `json:"maximum_delay_blocks,omitempty"`
+	SimulationBatchSize        *int              `json:"simulation_batch_size,omitempty"`
 }
 
 type ExtensionConfigurationV0 = common.ExtensionDefinition
@@ -96,6 +97,7 @@ func GetDefaultV0() ConfigurationV0 {
 	ktFeeBUffer := int64(constants.DEFAULT_KT_TX_FEE_BUFFER)
 	minimumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
 	maximumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY
+	simulationBatchSize := constants.DEFAULT_SIMULATION_TX_BATCH_SIZE
 
 	delegatorBellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
 
@@ -133,6 +135,7 @@ func GetDefaultV0() ConfigurationV0 {
 			KtTxFeeBuffer:              &ktFeeBUffer,
 			MinimumDelayBlocks:         &minimumPayoutDelayBlocks,
 			MaximumDelayBlocks:         &maximumPayoutDelayBlocks,
+			SimulationBatchSize:        &simulationBatchSize,
 		},
 		IncomeRecipients:           IncomeRecipientsV0{},
 		NotificationConfigurations: make([]json.RawMessage, 0),

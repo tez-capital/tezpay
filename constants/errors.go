@@ -50,14 +50,15 @@ var (
 	ErrMissingConfiguration    = errors.New("undefined configuration")
 	ErrMissingPayoutBlueprint  = errors.New("undefined payout blueprint")
 
-	// generate payeouts
+	// generate payouts
 
-	ErrRevealCheckFailed         = errors.New("failed to check if address is revealed")
-	ErrNotRevealed               = errors.New("address is not revealed")
-	ErrCycleDataCollectionFailed = errors.New("failed to collect cycle data")
-	ErrPayoutsFromFileLoadFailed = errors.New("failed to load payouts from file")
-	ErrPayoutsSaveToFileFailed   = errors.New("failed to save payouts to file")
-	ErrInsufficientBalance       = errors.New("insufficient balance")
+	ErrRevealCheckFailed                     = errors.New("failed to check if address is revealed")
+	ErrNotRevealed                           = errors.New("address is not revealed")
+	ErrCycleDataCollectionFailed             = errors.New("failed to collect cycle data")
+	ErrPayoutsFromFileLoadFailed             = errors.New("failed to load payouts from file")
+	ErrPayoutsSaveToFileFailed               = errors.New("failed to save payouts to file")
+	ErrInsufficientBalance                   = errors.New("insufficient balance")
+	ErrFailedToEstimateSerializationGasLimit = errors.New("failed to estimate batch serialization gas limit")
 
 	// execute payouts
 

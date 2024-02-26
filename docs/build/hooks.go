@@ -64,10 +64,10 @@ func GenerateHookSampleData() {
 			AllocationBurn: 1,
 			StorageBurn:    1,
 			OpLimits: &common.OpLimits{
-				TransactionFee:        1,
-				StorageLimit:          1,
-				GasLimit:              1,
-				SerializationGasLimit: 1,
+				TransactionFee:          1,
+				StorageLimit:            1,
+				GasLimit:                1,
+				DeserializationGasLimit: 1,
 			},
 		},
 	}

@@ -11,10 +11,10 @@ import (
 )
 
 type OpLimits struct {
-	TransactionFee        int64 `json:"transaction_fee,omitempty"`
-	StorageLimit          int64 `json:"storage_limit,omitempty"`
-	GasLimit              int64 `json:"gas_limit,omitempty"`
-	SerializationGasLimit int64 `json:"serialization_fee,omitempty"`
+	TransactionFee          int64 `json:"transaction_fee,omitempty"`
+	StorageLimit            int64 `json:"storage_limit,omitempty"`
+	GasLimit                int64 `json:"gas_limit,omitempty"`
+	DeserializationGasLimit int64 `json:"deserialization_gas_limit,omitempty"`
 }
 
 type PayoutRecipe struct {
@@ -59,7 +59,7 @@ func (candidate *PayoutRecipe) GetAmount() tezos.Z {
 func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 	txFee := int64(0)
 	if pr.OpLimits != nil {
-		txFee = pr.OpLimits.TransactionFee + pr.OpLimits.SerializationGasLimit
+		txFee = pr.OpLimits.TransactionFee
 	}
 
 	return PayoutReport{
@@ -192,9 +192,10 @@ func (summary *CyclePayoutSummary) CombineNumericData(another *CyclePayoutSummar
 }
 
 type CyclePayoutBlueprint struct {
-	Cycle   int64              `json:"cycle,omitempty"`
-	Payouts []PayoutRecipe     `json:"payouts,omitempty"`
-	Summary CyclePayoutSummary `json:"summary,omitempty"`
+	Cycle                                int64              `json:"cycle,omitempty"`
+	Payouts                              []PayoutRecipe     `json:"payouts,omitempty"`
+	Summary                              CyclePayoutSummary `json:"summary,omitempty"`
+	BatchMetadataDeserializationGasLimit int64              `json:"batch_metadata_deserialization_gas_limit,omitempty"`
 }
 
 type GeneratePayoutsEngineContext struct {

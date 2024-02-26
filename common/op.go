@@ -46,7 +46,7 @@ func (ctx *OpExecutionContext) WaitForApply() error {
 	return ctx.result.WaitForApply()
 }
 
-type ITransferArgs interface {
+type TransferArgs interface {
 	GetTxKind() enums.EPayoutTransactionKind
 	GetFAContract() tezos.Address
 	GetFATokenId() tezos.Z
@@ -54,7 +54,7 @@ type ITransferArgs interface {
 	GetAmount() tezos.Z
 }
 
-func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs) error {
+func InjectTransferContents(op *codec.Op, source tezos.Address, p TransferArgs) error {
 	switch p.GetTxKind() {
 	case enums.PAYOUT_TX_KIND_FA1_2:
 		if p.GetFAContract().Equal(tezos.ZeroAddress) || p.GetFAContract().Equal(tezos.InvalidAddress) {
@@ -78,7 +78,7 @@ func InjectTransferContents(op *codec.Op, source tezos.Address, p ITransferArgs)
 	return nil
 }
 
-func InjectTransferContentsWithLimits(op *codec.Op, source tezos.Address, p ITransferArgs, limits tezos.Limits) error {
+func InjectTransferContentsWithLimits(op *codec.Op, source tezos.Address, p TransferArgs, limits tezos.Limits) error {
 	err := InjectTransferContents(op, source, p)
 	if err != nil {
 		return err
