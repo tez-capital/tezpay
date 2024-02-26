@@ -132,7 +132,7 @@ This hook is NOT capable of mutating data *currently*.
         "transaction_fee": 1,
         "storage_limit": 1,
         "gas_limit": 1,
-        "serialization_fee": 1
+        "deserialization_gas_limit": 1
       },
       "note": "reason"
     }
@@ -180,7 +180,7 @@ This hook is capable of mutating data *currently*.
         "transaction_fee": 1,
         "storage_limit": 1,
         "gas_limit": 1,
-        "serialization_fee": 1
+        "deserialization_gas_limit": 1
       },
       "note": "reason"
     }
@@ -188,7 +188,7 @@ This hook is capable of mutating data *currently*.
   "reports_of_past_succesful_payouts": [
     {
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2024-02-20T22:06:31.786854167Z",
+      "timestamp": "2024-02-26T15:49:04.277520495Z",
       "cycle": 1,
       "kind": "invalid",
       "tx_kind": "fa1",
@@ -200,7 +200,7 @@ This hook is capable of mutating data *currently*.
       "amount": "1000000000",
       "fee_rate": 5,
       "fee": "1000000000",
-      "tx_fee": 2,
+      "tx_fee": 1,
       "op_hash": "oneDGhZacw99EEFaYDTtWfz5QEhUW3PPVFsHa7GShnLPuDn7gSd",
       "success": true,
       "note": "reason"
