@@ -28,6 +28,10 @@ func estimateBatchSerializationGasLimit(ctx *PayoutGenerationContext) error {
 	}
 
 	ctx.StageData.BatchMetadataDeserializationGasLimit = costs[0].GasUsed - costs[len(costs)-1].GasUsed
+
+	if ctx.StageData.BatchMetadataDeserializationGasLimit < 0 {
+		utils.PanicWithMetadata("unexpected deserialization limit", "171037723382b8e880b029bbd881016eb6362a96a13e91e8f25ea9223d02fa32", ctx.StageData.BatchMetadataDeserializationGasLimit)
+	}
 	return nil
 }
 
