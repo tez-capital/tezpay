@@ -58,7 +58,7 @@ func runMonitoringTest(t *testing.T, start int64, end int64, lastProcessedCycle 
 	assert.Equal(expectedCycle, cycle)
 }
 
-func runMonitoringTestExpectClosed(t *testing.T, start int64, end int64, lastProcessedCycle int64, expectedCycle int64) {
+func runMonitoringTestExpectClosed(t *testing.T, start int64, end int64, lastProcessedCycle int64, _ int64) {
 	assert := assert.New(t)
 	monitor := NewDumyCycleMonitor(start, end)
 	assert.Nil(monitor.CreateBlockHeaderMonitor())

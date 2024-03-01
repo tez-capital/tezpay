@@ -58,7 +58,7 @@ var continualCmd = &cobra.Command{
 
 		// last completed cycle at the time we started continual mode on
 		onchainCompletedCycle := assertRunWithResultAndErrFmt(func() (int64, error) {
-			return monitor.WaitForNextCompletedCycle(0)
+			return collector.GetLastCompletedCycle()
 		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 
 		lastProcessedCycle := int64(onchainCompletedCycle)
