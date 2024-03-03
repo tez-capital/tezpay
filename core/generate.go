@@ -12,7 +12,7 @@ const (
 	PAYOUT_EXECUTION_SUCCESS
 )
 
-func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *common.GeneratePayoutsEngineContext, options *common.GeneratePayoutsOptions) (*common.GeneratePayoutsResult, error) {
+func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *common.GeneratePayoutsEngineContext, options *common.GeneratePayoutsOptions) (*common.CyclePayoutBlueprint, error) {
 	if config == nil {
 		return nil, constants.ErrMissingConfiguration
 	}

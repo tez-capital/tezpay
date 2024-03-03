@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 
+	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/utils"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,7 +40,7 @@ func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch commo
 	return common.NewSuccessBatchResult(batch, opExecCtx.GetOpHash())
 }
 
-func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsOptions) *PayoutExecutionContext {
+func executePayouts(ctx *PayoutExecutionContext, _ *common.ExecutePayoutsOptions) *PayoutExecutionContext {
 	batchCount := len(ctx.StageData.Batches)
 	batchesResults := make(common.BatchResults, 0)
 
@@ -63,23 +65,37 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 	ctx.StageData.BatchResults = batchesResults
 	failureDetected := false
 
-	if err := reporter.ReportPayouts(append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)); err != nil {
+	validPayoutReports := append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)
+	reportsOfAccumulatedPayouts := lo.Map(ctx.AccumulatedPayouts, func(payout common.PayoutRecipe, _ int) common.PayoutReport {
+		return payout.ToPayoutReport()
+	})
+	validPayoutReports = append(validPayoutReports, reportsOfAccumulatedPayouts...)
+
+	if err := reporter.ReportPayouts(validPayoutReports); err != nil {
 		log.Warnf("failed to report sent payouts - %s", err.Error())
 		failureDetected = true
 	}
-	if err := reporter.ReportInvalidPayouts(utils.OnlyInvalidPayouts(ctx.PayoutBlueprint.Payouts)); err != nil {
+	if err := reporter.ReportInvalidPayouts(utils.OnlyInvalidPayouts(ctx.InvalidPayouts)); err != nil {
 		log.Warnf("failed to report invalid payouts - %s", err.Error())
 		failureDetected = true
 	}
-	if err := reporter.ReportCycleSummary(ctx.PayoutBlueprint.Summary); err != nil {
-		log.Warnf("failed to report cycle summary - %s", err.Error())
-		failureDetected = true
+	for _, blueprint := range ctx.PayoutBlueprints {
+		if err := reporter.ReportCycleSummary(blueprint.Summary); err != nil {
+			log.Warnf("failed to report cycle summary - %s", err.Error())
+			failureDetected = true
+		}
 	}
 	if !failureDetected {
 		log.Info("all payouts reports written successfully")
 	}
 
 	ctx.protectedSection.Stop()
+
+	paidDelegators := lo.Reduce(validPayoutReports, func(agg []tezos.Address, report common.PayoutReport, _ int) []tezos.Address {
+		return append(agg, report.Delegator)
+	}, []tezos.Address{})
+	paidDelegators = lo.Uniq(paidDelegators)
+	ctx.StageData.PaidDelegators = len(paidDelegators)
 	return ctx
 }
 

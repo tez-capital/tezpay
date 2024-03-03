@@ -7,7 +7,7 @@ import (
 	"github.com/alis-is/tezpay/core/execute"
 )
 
-func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *configuration.RuntimeConfiguration, engineContext *common.ExecutePayoutsEngineContext, options *common.ExecutePayoutsOptions) (common.ExecutePayoutsResult, error) {
+func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *configuration.RuntimeConfiguration, engineContext *common.ExecutePayoutsEngineContext, options *common.ExecutePayoutsOptions) (*common.ExecutePayoutsResult, error) {
 	if config == nil {
 		return nil, constants.ErrMissingConfiguration
 	}
@@ -20,5 +20,8 @@ func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *conf
 	ctx, err = WrapContext[*execute.PayoutExecutionContext, *common.ExecutePayoutsOptions](ctx).ExecuteStages(options,
 		execute.SplitIntoBatches,
 		execute.ExecutePayouts).Unwrap()
-	return ctx.StageData.BatchResults, err
+	return &common.ExecutePayoutsResult{
+		BatchResults:   ctx.StageData.BatchResults,
+		PaidDelegators: ctx.StageData.PaidDelegators,
+	}, err
 }

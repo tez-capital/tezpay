@@ -87,8 +87,12 @@ func (engine *DefaultRpcAndTzktColletor) GetLastCompletedCycle() (int64, error) 
 	return cycle - 1, err
 }
 
-func (engine *DefaultRpcAndTzktColletor) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
+func (engine *DefaultRpcAndTzktColletor) GetCycleStakingData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
 	return engine.tzkt.GetCycleData(context.Background(), baker, cycle)
+}
+
+func (engine *DefaultRpcAndTzktColletor) GetCyclesInDateRange(startDate time.Time, endDate time.Time) ([]int64, error) {
+	return engine.tzkt.GetCyclesInDateRange(context.Background(), startDate, endDate)
 }
 
 func (engine *DefaultRpcAndTzktColletor) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {

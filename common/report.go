@@ -9,6 +9,7 @@ import (
 )
 
 type PayoutReport struct {
+	Id               string                       `json:"id" csv:"id"`
 	Baker            tezos.Address                `json:"baker" csv:"baker"`
 	Timestamp        time.Time                    `json:"timestamp" csv:"timestamp"`
 	Cycle            int64                        `json:"cycle" csv:"cycle"`

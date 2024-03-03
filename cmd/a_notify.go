@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func collectAdditionalData(summary *common.CyclePayoutSummary) map[string]string {
+func collectAdditionalData(_ *common.CyclePayoutSummary) map[string]string {
 	data := make(map[string]json.RawMessage)
 
 	err := extension.ExecuteHook(enums.EXTENSION_HOOK_COLLECT_ADDITIONAL_NOTIFICATION_DATA, "0.1", &data)

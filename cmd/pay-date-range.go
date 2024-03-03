@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
@@ -17,15 +18,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var payCmd = &cobra.Command{
-	Use:   "pay",
+var payDateRangeCmd = &cobra.Command{
+	Use:   "pay-date-range",
 	Short: "manual payout",
 	Long:  "runs manual payout",
 	Run: func(cmd *cobra.Command, args []string) {
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 
-		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
+		startDateFlag, _ := cmd.Flags().GetString(START_DATE_FLAG)
+		endDateFlag, _ := cmd.Flags().GetString(END_DATE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
@@ -38,20 +40,27 @@ var payCmd = &cobra.Command{
 			assertRequireConfirmation("With your current configuration you are not going to donate to tez.capital. Do you want to proceed?")
 		}
 
-		if cycle <= 0 {
-			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
-			cycle = lastCompletedCycle + cycle
+		startDate, err := time.Parse("2006-01-02", startDateFlag)
+		if err != nil {
+			log.Errorf("failed to parse start date - %s", err)
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
+		endDate, err := time.Parse("2006-01-02", endDateFlag)
+		if err != nil {
+			log.Errorf("failed to parse end date - %s", err)
+			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
-		var generationResult *common.CyclePayoutBlueprint
-		fromFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
-		if fromFile != "" {
-			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
-				return loadGeneratedPayoutsResultFromFile(fromFile)
-			}, EXIT_PAYOUTS_READ_FAILURE)
-		} else {
-			var err error
-			generationResult, err = core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+		cycles, err := collector.GetCyclesInDateRange(startDate, endDate)
+		if err != nil {
+			log.Errorf("failed to get cycles in date range - %s", err)
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
+
+		generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
+
+		for _, cycle := range cycles {
+			generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 				&common.GeneratePayoutsOptions{
 					Cycle:            cycle,
 					SkipBalanceCheck: skipBalanceCheck,
@@ -64,19 +73,19 @@ var payCmd = &cobra.Command{
 				log.Errorf("failed to generate payouts - %s", err)
 				os.Exit(EXIT_OPERTION_FAILED)
 			}
+			generationResults = append(generationResults, generationResult)
 		}
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 		}, EXIT_OPERTION_FAILED)
 
-		cycles := []int64{generationResult.Cycle}
 		if state.Global.GetWantsOutputJson() {
 			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
 			utils.PrintPayoutsAsJson(preparationResult.ValidPayouts)
 		} else {
 			utils.PrintInvalidPayoutRecipes(preparationResult.ValidPayouts, cycles)
-			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%s", utils.FormatCycleNumbers(cycles)), true)
+			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", utils.FormatCycleNumbers(cycles)), true)
 			utils.PrintValidPayoutRecipes(preparationResult.ValidPayouts, cycles)
 		}
 
@@ -84,7 +93,7 @@ var payCmd = &cobra.Command{
 			log.Info("nothing to pay out")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
-				notifyPayoutsProcessed(config, &generationResult.Summary, notificator)
+				notifyPayoutsProcessed(config, generationResults.GetSummary(), notificator)
 			}
 			os.Exit(0)
 		}
@@ -92,6 +101,7 @@ var payCmd = &cobra.Command{
 		if !confirmed {
 			assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 		}
+		os.Exit(0) // TODO: remove this line
 
 		log.Info("executing payout")
 		executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
@@ -113,22 +123,25 @@ var payCmd = &cobra.Command{
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
-			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
+			summary := generationResults.GetSummary()
+			summary.PaidDelegators = executionResult.PaidDelegators
+			notifyPayoutsProcessedThroughAllNotificators(config, summary)
 		}
 		utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles)), config.Network.Explorer)
 	},
 }
 
 func init() {
-	payCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
-	payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
-	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
-	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
-	payCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
-	payCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
-	payCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
-	payCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
-	payCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
+	payDateRangeCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
+	//payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
+	payDateRangeCmd.Flags().String(START_DATE_FLAG, "", "start date for payout generation")
+	payDateRangeCmd.Flags().String(END_DATE_FLAG, "", "end date for payout generation")
+	payDateRangeCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
+	payDateRangeCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
+	payDateRangeCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
+	payDateRangeCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
+	payDateRangeCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
+	payDateRangeCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
 
 	RootCmd.AddCommand(payCmd)
 }

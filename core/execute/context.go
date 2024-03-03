@@ -11,6 +11,7 @@ type StageData struct {
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport
 	Batches                       []common.RecipeBatch
 	BatchResults                  common.BatchResults
+	PaidDelegators                int
 }
 
 type PayoutExecutionContext struct {
@@ -20,8 +21,10 @@ type PayoutExecutionContext struct {
 	protectedSection *utils.ProtectedSection
 	StageData        *StageData
 
-	Payouts         []common.PayoutRecipe
-	PayoutBlueprint *common.CyclePayoutBlueprint
+	ValidPayouts       []common.PayoutRecipe
+	InvalidPayouts     []common.PayoutRecipe
+	AccumulatedPayouts []common.PayoutRecipe
+	PayoutBlueprints   []*common.CyclePayoutBlueprint
 }
 
 func (ctx *PayoutExecutionContext) GetConfiguration() *configuration.RuntimeConfiguration {
@@ -42,7 +45,9 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 			ReportsOfPastSuccesfulPayouts: preparationResult.ReportsOfPastSuccesfulPayouts,
 		},
 
-		Payouts:         preparationResult.Payouts,
-		PayoutBlueprint: preparationResult.Blueprint,
+		ValidPayouts:       preparationResult.ValidPayouts,
+		InvalidPayouts:     preparationResult.InvalidPayouts,
+		AccumulatedPayouts: preparationResult.AccumulatedPayouts,
+		PayoutBlueprints:   preparationResult.Blueprints,
 	}, nil
 }
