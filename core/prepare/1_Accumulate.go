@@ -20,25 +20,26 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 		return payout.GetIdentifier()
 	})
 
-	for k, payouts := range grouped {
-		if k == "" || len(payouts) <= 1 {
-			accumulatedPayouts = append(accumulatedPayouts, payouts...)
+	for k, groupedPayouts := range grouped {
+		if k == "" || len(groupedPayouts) <= 1 {
+			payouts = append(payouts, groupedPayouts...)
 			continue
 		}
 
-		basePayout := payouts[0]
-		payouts = payouts[1:]
-		for _, payout := range payouts {
+		basePayout := groupedPayouts[0]
+		groupedPayouts = groupedPayouts[1:]
+		for _, payout := range groupedPayouts {
 			combined, err := basePayout.Combine(&payout)
 			if err != nil {
 				return nil, err
 			}
+			accumulatedPayouts = append(accumulatedPayouts, payout)
 			basePayout = *combined
 		}
 		// TODO: optimize fees and adjust blueprints accordingly
 
-		payouts = append(payouts, basePayout)                       // add the combined
-		accumulatedPayouts = append(accumulatedPayouts, payouts...) // add the rest - marked as ACCUMULATED
+		payouts = append(payouts, basePayout) // add the combined
+		// add the rest - marked as ACCUMULATED
 	}
 
 	ctx.StageData.ValidPayouts = payouts

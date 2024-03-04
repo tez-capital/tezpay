@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/alis-is/tezpay/common"
@@ -50,10 +51,33 @@ func getNonEmptyIndexes[T comparable](headers []string, data [][]T) []int {
 	})
 }
 
-func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {
+func sortPayouts(payouts []common.PayoutRecipe) {
+	slices.SortFunc(payouts, func(a, b common.PayoutRecipe) int {
+		if a.Kind == b.Kind {
+			if a.Amount.IsLess(b.Amount) {
+				return 1
+			} else if b.Amount.IsLess(a.Amount) {
+				return -1
+			} else {
+				return 0
+			}
+		}
+		if a.Kind.ToPriority() < b.Kind.ToPriority() {
+			return 1
+		} else if a.Kind.ToPriority() > b.Kind.ToPriority() {
+			return -1
+		}
+		return 0
+	})
+}
+
+func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {
 	if len(payouts) == 0 {
 		return
 	}
+
+	sortPayouts(payouts)
+
 	payoutTable := table.NewWriter()
 	payoutTable.SetStyle(table.StyleLight)
 	payoutTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignLeft}})
@@ -109,15 +133,15 @@ func FormatCycleNumbers(cycles []int64) string {
 	}
 }
 
-// print invalid payouts
-func PrintInvalidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
-	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - %s", FormatCycleNumbers(cycles)), false)
-}
+// // print invalid payouts
+// func PrintInvalidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
+// 	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - %s", FormatCycleNumbers(cycles)), false)
+// }
 
-// print payable payouts
-func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
-	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - %s", FormatCycleNumbers(cycles)), true)
-}
+// // print payable payouts
+// func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
+// 	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - %s", FormatCycleNumbers(cycles)), true)
+// }
 
 func PrintPayoutsAsJson[T PayoutConstraint](payouts []T) {
 	fmt.Println(string(PayoutsToJson(payouts)))

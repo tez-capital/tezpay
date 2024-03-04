@@ -1,6 +1,6 @@
 module github.com/alis-is/tezpay
 
-go 1.21
+go 1.22
 
 require (
 	blockwatch.cc/tzgo v1.18.2

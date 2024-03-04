@@ -75,9 +75,10 @@ var payCmd = &cobra.Command{
 			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
 			utils.PrintPayoutsAsJson(preparationResult.ValidPayouts)
 		} else {
-			utils.PrintInvalidPayoutRecipes(preparationResult.ValidPayouts, cycles)
+			utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
+			utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
 			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%s", utils.FormatCycleNumbers(cycles)), true)
-			utils.PrintValidPayoutRecipes(preparationResult.ValidPayouts, cycles)
+			utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
 		}
 
 		if len(utils.OnlyValidPayouts(preparationResult.ValidPayouts)) == 0 {

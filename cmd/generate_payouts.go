@@ -60,8 +60,8 @@ var generatePayoutsCmd = &cobra.Command{
 			return
 		}
 		cycles := []int64{generationResult.Cycle}
-		utils.PrintInvalidPayoutRecipes(generationResult.Payouts, cycles)
-		utils.PrintValidPayoutRecipes(generationResult.Payouts, cycles)
+		utils.PrintPayouts(generationResult.Payouts, utils.FormatCycleNumbers(cycles), false)
+		utils.PrintPayouts(generationResult.Payouts, utils.FormatCycleNumbers(cycles), true)
 	},
 }
 

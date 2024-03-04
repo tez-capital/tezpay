@@ -21,4 +21,5 @@ const (
 	MUTEZ_FLAG                       = "mutez"
 	START_DATE_FLAG                  = "start-date"
 	END_DATE_FLAG                    = "end-date"
+	MONTH_FLAG                       = "month"
 )

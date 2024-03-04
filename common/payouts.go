@@ -135,8 +135,6 @@ func (recipe *PayoutRecipe) Combine(otherRecipe *PayoutRecipe) (*PayoutRecipe, e
 	}
 
 	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
-	otherRecipe.Amount = tezos.Zero
-	otherRecipe.Fee = tezos.Zero
 	otherRecipe.Note = fmt.Sprintf("%s#%d", recipe.GetShortIdentifier(), recipe.Cycle)
 
 	return recipe, nil

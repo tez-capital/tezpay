@@ -18,16 +18,45 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func parseDateFlags(cmd *cobra.Command) (time.Time, time.Time, error) {
+	startDateFlag, _ := cmd.Flags().GetString(START_DATE_FLAG)
+	endDateFlag, _ := cmd.Flags().GetString(END_DATE_FLAG)
+	monthFlag, _ := cmd.Flags().GetString(MONTH_FLAG)
+
+	if startDateFlag != "" && endDateFlag != "" && monthFlag != "" {
+		return time.Time{}, time.Time{}, errors.New("only start date and end date or month can be specified")
+	}
+	if startDateFlag != "" && endDateFlag != "" {
+		startDate, err := time.Parse("2006-01-02", startDateFlag)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse start date - %s", err)
+		}
+		endDate, err := time.Parse("2006-01-02", endDateFlag)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse end date - %s", err)
+		}
+		return startDate, endDate.Add(-time.Nanosecond), nil
+	}
+	if monthFlag != "" {
+		month, err := time.Parse("2006-01", monthFlag)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse month - %s", err)
+		}
+		startDate := time.Date(month.Year(), month.Month(), 1, 0, 0, 0, 0, time.UTC)
+		endDate := startDate.AddDate(0, 1, 0).Add(-time.Nanosecond)
+		return startDate, endDate, nil
+	}
+	return time.Time{}, time.Time{}, errors.New("invalid date range")
+}
+
 var payDateRangeCmd = &cobra.Command{
 	Use:   "pay-date-range",
-	Short: "manual payout",
-	Long:  "runs manual payout",
+	Short: "EXPERIMENTAL: payout for date range",
+	Long:  "EXPERIMENTAL: runs payout for date range",
 	Run: func(cmd *cobra.Command, args []string) {
 		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 
-		startDateFlag, _ := cmd.Flags().GetString(START_DATE_FLAG)
-		endDateFlag, _ := cmd.Flags().GetString(END_DATE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
@@ -40,16 +69,13 @@ var payDateRangeCmd = &cobra.Command{
 			assertRequireConfirmation("With your current configuration you are not going to donate to tez.capital. Do you want to proceed?")
 		}
 
-		startDate, err := time.Parse("2006-01-02", startDateFlag)
+		startDate, endDate, err := parseDateFlags(cmd)
 		if err != nil {
-			log.Errorf("failed to parse start date - %s", err)
+			log.Error(err.Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
-		endDate, err := time.Parse("2006-01-02", endDateFlag)
-		if err != nil {
-			log.Errorf("failed to parse end date - %s", err)
-			os.Exit(EXIT_OPERTION_FAILED)
-		}
+
+		assertRequireConfirmation(fmt.Sprintf("NOTE: The payout for date ranges is an EXPERIMENTAL feature. Exercise caution!\n\nDo you want to generate payouts for date range: %s - %s?", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)))
 
 		cycles, err := collector.GetCyclesInDateRange(startDate, endDate)
 		if err != nil {
@@ -57,36 +83,54 @@ var payDateRangeCmd = &cobra.Command{
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
+		log.Infof("Generating payouts for cycles: %s", utils.FormatCycleNumbers(cycles))
 		generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
 
+		channels := make([]chan *common.CyclePayoutBlueprint, 0, len(cycles))
+
 		for _, cycle := range cycles {
-			generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-				&common.GeneratePayoutsOptions{
-					Cycle:            cycle,
-					SkipBalanceCheck: skipBalanceCheck,
-				})
-			if errors.Is(err, constants.ErrNoCycleDataAvailable) {
-				log.Infof("no data available for cycle %d, nothing to pay out...", cycle)
-				return
-			}
-			if err != nil {
-				log.Errorf("failed to generate payouts - %s", err)
-				os.Exit(EXIT_OPERTION_FAILED)
-			}
-			generationResults = append(generationResults, generationResult)
+			ch := make(chan *common.CyclePayoutBlueprint)
+			channels = append(channels, ch)
+			go func() {
+				generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+					&common.GeneratePayoutsOptions{
+						Cycle:            cycle,
+						SkipBalanceCheck: skipBalanceCheck,
+					})
+				if errors.Is(err, constants.ErrNoCycleDataAvailable) {
+					log.Infof("no data available for cycle %d, nothing to pay out...", cycle)
+					return
+				}
+				if err != nil {
+					log.Errorf("failed to generate payouts - %s", err)
+					os.Exit(EXIT_OPERTION_FAILED)
+				}
+				ch <- generationResult
+			}()
 		}
+		for _, ch := range channels {
+			generationResult := <-ch
+			if generationResult != nil {
+				generationResults = append(generationResults, generationResult)
+			}
+		}
+
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
+				Accumulate: true,
+			})
 		}, EXIT_OPERTION_FAILED)
 
 		if state.Global.GetWantsOutputJson() {
 			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
+			utils.PrintPayoutsAsJson(preparationResult.AccumulatedPayouts)
 			utils.PrintPayoutsAsJson(preparationResult.ValidPayouts)
 		} else {
-			utils.PrintInvalidPayoutRecipes(preparationResult.ValidPayouts, cycles)
+			utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
+			utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
 			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", utils.FormatCycleNumbers(cycles)), true)
-			utils.PrintValidPayoutRecipes(preparationResult.ValidPayouts, cycles)
+			utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
 		}
 
 		if len(utils.OnlyValidPayouts(preparationResult.ValidPayouts)) == 0 {
@@ -101,7 +145,6 @@ var payDateRangeCmd = &cobra.Command{
 		if !confirmed {
 			assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 		}
-		os.Exit(0) // TODO: remove this line
 
 		log.Info("executing payout")
 		executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
@@ -133,9 +176,9 @@ var payDateRangeCmd = &cobra.Command{
 
 func init() {
 	payDateRangeCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
-	//payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
-	payDateRangeCmd.Flags().String(START_DATE_FLAG, "", "start date for payout generation")
-	payDateRangeCmd.Flags().String(END_DATE_FLAG, "", "end date for payout generation")
+	payDateRangeCmd.Flags().String(START_DATE_FLAG, "", "start date for payout generation (format: 2024-02-01)")
+	payDateRangeCmd.Flags().String(END_DATE_FLAG, "", "end date for payout generation (format: 2024-02-01)")
+	payDateRangeCmd.Flags().String(MONTH_FLAG, "", "month to generate payout for (format: 2024-02)")
 	payDateRangeCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payDateRangeCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	payDateRangeCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
@@ -143,5 +186,5 @@ func init() {
 	payDateRangeCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
 	payDateRangeCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
 
-	RootCmd.AddCommand(payCmd)
+	RootCmd.AddCommand(payDateRangeCmd)
 }

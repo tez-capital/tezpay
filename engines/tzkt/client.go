@@ -159,7 +159,7 @@ func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int6
 }
 
 func (client *Client) getFirstBlockCycleAfterTimestamp(ctx context.Context, timestamp time.Time) (int64, error) {
-	u := fmt.Sprintf("v1/blocks?select=cycle&limit=1&timestamp.gt=%s", "2020-02-20T02:40:57Z")
+	u := fmt.Sprintf("v1/blocks?select=cycle&limit=1&timestamp.gt=%s", timestamp.Format(time.RFC3339))
 	log.Debugf("getting first block cycle after %s (%s)", timestamp.Format(time.RFC3339), u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {

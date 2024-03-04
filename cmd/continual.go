@@ -166,9 +166,10 @@ var continualCmd = &cobra.Command{
 
 			if forceConfirmationPrompt && utils.IsTty() {
 				cycles := []int64{generationResult.Cycle}
-				utils.PrintInvalidPayoutRecipes(preparationResult.ValidPayouts, cycles)
+				utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
+				utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
 				utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", utils.FormatCycleNumbers(cycles)), true)
-				utils.PrintValidPayoutRecipes(preparationResult.ValidPayouts, cycles)
+				utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
 				assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 			}
 
