@@ -1,28 +1,29 @@
-docs/cmd/tezpay_pay.md## tezpay pay
+docs/cmd/tezpay_pay-date-range.md## tezpay pay-date-range
 
-manual payout
+EXPERIMENTAL: payout for date range
 
 ### Synopsis
 
-runs manual payout
+EXPERIMENTAL: runs payout for date range
 
 ```
-tezpay pay [flags]
+tezpay pay-date-range [flags]
 ```
 
 ### Options
 
 ```
       --confirm              automatically confirms generated payouts
-  -c, --cycle int            cycle to generate payouts for
-      --from-file string     loads payouts from file instead of generating on the fly
-  -h, --help                 help for pay
+      --end-date string      end date for payout generation (format: 2024-02-01)
+  -h, --help                 help for pay-date-range
+      --month string         month to generate payout for (format: 2024-02)
       --no-separate-fa       disables fa transfers separation (mixes txs and fa transfers within batches)
       --no-separate-sc       disables smart contract separation (mixes txs and smart contract calls within batches)
       --notificator string   Notify through specific notificator
       --report-to-stdout     prints them to stdout (wont write to file)
   -s, --silent               suppresses notifications
       --skip-balance-check   skips payout wallet balance check
+      --start-date string    start date for payout generation (format: 2024-02-01)
 ```
 
 ### Options inherited from parent commands
