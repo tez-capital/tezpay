@@ -6,7 +6,9 @@ import (
 )
 
 type StageData struct {
-	Payouts                       []common.PayoutRecipe
+	ValidPayouts                  []common.PayoutRecipe
+	InvalidPayouts                []common.PayoutRecipe
+	AccumulatedPayouts            []common.PayoutRecipe
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport
 }
 
@@ -16,14 +18,14 @@ type PayoutPrepareContext struct {
 
 	StageData *StageData
 
-	PayoutBlueprint *common.CyclePayoutBlueprint
+	PayoutBlueprints []*common.CyclePayoutBlueprint
 }
 
 func (ctx *PayoutPrepareContext) GetConfiguration() *configuration.RuntimeConfiguration {
 	return ctx.configuration
 }
 
-func NewPayoutPreparationContext(blueprint *common.CyclePayoutBlueprint, configuration *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*PayoutPrepareContext, error) {
+func NewPayoutPreparationContext(blueprints []*common.CyclePayoutBlueprint, configuration *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*PayoutPrepareContext, error) {
 	if err := engineContext.Validate(); err != nil {
 		return nil, err
 	}
@@ -34,6 +36,6 @@ func NewPayoutPreparationContext(blueprint *common.CyclePayoutBlueprint, configu
 
 		StageData: &StageData{},
 
-		PayoutBlueprint: blueprint,
+		PayoutBlueprints: blueprints,
 	}, nil
 }

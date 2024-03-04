@@ -43,11 +43,11 @@ var payCmd = &cobra.Command{
 			cycle = lastCompletedCycle + cycle
 		}
 
-		var generationResult *common.GeneratePayoutsResult
+		var generationResult *common.CyclePayoutBlueprint
 		fromFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
 		if fromFile != "" {
-			generationResult = assertRunWithResult(func() (*common.GeneratePayoutsResult, error) {
-				return loadGeneratePayoutsResultFromFile(fromFile)
+			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
+				return loadGeneratedPayoutsResultFromFile(fromFile)
 			}, EXIT_PAYOUTS_READ_FAILURE)
 		} else {
 			var err error
@@ -67,19 +67,21 @@ var payCmd = &cobra.Command{
 		}
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 		}, EXIT_OPERTION_FAILED)
 
+		cycles := []int64{generationResult.Cycle}
 		if state.Global.GetWantsOutputJson() {
 			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
-			utils.PrintPayoutsAsJson(preparationResult.Payouts)
+			utils.PrintPayoutsAsJson(preparationResult.ValidPayouts)
 		} else {
-			utils.PrintInvalidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
-			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", generationResult.Cycle), true)
-			utils.PrintValidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
+			utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
+			utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
+			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%s", utils.FormatCycleNumbers(cycles)), true)
+			utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
 		}
 
-		if len(utils.OnlyValidPayouts(preparationResult.Payouts)) == 0 {
+		if len(utils.OnlyValidPayouts(preparationResult.ValidPayouts)) == 0 {
 			log.Info("nothing to pay out")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
@@ -93,7 +95,7 @@ var payCmd = &cobra.Command{
 		}
 
 		log.Info("executing payout")
-		executionResult := assertRunWithResult(func() (common.ExecutePayoutsResult, error) {
+		executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 			var reporter common.ReporterEngine
 			reporter = fsReporter
 			if reportToStdout, _ := cmd.Flags().GetBool(REPORT_TO_STDOUT); reportToStdout {
@@ -106,15 +108,15 @@ var payCmd = &cobra.Command{
 		}, EXIT_OPERTION_FAILED)
 
 		// notify
-		failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })
-		if len(executionResult) > 0 && failedCount > 0 {
+		failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
+		if len(executionResult.BatchResults) > 0 && failedCount > 0 {
 			log.Errorf("%d of operations failed", failedCount)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
 		}
-		utils.PrintBatchResults(executionResult, fmt.Sprintf("Results of #%d", generationResult.Cycle), config.Network.Explorer)
+		utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles)), config.Network.Explorer)
 	},
 }
 

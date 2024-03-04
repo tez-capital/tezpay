@@ -38,7 +38,7 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 	if err != nil {
 		return nil, errors.Join(constants.ErrGetChainLimitsFailed, err)
 	}
-	payouts := utils.OnlyValidPayouts(ctx.Payouts) // make sure we are batching only valid payouts
+	payouts := utils.OnlyValidPayouts(ctx.ValidPayouts) // make sure we are batching only valid
 	payoutsWithoutFa := utils.RejectPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)
 
 	faRecipes := utils.FilterPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)
@@ -58,9 +58,13 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 	}
 	toBatch = append(toBatch, classicTezRecipes)
 
+	batchMetadataDeserializationGasLimit := lo.Reduce(ctx.PayoutBlueprints, func(agg int64, blueprint *common.CyclePayoutBlueprint, _ int) int64 {
+		return max(agg, blueprint.BatchMetadataDeserializationGasLimit)
+	}, 0)
+
 	stageBatches := make([]common.RecipeBatch, 0)
 	for _, batch := range toBatch {
-		batches, err := splitIntoBatches(batch, ctx.StageData.Limits, ctx.PayoutBlueprint.BatchMetadataDeserializationGasLimit)
+		batches, err := splitIntoBatches(batch, ctx.StageData.Limits, batchMetadataDeserializationGasLimit)
 		if err != nil {
 			return nil, err
 		}

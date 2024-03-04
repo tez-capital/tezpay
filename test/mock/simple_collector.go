@@ -2,6 +2,7 @@ package mock
 
 import (
 	"errors"
+	"time"
 
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
@@ -67,7 +68,7 @@ func (engine *SimpleColletor) GetLastCompletedCycle() (int64, error) {
 	return cycle - 1, err
 }
 
-func (engine *SimpleColletor) GetCycleData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
+func (engine *SimpleColletor) GetCycleStakingData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
 	return &common.BakersCycleData{
 		OwnStakingBalance:        tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
 		OwnDelegatedBalance:      tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
@@ -80,6 +81,10 @@ func (engine *SimpleColletor) GetCycleData(baker tezos.Address, cycle int64) (*c
 		// TODO:
 		Delegators: []common.Delegator{},
 	}, nil
+}
+
+func (engine *SimpleColletor) GetCyclesInDateRange(startDate time.Time, endDate time.Time) ([]int64, error) {
+	return []int64{500, 501}, nil
 }
 
 func (engine *SimpleColletor) WasOperationApplied(op tezos.OpHash) (common.OperationStatus, error) {

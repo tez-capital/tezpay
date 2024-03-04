@@ -1,6 +1,8 @@
 package common
 
 import (
+	"time"
+
 	"blockwatch.cc/tzgo/codec"
 	"blockwatch.cc/tzgo/rpc"
 	"blockwatch.cc/tzgo/signer"
@@ -21,7 +23,8 @@ type CollectorEngine interface {
 	RefreshParams() error
 	GetCurrentCycleNumber() (int64, error)
 	GetLastCompletedCycle() (int64, error)
-	GetCycleData(baker tezos.Address, cycle int64) (*BakersCycleData, error)
+	GetCycleStakingData(baker tezos.Address, cycle int64) (*BakersCycleData, error)
+	GetCyclesInDateRange(startDate time.Time, endDate time.Time) ([]int64, error)
 	WasOperationApplied(opHash tezos.OpHash) (OperationStatus, error)
 	GetBranch(offset int64) (tezos.BlockHash, error)
 	Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.Receipt, error)

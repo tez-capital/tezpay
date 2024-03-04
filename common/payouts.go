@@ -1,7 +1,11 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -56,6 +60,86 @@ func (candidate *PayoutRecipe) GetAmount() tezos.Z {
 	return candidate.Amount
 }
 
+type PayoutRecipeIdentifier struct {
+	Delegator  tezos.Address                `json:"delegator,omitempty"`
+	Recipient  tezos.Address                `json:"recipient,omitempty"`
+	Kind       enums.EPayoutKind            `json:"kind,omitempty"`
+	TxKind     enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId  tezos.Z                      `json:"fa_token_id,omitempty"`
+	FAContract tezos.Address                `json:"fa_contract,omitempty"`
+	IsValid    bool                         `json:"valid,omitempty"`
+}
+
+func (identifier *PayoutRecipeIdentifier) ToJSON() ([]byte, error) {
+	return json.Marshal(identifier)
+}
+
+func (recipe *PayoutRecipe) GetIdentifier() string {
+	identifier := PayoutRecipeIdentifier{
+		Delegator:  recipe.Delegator,
+		Recipient:  recipe.Recipient,
+		Kind:       recipe.Kind,
+		TxKind:     recipe.TxKind,
+		FATokenId:  recipe.FATokenId,
+		FAContract: recipe.FAContract,
+		IsValid:    recipe.IsValid,
+	}
+	k, err := identifier.ToJSON()
+	if err != nil {
+		return ""
+	}
+	hashBytes := sha256.Sum256(k)
+	hash := hex.EncodeToString(hashBytes[:])
+	return hash
+}
+
+func (recipe *PayoutRecipe) GetShortIdentifier() string {
+	return recipe.GetIdentifier()[:16]
+}
+
+func (recipe *PayoutRecipe) Combine(otherRecipe *PayoutRecipe) (*PayoutRecipe, error) {
+	if !recipe.Recipient.Equal(otherRecipe.Recipient) {
+		return nil, errors.New("cannot combine different recipients")
+	}
+	if !recipe.Delegator.Equal(otherRecipe.Delegator) {
+		return nil, errors.New("cannot combine different delegators")
+	}
+	if recipe.Kind != otherRecipe.Kind {
+		return nil, errors.New("cannot combine different kinds")
+	}
+	if recipe.TxKind != otherRecipe.TxKind {
+		return nil, errors.New("cannot combine different tx kinds")
+	}
+	if !recipe.FATokenId.Equal(otherRecipe.FATokenId) {
+		return nil, errors.New("cannot combine different FA token ids")
+	}
+	if !recipe.FAContract.Equal(otherRecipe.FAContract) {
+		return nil, errors.New("cannot combine different FA contracts")
+	}
+	if recipe.IsValid != otherRecipe.IsValid {
+		return nil, errors.New("cannot combine different validities")
+	}
+	if recipe.OpLimits == nil || otherRecipe.OpLimits == nil {
+		return nil, errors.New("cannot combine recipes with missing op limits")
+	}
+
+	recipe.DelegatedBalance = recipe.DelegatedBalance.Add(otherRecipe.DelegatedBalance).Div64(2)
+	recipe.StakingBalance = recipe.StakingBalance.Add(otherRecipe.StakingBalance).Div64(2)
+	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
+	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
+	recipe.OpLimits = &OpLimits{
+		TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
+		StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
+		GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
+		DeserializationGasLimit: recipe.OpLimits.DeserializationGasLimit + otherRecipe.OpLimits.DeserializationGasLimit,
+	}
+
+	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
+	otherRecipe.Note = fmt.Sprintf("%s#%d", recipe.GetShortIdentifier(), recipe.Cycle)
+
+	return recipe, nil
+}
+
 func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 	txFee := int64(0)
 	if pr.OpLimits != nil {
@@ -63,6 +147,7 @@ func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 	}
 
 	return PayoutReport{
+		Id:               pr.GetIdentifier(),
 		Baker:            pr.Baker,
 		Timestamp:        time.Now(),
 		Cycle:            pr.Cycle,
@@ -192,7 +277,7 @@ func (summary *CyclePayoutSummary) CombineNumericData(another *CyclePayoutSummar
 }
 
 type CyclePayoutBlueprint struct {
-	Cycle                                int64              `json:"cycle,omitempty"`
+	Cycle                                int64              `json:"cycles,omitempty"`
 	Payouts                              []PayoutRecipe     `json:"payouts,omitempty"`
 	Summary                              CyclePayoutSummary `json:"summary,omitempty"`
 	BatchMetadataDeserializationGasLimit int64              `json:"batch_metadata_deserialization_gas_limit,omitempty"`
@@ -242,7 +327,18 @@ type GeneratePayoutsOptions struct {
 	WaitForSufficientBalance bool  `json:"wait_for_sufficient_balance,omitempty"`
 }
 
-type GeneratePayoutsResult = CyclePayoutBlueprint
+type CyclePayoutBlueprints []*CyclePayoutBlueprint
+
+func (results CyclePayoutBlueprints) GetSummary() *CyclePayoutSummary {
+	summary := &CyclePayoutSummary{}
+	delegators := 0
+	for _, result := range results {
+		delegators += result.Summary.Delegators
+		summary = summary.CombineNumericData(&result.Summary)
+	}
+	summary.Delegators = delegators / len(results) // average
+	return summary
+}
 
 type PreparePayoutsEngineContext struct {
 	collector   CollectorEngine
@@ -283,12 +379,15 @@ func (engines *PreparePayoutsEngineContext) Validate() error {
 }
 
 type PreparePayoutsOptions struct {
+	Accumulate bool `json:"accumulate,omitempty"`
 }
 
 type PreparePayoutsResult struct {
-	Blueprint                     *CyclePayoutBlueprint `json:"blueprint,omitempty"`
-	Payouts                       []PayoutRecipe        `json:"payouts,omitempty"`
-	ReportsOfPastSuccesfulPayouts []PayoutReport        `json:"reports_of_past_succesful_payouts,omitempty"`
+	Blueprints                    []*CyclePayoutBlueprint `json:"blueprint,omitempty"`
+	ValidPayouts                  []PayoutRecipe          `json:"payouts,omitempty"`
+	AccumulatedPayouts            []PayoutRecipe          `json:"accumulated_payouts,omitempty"`
+	InvalidPayouts                []PayoutRecipe          `json:"invalid_payouts,omitempty"`
+	ReportsOfPastSuccesfulPayouts []PayoutReport          `json:"reports_of_past_succesful_payouts,omitempty"`
 }
 
 type ExecutePayoutsEngineContext struct {
@@ -343,4 +442,7 @@ type ExecutePayoutsOptions struct {
 	MixInFATransfers   bool `json:"mix_in_fa_transfers,omitempty"`
 }
 
-type ExecutePayoutsResult = BatchResults
+type ExecutePayoutsResult struct {
+	BatchResults   BatchResults `json:"batch_results,omitempty"`
+	PaidDelegators int          `json:"paid_delegators,omitempty"`
+}

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
@@ -86,9 +87,6 @@ func (client *Client) Get(ctx context.Context, path string) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	request, _ := http.NewRequestWithContext(ctx, "GET", client.rootUrl.ResolveReference(rel).String(), nil)
 
 	resp, err := client.Do(request)
@@ -158,6 +156,47 @@ func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int6
 		return nil, err
 	}
 	return tzktBakerCycleData, nil
+}
+
+func (client *Client) getFirstBlockCycleAfterTimestamp(ctx context.Context, timestamp time.Time) (int64, error) {
+	u := fmt.Sprintf("v1/blocks?select=cycle&limit=1&timestamp.gt=%s", timestamp.Format(time.RFC3339))
+	log.Debugf("getting first block cycle after %s (%s)", timestamp.Format(time.RFC3339), u)
+	resp, err := client.Get(ctx, u)
+	if err != nil {
+		return 0, errors.Join(constants.ErrCycleDataFetchFailed, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, errors.Join(constants.ErrCycleDataFetchFailed, err)
+	}
+	var cycles []int64
+	err = json.Unmarshal(body, &cycles)
+	if err != nil {
+		return 0, errors.Join(constants.ErrCycleDataUnmarshalFailed, err)
+	}
+	if len(cycles) == 0 {
+		return 0, errors.Join(constants.ErrCycleDataFetchFailed, fmt.Errorf("no cycles found"))
+	}
+	return cycles[0], nil
+}
+
+// https://api.tzkt.io/v1/blocks?select=cycle,level&limit=1&timestamp.lt=2020-02-20T02:40:57Z
+func (client *Client) GetCyclesInDateRange(ctx context.Context, startDate time.Time, endDate time.Time) ([]int64, error) {
+	firstCycle, err := client.getFirstBlockCycleAfterTimestamp(ctx, startDate)
+	if err != nil {
+		return nil, err
+	}
+	firstCycleAfterTheRange, err := client.getFirstBlockCycleAfterTimestamp(ctx, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	cycles := make([]int64, 0, 20)
+	for cycle := firstCycle; cycle < firstCycleAfterTheRange; cycle++ {
+		cycles = append(cycles, cycle)
+	}
+	return cycles, nil
 }
 
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=0

@@ -10,10 +10,12 @@ import (
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/extension"
 	"github.com/alis-is/tezpay/utils"
+	"github.com/samber/lo"
 )
 
 type AfterPayoutsPreapered struct {
-	Payouts                       []common.PayoutRecipe `json:"payouts"`
+	ValidPayouts                  []common.PayoutRecipe `json:"payouts"`
+	InvalidPayouts                []common.PayoutRecipe `json:"invalid_payouts"`
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport `json:"reports_of_past_succesful_payouts"`
 }
 
@@ -22,27 +24,40 @@ func ExecuteAfterPayoutsPrepared(data *AfterPayoutsPreapered) error {
 }
 
 func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOptions) (*PayoutPrepareContext, error) {
-	if ctx.PayoutBlueprint == nil {
+	var err error
+	if ctx.PayoutBlueprints == nil {
 		return nil, constants.ErrMissingPayoutBlueprint
 	}
 
-	reports, err := ctx.GetReporter().GetExistingReports(ctx.PayoutBlueprint.Cycle)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, fmt.Errorf("cycle: %d", ctx.PayoutBlueprint.Cycle), err)
+	count := lo.Reduce(ctx.PayoutBlueprints, func(agg int, blueprint *common.CyclePayoutBlueprint, _ int) int {
+		return agg + len(blueprint.Payouts)
+	}, 0)
+
+	payouts := make([]common.PayoutRecipe, 0, count)
+	reportsOfPastSuccesfulPayouts := make([]common.PayoutReport, 0, count)
+	for _, blueprint := range ctx.PayoutBlueprints {
+		reports, err := ctx.GetReporter().GetExistingReports(blueprint.Cycle)
+		if err != nil && !os.IsNotExist(err) {
+			return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, fmt.Errorf("cycle: %d", blueprint.Cycle), err)
+		}
+		reportResidues := utils.FilterReportsByBaker(reports, ctx.configuration.BakerPKH)
+		// we match already paid even against invalid set of payouts in case they were paid under different conditions
+		bluePrintPayouts, blueprintReportsOfPastSuccesfulPayouts := utils.FilterRecipesByReports(blueprint.Payouts, reportResidues, ctx.GetCollector())
+
+		payouts = append(payouts, bluePrintPayouts...)
+		reportsOfPastSuccesfulPayouts = append(reportsOfPastSuccesfulPayouts, blueprintReportsOfPastSuccesfulPayouts...)
 	}
-	reportResidues := utils.FilterReportsByBaker(reports, ctx.configuration.BakerPKH)
-	// we match already paid even against invalid set of payouts in case they were paid under different conditions
-	payouts, reportsOfPastSuccesfulPayouts := utils.FilterRecipesByReports(ctx.PayoutBlueprint.Payouts, reportResidues, ctx.GetCollector())
 
 	hookData := &AfterPayoutsPreapered{
-		Payouts:                       payouts,
+		ValidPayouts:                  utils.OnlyValidPayouts(payouts),
+		InvalidPayouts:                utils.OnlyInvalidPayouts(payouts),
 		ReportsOfPastSuccesfulPayouts: reportsOfPastSuccesfulPayouts,
 	}
 	err = ExecuteAfterPayoutsPrepared(hookData)
 	if err != nil {
 		return ctx, err
 	}
-	ctx.StageData.Payouts, ctx.StageData.ReportsOfPastSuccesfulPayouts = hookData.Payouts, hookData.ReportsOfPastSuccesfulPayouts
+	ctx.StageData.ValidPayouts, ctx.StageData.InvalidPayouts, ctx.StageData.ReportsOfPastSuccesfulPayouts = hookData.ValidPayouts, hookData.InvalidPayouts, hookData.ReportsOfPastSuccesfulPayouts
 
 	return ctx, nil
 }

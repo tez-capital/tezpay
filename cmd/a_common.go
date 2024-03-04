@@ -78,7 +78,7 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	}, nil
 }
 
-func loadGeneratePayoutsResultFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
+func loadGeneratedPayoutsResultFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
 	log.Infof("reading payouts from '%s'", fromFile)
 	data, err := os.ReadFile(fromFile)
 	if err != nil {

@@ -97,7 +97,7 @@ func GenerateHookSampleData() {
 	}
 
 	app := prepare.AfterPayoutsPreapered{
-		Payouts: []common.PayoutRecipe{
+		ValidPayouts: []common.PayoutRecipe{
 			simulatedCandidate.ToPayoutRecipe(tezos.ZeroAddress, 1, enums.PAYOUT_KIND_DELEGATOR_REWARD),
 		},
 		ReportsOfPastSuccesfulPayouts: common.NewSuccessBatchResult([]common.PayoutRecipe{simulatedCandidate.ToPayoutRecipe(tezos.ZeroAddress, 1, enums.PAYOUT_KIND_DELEGATOR_REWARD)}, tezos.ZeroOpHash).ToReports(),

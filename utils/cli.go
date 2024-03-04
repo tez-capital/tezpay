@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
@@ -49,10 +51,33 @@ func getNonEmptyIndexes[T comparable](headers []string, data [][]T) []int {
 	})
 }
 
-func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {
+func sortPayouts(payouts []common.PayoutRecipe) {
+	slices.SortFunc(payouts, func(a, b common.PayoutRecipe) int {
+		if a.Kind == b.Kind {
+			if a.Amount.IsLess(b.Amount) {
+				return 1
+			} else if b.Amount.IsLess(a.Amount) {
+				return -1
+			} else {
+				return 0
+			}
+		}
+		if a.Kind.ToPriority() < b.Kind.ToPriority() {
+			return 1
+		} else if a.Kind.ToPriority() > b.Kind.ToPriority() {
+			return -1
+		}
+		return 0
+	})
+}
+
+func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {
 	if len(payouts) == 0 {
 		return
 	}
+
+	sortPayouts(payouts)
+
 	payoutTable := table.NewWriter()
 	payoutTable.SetStyle(table.StyleLight)
 	payoutTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignLeft}})
@@ -88,15 +113,35 @@ func printPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	payoutTable.Render()
 }
 
-// print invalid payouts
-func PrintInvalidPayoutRecipes(payouts []common.PayoutRecipe, cycle int64) {
-	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - #%d", cycle), false)
+func FormatCycleNumbers(cycles []int64) string {
+	conscutive := false
+	if len(cycles) > 1 {
+		conscutive = true
+		for i := 1; i < len(cycles); i++ {
+			if cycles[i] != cycles[i-1]+1 {
+				conscutive = false
+				break
+			}
+		}
+	}
+	if conscutive {
+		return fmt.Sprintf("#%d-%d", cycles[0], cycles[len(cycles)-1])
+	} else {
+		return fmt.Sprintf("#%s", strings.Join(lo.Map(cycles, func(c int64, _ int) string {
+			return fmt.Sprintf("%d", c)
+		}), ", "))
+	}
 }
 
-// print payable payouts
-func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycle int64) {
-	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - #%d", cycle), true)
-}
+// // print invalid payouts
+// func PrintInvalidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
+// 	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - %s", FormatCycleNumbers(cycles)), false)
+// }
+
+// // print payable payouts
+// func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
+// 	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - %s", FormatCycleNumbers(cycles)), true)
+// }
 
 func PrintPayoutsAsJson[T PayoutConstraint](payouts []T) {
 	fmt.Println(string(PayoutsToJson(payouts)))

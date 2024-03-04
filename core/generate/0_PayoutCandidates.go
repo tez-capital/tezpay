@@ -35,13 +35,12 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 
 	log.Infof("collecting rewards split through %s collector", ctx.GetCollector().GetId())
 	var err error
-	ctx.StageData.CycleData, err = ctx.GetCollector().GetCycleData(configuration.BakerPKH, options.Cycle)
+	ctx.StageData.CycleData, err = ctx.GetCollector().GetCycleStakingData(configuration.BakerPKH, options.Cycle)
 	if err != nil {
 		return ctx, errors.Join(constants.ErrCycleDataCollectionFailed, fmt.Errorf("collector: %s", ctx.GetCollector().GetId()), err)
 	}
 
 	log.Debugf("genrating payout candidates")
-
 	payoutCandidates := lo.Map(ctx.StageData.CycleData.Delegators, func(delegator common.Delegator, _ int) PayoutCandidate {
 		payoutCandidate := DelegatorToPayoutCandidate(delegator, configuration)
 		validationContext := payoutCandidate.ToValidationContext(ctx)

@@ -154,25 +154,27 @@ var continualCmd = &cobra.Command{
 
 			log.Info("checking past reports")
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-				return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+				return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 			}, EXIT_OPERTION_FAILED)
 
-			if len(preparationResult.Payouts) == 0 {
+			if len(preparationResult.ValidPayouts) == 0 {
 				log.Info("nothing to pay out, skipping")
 				completeCycle()
 				continue
 			}
-			log.Infof("processing %d valid payouts", len(preparationResult.Payouts))
+			log.Infof("processing %d valid payouts", len(preparationResult.ValidPayouts))
 
 			if forceConfirmationPrompt && utils.IsTty() {
-				utils.PrintInvalidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
-				utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%d", generationResult.Cycle), true)
-				utils.PrintValidPayoutRecipes(preparationResult.Payouts, generationResult.Cycle)
+				cycles := []int64{generationResult.Cycle}
+				utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
+				utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
+				utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", utils.FormatCycleNumbers(cycles)), true)
+				utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
 				assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 			}
 
 			log.Info("executing payout")
-			executionResult := assertRunWithResult(func() (common.ExecutePayoutsResult, error) {
+			executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 				return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 					MixInContractCalls: mixInContractCalls,
 					MixInFATransfers:   mixInFATransfers,
@@ -180,8 +182,8 @@ var continualCmd = &cobra.Command{
 			}, EXIT_OPERTION_FAILED)
 
 			// notify
-			failedCount := lo.CountBy(executionResult, func(br common.BatchResult) bool { return !br.IsSuccess })
-			if len(executionResult) > 0 && failedCount > 0 {
+			failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
+			if len(executionResult.BatchResults) > 0 && failedCount > 0 {
 				log.Errorf("%d of operations failed, retries in 5 minutes", failedCount)
 				time.Sleep(time.Minute * 5)
 				continue

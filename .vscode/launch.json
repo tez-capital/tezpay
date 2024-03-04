@@ -41,6 +41,21 @@
 				"continual",
 				"--cycle=620"
 			],
+		},
+		{
+			"name": "debug pay-date-range",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "main.go",
+			"args": [
+				"--log-level=trace",
+				"pay-date-range",
+				"--start-date",
+				"2024-02-01",
+				"--end-date",
+				"2024-02-29"
+			]
 		}
 	]
 }

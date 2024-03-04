@@ -59,6 +59,18 @@ func RejectPayoutsByTxKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutT
 	})
 }
 
+func FilterPayoutsByKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutKind) []common.PayoutRecipe {
+	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+		return lo.Contains(kinds, payout.Kind)
+	})
+}
+
+func RejectPayoutsByKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutKind) []common.PayoutRecipe {
+	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+		return !lo.Contains(kinds, payout.Kind)
+	})
+}
+
 func FilterPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
 		return payout.Recipient.Type() == t
@@ -92,6 +104,12 @@ func OnlyInvalidPayouts(payouts []common.PayoutRecipe) []common.PayoutRecipe {
 func FilterReportsByBaker(payouts []common.PayoutReport, t tezos.Address) []common.PayoutReport {
 	return lo.Filter(payouts, func(payout common.PayoutReport, _ int) bool {
 		return payout.Baker.Equal(t)
+	})
+}
+
+func FilterReportsByCycle(payouts []common.PayoutReport, cycle int64) []common.PayoutReport {
+	return lo.Filter(payouts, func(payout common.PayoutReport, _ int) bool {
+		return payout.Cycle == cycle
 	})
 }
 

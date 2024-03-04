@@ -7,21 +7,28 @@ import (
 	"github.com/alis-is/tezpay/core/prepare"
 )
 
-func PreparePayouts(blueprint *common.GeneratePayoutsResult, config *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*common.PreparePayoutsResult, error) {
+func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*common.PreparePayoutsResult, error) {
 	if config == nil {
 		return nil, constants.ErrMissingConfiguration
 	}
 
-	ctx, err := prepare.NewPayoutPreparationContext(blueprint, config, engineContext, options)
+	ctx, err := prepare.NewPayoutPreparationContext(blueprints, config, engineContext, options)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx, err = WrapContext[*prepare.PayoutPrepareContext, *common.PreparePayoutsOptions](ctx).ExecuteStages(options,
-		prepare.PreparePayouts).Unwrap()
+		prepare.PreparePayouts,
+		prepare.AccumulatePayouts).Unwrap()
 	return &common.PreparePayoutsResult{
-		Blueprint:                     ctx.PayoutBlueprint,
-		Payouts:                       ctx.StageData.Payouts,
+		Blueprints:                    ctx.PayoutBlueprints,
+		ValidPayouts:                  ctx.StageData.ValidPayouts,
+		AccumulatedPayouts:            ctx.StageData.AccumulatedPayouts,
+		InvalidPayouts:                ctx.StageData.InvalidPayouts,
 		ReportsOfPastSuccesfulPayouts: ctx.StageData.ReportsOfPastSuccesfulPayouts,
 	}, err
+}
+
+func PrepareCyclePayouts(blueprint *common.CyclePayoutBlueprint, config *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*common.PreparePayoutsResult, error) {
+	return PreparePayouts([]*common.CyclePayoutBlueprint{blueprint}, config, engineContext, options)
 }
