@@ -1,40 +1,88 @@
 {
+  # version of the configuration file
   tezpay_config_version: 0
+
+  # baker's public key hash
   baker: ""
+
+  # payout configuration
   payouts: {
+    # wallet mode to use for signing transactions, can be 'local-private-key' or 'remote-signer'
     wallet_mode: local-private-key
+
+    # payout mode to use, can be 'actual' or 'ideal'
     payout_mode: ideal
+
+    # fee to charge delegators for the payout (portion of the reward as decimal, e.g. 0.075 for 7.5%)
     fee: 0.075
+
+    # if true, baker pays the transaction fee
     baker_pays_transaction_fee: true
+
+    # if true, baker pays the allocation transaction fee
     baker_pays_allocation_fee: true
+
+    # minimum amount to pay out to delegators, if the amount is less, the payout will be ignored
     minimum_payout_amount: 10.5
+
+    # buffer for transaction gas limit
     transaction_gas_limit_buffer: 200
+
+    # buffer for transaction deserialization gas
     transaction_deserialization_gas_buffer: 5
+
+    # buffer for transaction fee
     transaction_fee_buffer: 10
+
+    # buffer for KT transaction fee
     kt_transaction_fee_buffer: 50
+
+    # minimum delay in blocks before the payout is executed
     minimum_delay_blocks: 10
+
+    # maximum delay in blocks before the payout is executed
     maximum_delay_blocks: 250
   }
+
+  # delegators configuration
   delegators: {
+    # Requirements delegators have to meet
     requirements: {
+      # Minimum balance of tez a delegator has to have to be considered for payout
       minimum_balance: 0.5
+
+      # Reward destination for delegators with balance below the minimum balance (possible values: 'none', 'everyone')
       below_minimum_reward_destination: everyone
     }
+
+    # List of delegator addresses to ignore
     ignore: [
       tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU
       tz1burnburnburnburnburnburnburjAYjjX
     ]
+
+    # Overrides for specific delegators
     overrides: {
       tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: {
+        # Redirects payout to the recipient 'address'
         recipient: ""
+
+        # Overrides the fee for the delegator
         fee: 0
+
+        # Overrides the minimum balance requirement for the delegator
         minimum_balance: 2.5
       }
       tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE: {
+        # Redirects payout to the recipient 'address'
         recipient: ""
+
+        # The maximum balance for the delegator (for overdelegation situation you can limit how much of a delegator balance is taken into account)
         maximum_balance: 1000
       }
     }
+
+    # Shortcuts for overriding fees for specific delegators
     fee_overrides: {
       .5: [
         ""
@@ -45,32 +93,58 @@
       ]
     }
   }
+
+  # income recipients configuration
   income_recipients: {
+    # list of addresses and their share of the bonds
     bonds: {
       tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: 0.455
       tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE: 0.545
     }
+
+    # list of addresses and their share of the fees
     fees: {
       tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: 0.455
       tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE: 0.545
     }
+
+    # share of the rewards to donate
     donate: 0.025
+
+    # share of the fees to donate (if not set, 'donate' is used)
     donate_fees: 0.05
+
+    # share of the bonds to donate (if not set, 'donate' is used)
     donate_bonds: 0.03
+
+    # list of addresses and their share of the donations
     donations: {
       tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM: 0.1
       tz1UGkfyrT9yBt6U5PV7Qeui3pt3a8jffoWv: 0.9
     }
   }
+
+  # tezos network configuration
   network: {
+    # Url to rpc endpoint
     rpc_url: https://eu.rpc.tez.capital/
+
+    # Url to tzkt endpoint
     tzkt_url: https://api.tzkt.io/
+
+    # Url to block explorer
     explorer: https://tzstats.com/
+
+    # if true, smart contracts will not be paid out (used for testing)
     ignore_kt: true
   }
+
+  # overdelegation protection configuration
   overdelegation: {
     protect: true
   }
+
+  # notification configurations
   notifications: [
     {
       type: discord
@@ -129,6 +203,8 @@
       ]
     }
   ]
+
+  # extensions (for custom functionality)
   extensions: [
     {
       name: log-extension
@@ -168,5 +244,7 @@
       ]
     }
   ]
+
+  # disables analytics, please consider leaving it enabled🙏
   disable_analytics: true
 }

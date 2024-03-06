@@ -35,6 +35,10 @@ func parseDateFlags(cmd *cobra.Command) (time.Time, time.Time, error) {
 		if err != nil {
 			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse end date - %s", err)
 		}
+		if startDate.After(endDate) {
+			return time.Time{}, time.Time{}, errors.New("start date cannot be after end date")
+		}
+
 		return startDate, endDate.Add(-time.Nanosecond), nil
 	}
 	if monthFlag != "" {
@@ -72,6 +76,11 @@ var payDateRangeCmd = &cobra.Command{
 		startDate, endDate, err := parseDateFlags(cmd)
 		if err != nil {
 			log.Error(err.Error())
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
+
+		if endDate.After(time.Now()) {
+			log.Error("end date cannot be in the future")
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
@@ -133,7 +142,7 @@ var payDateRangeCmd = &cobra.Command{
 			utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
 		}
 
-		if len(utils.OnlyValidPayouts(preparationResult.ValidPayouts)) == 0 {
+		if len(preparationResult.ValidPayouts) == 0 {
 			log.Info("nothing to pay out")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually

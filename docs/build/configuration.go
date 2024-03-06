@@ -15,9 +15,19 @@ import (
 func GenerateDefaultHJson() {
 	config := tezpay_configuration.GetDefaultV0()
 
-	sample, _ := hjson.Marshal(config)
+	sample, _ := hjson.MarshalWithOptions(config, hjson.EncoderOptions{
+		Eol:                   "\n",
+		BracesSameLine:        true,
+		EmitRootBraces:        true,
+		QuoteAlways:           false,
+		QuoteAmbiguousStrings: true,
+		IndentBy:              "  ",
+		BaseIndentation:       "",
+		Comments:              false,
+	})
 	_ = os.WriteFile("docs/configuration/config.default.hjson", sample, 0644)
 }
+
 func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	logExtensionConfiguration := json.RawMessage(`{"LOG_FILE": "path/to/my/extension.log"}`)
 	feeExtensionConfiguration := json.RawMessage(`{"FEE": 0, "TOKEN": "1", "CONTRACT": "KT1Hkg6qgV3VykjgUXKbWcU3h6oJ1qVxUxZV"}`)
@@ -180,4 +190,48 @@ func GenerateSampleHJson() {
 
 	sample, _ := hjson.Marshal(config)
 	_ = os.WriteFile("docs/configuration/config.sample.hjson", sample, 0644)
+}
+
+func genrateStarter() *tezpay_configuration.ConfigurationV0 {
+	return &tezpay_configuration.ConfigurationV0{
+		Version:  0,
+		BakerPKH: tezos.InvalidAddress,
+		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
+			Requirements: tezpay_configuration.DelegatorRequirementsV0{
+				MinimumBalance: float64(10),
+			},
+		},
+		Overdelegation: tezpay_configuration.OverdelegationConfigurationV0{
+			IsProtectionEnabled: true,
+		},
+		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
+			WalletMode:    enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:    enums.PAYOUT_MODE_IDEAL,
+			Fee:           .10,
+			MinimumAmount: 0.01,
+		},
+	}
+}
+
+func GenerateStarterHJson() {
+	config := genrateStarter()
+
+	defaultMarshaled, _ := hjson.Marshal(config)
+	var node hjson.Node
+	_ = hjson.Unmarshal(defaultMarshaled, &node)
+
+	node.Cm.InsideFirst = "\n#=====================================================================================================\n" +
+		"# This is tezpay starter configuration template. Please refer to https://docs.tez.capital/tezpay/\n" +
+		"# - for default configuration (list of default values) see https://docs.tez.capital/tezpay/configuration/examples/default/.\n" +
+		"# - for sample of all available fields see https://docs.tez.capital/tezpay/configuration/examples/sample/.\n" +
+		"#=====================================================================================================\n"
+
+	node.DeleteKey("network")
+	node.DeleteKey("income_recipients")
+	node.NKC("baker").Value = "your-baker-address"
+	node.NKC("payouts").DeleteKey("wallet_mode")
+	node.NKC("payouts").DeleteKey("payout_mode")
+
+	defaultMarshaled, _ = hjson.Marshal(node)
+	_ = os.WriteFile("docs/configuration/config.starter.hjson", defaultMarshaled, 0644)
 }

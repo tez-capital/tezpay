@@ -75,7 +75,7 @@ func executePayouts(ctx *PayoutExecutionContext, _ *common.ExecutePayoutsOptions
 		log.Warnf("failed to report sent payouts - %s", err.Error())
 		failureDetected = true
 	}
-	if err := reporter.ReportInvalidPayouts(utils.OnlyInvalidPayouts(ctx.InvalidPayouts)); err != nil {
+	if err := reporter.ReportInvalidPayouts(ctx.InvalidPayouts); err != nil {
 		log.Warnf("failed to report invalid payouts - %s", err.Error())
 		failureDetected = true
 	}

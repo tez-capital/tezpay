@@ -7,8 +7,6 @@
     fee: 0.05
     transaction_gas_limit_buffer: 100
     transaction_deserialization_gas_buffer: 2
-    transaction_fee_buffer: 0
-    kt_transaction_fee_buffer: 0
     minimum_delay_blocks: 500
     maximum_delay_blocks: 1500
     simulation_batch_size: 50

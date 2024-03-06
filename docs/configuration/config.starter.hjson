@@ -1,0 +1,37 @@
+{
+#=====================================================================================================
+# This is tezpay starter configuration template. Please refer to https://docs.tez.capital/tezpay/
+# - for default configuration (list of default values) see https://docs.tez.capital/tezpay/configuration/examples/default/.
+# - for sample of all available fields see https://docs.tez.capital/tezpay/configuration/examples/sample/.
+#=====================================================================================================
+
+  # version of the configuration file
+  tezpay_config_version: 0
+
+  # baker's public key hash
+  baker: your-baker-address
+
+  # payout configuration
+  payouts: {
+
+    # fee to charge delegators for the payout (portion of the reward as decimal, e.g. 0.075 for 7.5%)
+    fee: 0.1
+
+    # minimum amount to pay out to delegators, if the amount is less, the payout will be ignored
+    minimum_payout_amount: 0.01
+  }
+
+  # delegators configuration
+  delegators: {
+    # Requirements delegators have to meet
+    requirements: {
+      # Minimum balance of tez a delegator has to have to be considered for payout
+      minimum_balance: 10
+    }
+  }
+
+  # overdelegation protection configuration
+  overdelegation: {
+    protect: true
+  }
+}
