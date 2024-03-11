@@ -45,6 +45,7 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 		payoutCandidate := DelegatorToPayoutCandidate(delegator, configuration)
 		validationContext := payoutCandidate.ToValidationContext(ctx)
 		return *validationContext.Validate(
+			IsPrefilteredValidator,
 			IsIgnoredValidator,
 			RecipientValidator,
 			MinimumBalanceValidator,

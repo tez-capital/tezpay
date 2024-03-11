@@ -71,6 +71,13 @@ func ValidateEmptied(candidate *PayoutCandidate, configuration *configuration.Ru
 	}
 }
 
+func ValidateIsPrefiltered(candidate *PayoutCandidate, configuration *configuration.RuntimeConfiguration, _ *configuration.RuntimeDelegatorOverride, _ *PayoutGenerationContext) {
+	if len(configuration.Delegators.Prefilter) > 0 && !lo.ContainsBy(configuration.Delegators.Prefilter, func(addr tezos.Address) bool { return addr.Equal(candidate.Source) }) {
+		candidate.IsInvalid = true
+		candidate.InvalidBecause = enums.INVALID_DELEGATOR_PREFILTERED
+	}
+}
+
 func ValidateIsIgnored(candidate *PayoutCandidate, configuration *configuration.RuntimeConfiguration, _ *configuration.RuntimeDelegatorOverride, _ *PayoutGenerationContext) {
 	if lo.ContainsBy(configuration.Delegators.Ignore, func(addr tezos.Address) bool { return addr.Equal(candidate.Source) }) {
 		candidate.IsInvalid = true
@@ -105,6 +112,7 @@ var (
 	MinimumBalanceValidator    = PayoutCandidateValidator{Id: "MinimumBalanceValidator", Validate: ValidateMinimumBalance}
 	Emptiedalidator            = PayoutCandidateValidator{Id: "Emptiedalidator", Validate: ValidateEmptied}
 	IsIgnoredValidator         = PayoutCandidateValidator{Id: "IsIgnoredValidator", Validate: ValidateIsIgnored}
+	IsPrefilteredValidator     = PayoutCandidateValidator{Id: "IsPrefilteredValidator", Validate: ValidateIsPrefiltered}
 	IgnoreKtValidator          = PayoutCandidateValidator{Id: "IgnoreKtValidator", Validate: ValidateIgnoreKt}
 	RecipientNotBaker          = PayoutCandidateValidator{Id: "RecipientNotBaker", Validate: ValidateRecipientNotBaker}
 	NotExcludedByAddressPrefix = PayoutCandidateValidator{Id: "NotExcludedByAddressPrefix", Validate: ValidateNotExcludedPrefix}

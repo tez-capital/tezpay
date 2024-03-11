@@ -167,6 +167,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			},
 			Overrides: delegatorOverrides,
 			Ignore:    configuration.Delegators.Ignore,
+			Prefilter: configuration.Delegators.Prefilter,
 		},
 		IncomeRecipients: RuntimeIncomeRecipients{
 			Bonds:       configuration.IncomeRecipients.Bonds,

@@ -35,6 +35,7 @@ type DelegatorOverrideV0 struct {
 
 type DelegatorsConfigurationV0 struct {
 	Requirements DelegatorRequirementsV0        `json:"requirements,omitempty" comment:"Requirements delegators have to meet"`
+	Prefilter    []tezos.Address                `json:"prefilter,omitempty" comment:"List of only delegator addresses to consider, if empty all delegators are considered"`
 	Ignore       []tezos.Address                `json:"ignore,omitempty" comment:"List of delegator addresses to ignore"`
 	Overrides    map[string]DelegatorOverrideV0 `json:"overrides,omitempty" comment:"Overrides for specific delegators"`
 	FeeOverrides map[string][]tezos.Address     `json:"fee_overrides,omitempty" comment:"Shortcuts for overriding fees for specific delegators"`

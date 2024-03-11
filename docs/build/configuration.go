@@ -67,7 +67,8 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 				"1":  {tezos.ZeroAddress, tezos.BurnAddress},
 				".5": {tezos.InvalidAddress},
 			},
-			Ignore: []tezos.Address{tezos.ZeroAddress, tezos.BurnAddress},
+			Ignore:    []tezos.Address{tezos.ZeroAddress, tezos.BurnAddress},
+			Prefilter: []tezos.Address{tezos.MustParseAddress("tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM"), tezos.MustParseAddress("tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE")},
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_RPC_URL,

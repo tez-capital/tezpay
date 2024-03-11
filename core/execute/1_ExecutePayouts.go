@@ -12,6 +12,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch common.RecipeBatch) *common.BatchResult {
+	log.Infof("dry running batch %s (%d transactions)", batchId, len(batch))
+	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
+	if err != nil {
+		log.Warnf("batch %s - %s", batchId, err.Error())
+		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
+	}
+	return common.NewSuccessBatchResult(batch, tezos.ZeroOpHash)
+}
+
 func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch common.RecipeBatch) *common.BatchResult {
 	log.Infof("creating batch %s (%d transactions)", batchId, len(batch))
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
@@ -40,7 +50,7 @@ func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch commo
 	return common.NewSuccessBatchResult(batch, opExecCtx.GetOpHash())
 }
 
-func executePayouts(ctx *PayoutExecutionContext, _ *common.ExecutePayoutsOptions) *PayoutExecutionContext {
+func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsOptions) *PayoutExecutionContext {
 	batchCount := len(ctx.StageData.Batches)
 	batchesResults := make(common.BatchResults, 0)
 
@@ -59,7 +69,11 @@ func executePayouts(ctx *PayoutExecutionContext, _ *common.ExecutePayoutsOptions
 		}
 
 		batchId := fmt.Sprintf("%d/%d", i+1, batchCount)
-		batchesResults = append(batchesResults, *executePayoutBatch(ctx, batchId, batch))
+		if options.DryRun {
+			batchesResults = append(batchesResults, *druRunExecutePayoutBatch(ctx, batchId, batch))
+		} else {
+			batchesResults = append(batchesResults, *executePayoutBatch(ctx, batchId, batch))
+		}
 	}
 
 	ctx.StageData.BatchResults = batchesResults

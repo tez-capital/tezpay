@@ -22,7 +22,7 @@ var statisticsCmd = &cobra.Command{
 		if lastCycle == 0 {
 			lastCycle = assertRunWithResult(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED)
 		}
-		fsReporter := reporter_engines.NewFileSystemReporter(config)
+		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{})
 
 		var total common.CyclePayoutSummary
 		ok := 0

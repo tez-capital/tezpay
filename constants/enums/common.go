@@ -37,6 +37,7 @@ type EPayoutInvalidReason string
 const (
 	INVALID_DELEGATOR_EMPTIED            EPayoutInvalidReason = "DELEGATOR_EMPTIED"
 	INVALID_DELEGATOR_IGNORED            EPayoutInvalidReason = "DELEGATOR_IGNORED"
+	INVALID_DELEGATOR_PREFILTERED        EPayoutInvalidReason = "DELEGATOR_PREFILTERED"
 	INVALID_DELEGATOR_LOW_BAlANCE        EPayoutInvalidReason = "DELEGATOR_LOW_BALANCE"
 	INVALID_PAYOUT_BELLOW_MINIMUM        EPayoutInvalidReason = "PAYOUT_BELLOW_MINIMUM"
 	INVALID_PAYOUT_ZERO                  EPayoutInvalidReason = "PAYOUT_ZERO"

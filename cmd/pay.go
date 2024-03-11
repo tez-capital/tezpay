@@ -30,8 +30,11 @@ var payCmd = &cobra.Command{
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
+		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
-		fsReporter := reporter_engines.NewFileSystemReporter(config)
+		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
+			DryRun: isDryRun,
+		})
 		stdioReporter := reporter_engines.NewStdioReporter(config)
 
 		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
@@ -104,6 +107,7 @@ var payCmd = &cobra.Command{
 			return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, reporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 				MixInContractCalls: mixInContractCalls,
 				MixInFATransfers:   mixInFATransfers,
+				DryRun:             isDryRun,
 			})
 		}, EXIT_OPERTION_FAILED)
 
@@ -130,6 +134,7 @@ func init() {
 	payCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
 	payCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
 	payCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
+	payCmd.Flags().Bool(DRY_RUN_FLAG, false, "skips payout wallet balance check")
 
 	RootCmd.AddCommand(payCmd)
 }

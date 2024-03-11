@@ -73,6 +73,10 @@ type CycleMonitor interface {
 	WaitForNextCompletedCycle(lastProcessedCycle int64) (int64, error)
 }
 
+type ReporterEngineOptions struct {
+	DryRun bool
+}
+
 type ReporterEngine interface {
 	GetExistingReports(cycle int64) ([]PayoutReport, error)
 	ReportPayouts(reports []PayoutReport) error

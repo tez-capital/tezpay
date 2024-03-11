@@ -31,8 +31,11 @@ var continualCmd = &cobra.Command{
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
+		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
-		fsReporter := reporter_engines.NewFileSystemReporter(config)
+		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
+			DryRun: isDryRun,
+		})
 
 		if utils.IsTty() {
 			assertRequireConfirmation("\n\n\t !!! ATTENTION !!!\n\nPreliminary testing has been conducted on the continual mode, but potential for undiscovered bugs still exists.\n Do you want to proceed?")
@@ -178,6 +181,7 @@ var continualCmd = &cobra.Command{
 				return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 					MixInContractCalls: mixInContractCalls,
 					MixInFATransfers:   mixInFATransfers,
+					DryRun:             isDryRun,
 				})
 			}, EXIT_OPERTION_FAILED)
 
@@ -202,6 +206,7 @@ func init() {
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")
+	continualCmd.Flags().Bool(DRY_RUN_FLAG, false, "skips payout wallet balance check")
 
 	RootCmd.AddCommand(continualCmd)
 }

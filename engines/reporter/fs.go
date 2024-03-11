@@ -18,16 +18,32 @@ import (
 
 type FsReporter struct {
 	configuration *configuration.RuntimeConfiguration
+	options       *common.ReporterEngineOptions
 }
 
-func NewFileSystemReporter(config *configuration.RuntimeConfiguration) *FsReporter {
+func NewFileSystemReporter(config *configuration.RuntimeConfiguration, options *common.ReporterEngineOptions) *FsReporter {
 	return &FsReporter{
 		configuration: config,
+		options:       options,
 	}
 }
 
+func (engine *FsReporter) getReportsDirectory() (string, error) {
+	var directory string
+	if engine.options.DryRun {
+		directory = path.Join(state.Global.GetReportsDirectory(), "dry")
+	} else {
+		directory = state.Global.GetReportsDirectory()
+	}
+	return directory, os.MkdirAll(directory, 0700)
+}
+
 func (engine *FsReporter) GetExistingReports(cycle int64) ([]common.PayoutReport, error) {
-	sourceFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
+	reportsDirectory, err := engine.getReportsDirectory()
+	if err != nil {
+		return []common.PayoutReport{}, err
+	}
+	sourceFile := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
 	data, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return []common.PayoutReport{}, err
@@ -45,8 +61,12 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 		return pr.Cycle
 	}))
 
+	reportsDirectory, err := engine.getReportsDirectory()
+	if err != nil {
+		return err
+	}
 	for _, cycle := range cyclesToBeWritten {
-		targetFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
+		targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle), constants.PAYOUT_REPORT_FILE_NAME)
 		err := os.MkdirAll(path.Dir(targetFile), 0700)
 		if err != nil {
 			return err
@@ -84,8 +104,12 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 		return pr.Cycle
 	}))
 
+	reportsDirectory, err := engine.getReportsDirectory()
+	if err != nil {
+		return err
+	}
 	for _, cycle := range cyclesToBeWritten {
-		targetFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.INVALID_REPORT_FILE_NAME)
+		targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle), constants.INVALID_REPORT_FILE_NAME)
 		err := os.MkdirAll(path.Dir(targetFile), 0700)
 		if err != nil {
 			return err
@@ -104,7 +128,11 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 }
 
 func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
-	targetFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", summary.Cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	reportsDirectory, err := engine.getReportsDirectory()
+	if err != nil {
+		return err
+	}
+	targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", summary.Cycle), constants.REPORT_SUMMARY_FILE_NAME)
 	data, err := json.MarshalIndent(summary, "", "\t")
 	if err != nil {
 		return err
@@ -114,7 +142,11 @@ func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) 
 }
 
 func (engine *FsReporter) GetExistingCycleSummary(cycle int64) (*common.CyclePayoutSummary, error) {
-	sourceFile := path.Join(state.Global.GetReportsDirectory(), fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	reportsDirectory, err := engine.getReportsDirectory()
+	if err != nil {
+		return nil, err
+	}
+	sourceFile := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
 	data, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return nil, err

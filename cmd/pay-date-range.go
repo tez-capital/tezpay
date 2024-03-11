@@ -18,41 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func parseDateFlags(cmd *cobra.Command) (time.Time, time.Time, error) {
-	startDateFlag, _ := cmd.Flags().GetString(START_DATE_FLAG)
-	endDateFlag, _ := cmd.Flags().GetString(END_DATE_FLAG)
-	monthFlag, _ := cmd.Flags().GetString(MONTH_FLAG)
-
-	if startDateFlag != "" && endDateFlag != "" && monthFlag != "" {
-		return time.Time{}, time.Time{}, errors.New("only start date and end date or month can be specified")
-	}
-	if startDateFlag != "" && endDateFlag != "" {
-		startDate, err := time.Parse("2006-01-02", startDateFlag)
-		if err != nil {
-			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse start date - %s", err)
-		}
-		endDate, err := time.Parse("2006-01-02", endDateFlag)
-		if err != nil {
-			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse end date - %s", err)
-		}
-		if startDate.After(endDate) {
-			return time.Time{}, time.Time{}, errors.New("start date cannot be after end date")
-		}
-
-		return startDate, endDate.Add(-time.Nanosecond), nil
-	}
-	if monthFlag != "" {
-		month, err := time.Parse("2006-01", monthFlag)
-		if err != nil {
-			return time.Time{}, time.Time{}, fmt.Errorf("failed to parse month - %s", err)
-		}
-		startDate := time.Date(month.Year(), month.Month(), 1, 0, 0, 0, 0, time.UTC)
-		endDate := startDate.AddDate(0, 1, 0).Add(-time.Nanosecond)
-		return startDate, endDate, nil
-	}
-	return time.Time{}, time.Time{}, errors.New("invalid date range")
-}
-
 var payDateRangeCmd = &cobra.Command{
 	Use:   "pay-date-range",
 	Short: "EXPERIMENTAL: payout for date range",
@@ -65,8 +30,11 @@ var payDateRangeCmd = &cobra.Command{
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
+		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
-		fsReporter := reporter_engines.NewFileSystemReporter(config)
+		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
+			DryRun: isDryRun,
+		})
 		stdioReporter := reporter_engines.NewStdioReporter(config)
 
 		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
@@ -165,6 +133,7 @@ var payDateRangeCmd = &cobra.Command{
 			return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, reporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 				MixInContractCalls: mixInContractCalls,
 				MixInFATransfers:   mixInFATransfers,
+				DryRun:             isDryRun,
 			})
 		}, EXIT_OPERTION_FAILED)
 
@@ -194,6 +163,7 @@ func init() {
 	payDateRangeCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
 	payDateRangeCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
 	payDateRangeCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
+	payDateRangeCmd.Flags().Bool(DRY_RUN_FLAG, false, "skips payout wallet balance check")
 
 	RootCmd.AddCommand(payDateRangeCmd)
 }

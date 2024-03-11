@@ -440,6 +440,7 @@ func (engines *ExecutePayoutsEngineContext) Validate() error {
 type ExecutePayoutsOptions struct {
 	MixInContractCalls bool `json:"mix_in_contract_calls,omitempty"`
 	MixInFATransfers   bool `json:"mix_in_fa_transfers,omitempty"`
+	DryRun             bool `json:"dry_run,omitempty"`
 }
 
 type ExecutePayoutsResult struct {

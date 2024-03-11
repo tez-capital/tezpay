@@ -29,6 +29,7 @@ type RuntimeDelegatorsConfiguration struct {
 	Requirements RuntimeDelegatorRequirements        `json:"requirements,omitempty"`
 	Overrides    map[string]RuntimeDelegatorOverride `json:"overrides,omitempty"`
 	Ignore       []tezos.Address                     `json:"ignore,omitempty"`
+	Prefilter    []tezos.Address                     `json:"prefilter,omitempty"`
 }
 
 type RuntimeNotificatorConfiguration struct {
@@ -102,6 +103,7 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			},
 			Overrides: make(map[string]RuntimeDelegatorOverride),
 			Ignore:    make([]tezos.Address, 0),
+			Prefilter: make([]tezos.Address, 0),
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_RPC_URL,
