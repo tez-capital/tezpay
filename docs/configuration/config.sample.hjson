@@ -55,6 +55,12 @@
       below_minimum_reward_destination: everyone
     }
 
+    # List of only delegator addresses to consider, if empty all delegators are considered
+    prefilter: [
+      tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM
+      tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE
+    ]
+
     # List of delegator addresses to ignore
     ignore: [
       tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU
