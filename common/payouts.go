@@ -147,7 +147,7 @@ func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 	}
 
 	return PayoutReport{
-		Id:               pr.GetIdentifier(),
+		Id:               pr.GetShortIdentifier(),
 		Baker:            pr.Baker,
 		Timestamp:        time.Now(),
 		Cycle:            pr.Cycle,
