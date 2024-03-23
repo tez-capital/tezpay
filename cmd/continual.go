@@ -157,7 +157,7 @@ var continualCmd = &cobra.Command{
 
 			log.Info("checking past reports")
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-				return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+				return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 			}, EXIT_OPERTION_FAILED)
 
 			if len(preparationResult.ValidPayouts) == 0 {

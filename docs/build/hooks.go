@@ -60,15 +60,13 @@ func GenerateHookSampleData() {
 
 	simulatedCandidate := generate.PayoutCandidateSimulated{
 		PayoutCandidateWithBondAmountAndFee: payoutCandidate,
-		PayoutCandidateSimulationResult: generate.PayoutCandidateSimulationResult{
-			AllocationBurn: 1,
-			StorageBurn:    1,
-			OpLimits: &common.OpLimits{
-				TransactionFee:          1,
-				StorageLimit:            1,
-				GasLimit:                1,
-				DeserializationGasLimit: 1,
-			},
+		SimulationResult: &common.OpLimits{
+			AllocationBurn:          1,
+			StorageBurn:             1,
+			TransactionFee:          1,
+			StorageLimit:            1,
+			GasLimit:                1,
+			DeserializationGasLimit: 1,
 		},
 	}
 

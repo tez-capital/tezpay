@@ -32,3 +32,11 @@ func PanicWithMetadata(reason string, id string, metadata ...interface{}) {
 	fmt.Printf("Please report above metadata to the developers.\n")
 	panic(reason)
 }
+
+func MapToPointers[T any](items []T) []*T {
+	pointers := make([]*T, len(items))
+	for i, item := range items {
+		pointers[i] = &item
+	}
+	return pointers
+}

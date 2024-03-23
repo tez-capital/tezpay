@@ -94,7 +94,7 @@ var payDateRangeCmd = &cobra.Command{
 
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
+			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
 				Accumulate: true,
 			})
 		}, EXIT_OPERTION_FAILED)

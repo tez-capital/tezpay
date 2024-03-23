@@ -19,6 +19,20 @@ type OpLimits struct {
 	StorageLimit            int64 `json:"storage_limit,omitempty"`
 	GasLimit                int64 `json:"gas_limit,omitempty"`
 	DeserializationGasLimit int64 `json:"deserialization_gas_limit,omitempty"`
+	AllocationBurn          int64 `json:"allocation_burn,omitempty"`
+	StorageBurn             int64 `json:"storage_burn,omitempty"`
+}
+
+func (psr *OpLimits) GetOperationTotalFees() int64 {
+	return psr.TransactionFee + psr.AllocationBurn + psr.StorageBurn
+}
+
+func (psr *OpLimits) GetAllocationFee() int64 {
+	return psr.AllocationBurn
+}
+
+func (psr *OpLimits) GetOperationFeesWithoutAllocation() int64 {
+	return psr.TransactionFee + psr.StorageBurn
 }
 
 type PayoutRecipe struct {
@@ -38,6 +52,10 @@ type PayoutRecipe struct {
 	OpLimits         *OpLimits                    `json:"op_limits,omitempty"`
 	Note             string                       `json:"note,omitempty"`
 	IsValid          bool                         `json:"valid,omitempty"`
+	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
+	TxFeeCollected bool `json:"tx_fee_collected,omitempty"`
+	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
+	AllocationFeeCollected bool `json:"allocation_fee_collected,omitempty"`
 }
 
 func (candidate *PayoutRecipe) GetDestination() tezos.Address {
@@ -128,6 +146,8 @@ func (recipe *PayoutRecipe) Combine(otherRecipe *PayoutRecipe) (*PayoutRecipe, e
 	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
 	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
 	recipe.OpLimits = &OpLimits{
+		StorageBurn:             recipe.OpLimits.StorageBurn + otherRecipe.OpLimits.StorageBurn,
+		AllocationBurn:          recipe.OpLimits.AllocationBurn + otherRecipe.OpLimits.AllocationBurn,
 		TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
 		StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
 		GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
@@ -138,6 +158,24 @@ func (recipe *PayoutRecipe) Combine(otherRecipe *PayoutRecipe) (*PayoutRecipe, e
 	otherRecipe.Note = fmt.Sprintf("%s#%d", recipe.GetShortIdentifier(), recipe.Cycle)
 
 	return recipe, nil
+}
+
+func (pr *PayoutRecipe) GetAccumulatedIdentifier() string {
+	return fmt.Sprintf("%s#%d", pr.GetShortIdentifier(), pr.Cycle)
+}
+
+func (pr *PayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
+	if pr.Kind != enums.PAYOUT_KIND_ACCUMULATED {
+		return false, "", 0
+	}
+	if len(pr.Note) > 0 {
+		_, err := fmt.Sscanf(pr.Note, "%s#%d", &id, &cycle)
+		if err == nil {
+			return true, id, cycle
+		}
+	}
+
+	return false, "", 0
 }
 
 func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
@@ -342,20 +380,26 @@ func (results CyclePayoutBlueprints) GetSummary() *CyclePayoutSummary {
 
 type PreparePayoutsEngineContext struct {
 	collector   CollectorEngine
+	signer      SignerEngine
 	reporter    ReporterEngine
 	adminNotify func(msg string)
 }
 
-func NewPreparePayoutsEngineContext(collector CollectorEngine, reporter ReporterEngine, adminNotify func(msg string)) *PreparePayoutsEngineContext {
+func NewPreparePayoutsEngineContext(collector CollectorEngine, signer SignerEngine, reporter ReporterEngine, adminNotify func(msg string)) *PreparePayoutsEngineContext {
 	return &PreparePayoutsEngineContext{
 		collector:   collector,
 		adminNotify: adminNotify,
+		signer:      signer,
 		reporter:    reporter,
 	}
 }
 
 func (engines *PreparePayoutsEngineContext) GetCollector() CollectorEngine {
 	return engines.collector
+}
+
+func (engines *PreparePayoutsEngineContext) GetSigner() SignerEngine {
+	return engines.signer
 }
 
 func (engines *PreparePayoutsEngineContext) GetReporter() ReporterEngine {

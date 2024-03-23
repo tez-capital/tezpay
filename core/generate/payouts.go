@@ -18,6 +18,10 @@ type PayoutCandidate struct {
 	IsBakerPayingTxFee           bool                       `json:"is_baker_paying_tx_fee,omitempty"`
 	IsBakerPayingAllocationTxFee bool                       `json:"is_baker_paying_allocation_tx_fee,omitempty"`
 	InvalidBecause               enums.EPayoutInvalidReason `json:"invalid_because,omitempty"`
+	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
+	TxFeeCollected bool `json:"tx_fee_collected,omitempty"`
+	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
+	AllocationFeeCollected bool `json:"allocation_fee_collected,omitempty"`
 }
 
 func (candidate *PayoutCandidate) GetEffectiveBalance() tezos.Z {
@@ -82,27 +86,9 @@ func (candidate *PayoutCandidateWithBondAmountAndFee) ToValidationContext(ctx *P
 	}
 }
 
-type PayoutCandidateSimulationResult struct {
-	AllocationBurn int64            `json:"allocation_burn,omitempty"`
-	StorageBurn    int64            `json:"storage_burn,omitempty"`
-	OpLimits       *common.OpLimits `json:"op_limits,omitempty"`
-}
-
 type PayoutCandidateSimulated struct {
 	PayoutCandidateWithBondAmountAndFee
-	PayoutCandidateSimulationResult
-}
-
-func (payout *PayoutCandidateSimulated) GetOperationTotalFees() int64 {
-	return payout.OpLimits.TransactionFee + payout.AllocationBurn + payout.StorageBurn
-}
-
-func (payout *PayoutCandidateSimulated) GetAllocationFee() int64 {
-	return payout.AllocationBurn
-}
-
-func (payout *PayoutCandidateSimulated) GetOperationFeesWithoutAllocation() int64 {
-	return payout.OpLimits.TransactionFee + payout.StorageBurn
+	SimulationResult *common.OpLimits
 }
 
 func (candidate *PayoutCandidateSimulated) ToValidationContext(config *configuration.RuntimeConfiguration) PayoutSimulatedValidationContext {
@@ -126,22 +112,24 @@ func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycl
 	}
 
 	return common.PayoutRecipe{
-		Baker:            baker,
-		Cycle:            cycle,
-		Kind:             kind,
-		TxKind:           payout.TxKind,
-		Delegator:        payout.Source,
-		Recipient:        payout.Recipient,
-		DelegatedBalance: payout.DelegatedBalance,
-		StakingBalance:   payout.StakingBalance,
-		FATokenId:        payout.FATokenId,
-		FAContract:       payout.FAContract,
-		Amount:           payout.BondsAmount,
-		FeeRate:          payout.FeeRate,
-		Fee:              payout.Fee,
-		OpLimits:         payout.OpLimits,
-		Note:             note,
-		IsValid:          !payout.IsInvalid,
+		Baker:                  baker,
+		Cycle:                  cycle,
+		Kind:                   kind,
+		TxKind:                 payout.TxKind,
+		Delegator:              payout.Source,
+		Recipient:              payout.Recipient,
+		DelegatedBalance:       payout.DelegatedBalance,
+		StakingBalance:         payout.StakingBalance,
+		FATokenId:              payout.FATokenId,
+		FAContract:             payout.FAContract,
+		Amount:                 payout.BondsAmount,
+		FeeRate:                payout.FeeRate,
+		Fee:                    payout.Fee,
+		OpLimits:               payout.SimulationResult,
+		TxFeeCollected:         payout.TxFeeCollected,
+		AllocationFeeCollected: payout.AllocationFeeCollected,
+		Note:                   note,
+		IsValid:                !payout.IsInvalid,
 	}
 }
 

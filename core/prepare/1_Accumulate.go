@@ -3,6 +3,10 @@ package prepare
 import (
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/core/estimate"
+	"github.com/alis-is/tezpay/utils"
+	"github.com/echa/log"
 	"github.com/samber/lo"
 )
 
@@ -36,11 +40,42 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 			accumulatedPayouts = append(accumulatedPayouts, payout)
 			basePayout = *combined
 		}
-		// TODO: optimize fees and adjust blueprints accordingly
 
 		payouts = append(payouts, basePayout) // add the combined
-		// add the rest - marked as ACCUMULATED
 	}
+
+	payoutKey := ctx.GetSigner().GetKey()
+
+	estimateContext := &estimate.EstimationContext{
+		PayoutKey:     payoutKey,
+		Collector:     ctx.GetCollector(),
+		Configuration: ctx.configuration,
+		BatchMetadataDeserializationGasLimit: lo.Max(lo.Map(ctx.PayoutBlueprints, func(blueprint *common.CyclePayoutBlueprint, _ int) int64 {
+			return blueprint.BatchMetadataDeserializationGasLimit
+		})),
+	}
+
+	// get new estimates
+	payouts = lo.Map(estimate.EstimateTransactionFees(utils.MapToPointers(payouts), estimateContext), func(result estimate.EstimateResult[*common.PayoutRecipe], _ int) common.PayoutRecipe {
+		if result.Error != nil {
+			log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')\nerror: %s", result.Transaction.Recipient, payoutKey.Address(), result.Transaction.Amount.Int64(), result.Transaction.TxKind, result.Error.Error())
+			result.Transaction.IsValid = false
+			result.Transaction.Note = string(enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
+		}
+
+		candidate := result.Transaction
+		if candidate.TxKind == enums.PAYOUT_TX_KIND_TEZ {
+			if !candidate.TxFeeCollected {
+				candidate.Amount = candidate.Amount.Add64(candidate.OpLimits.GetOperationFeesWithoutAllocation() - result.Result.GetOperationFeesWithoutAllocation())
+			}
+			if !candidate.AllocationFeeCollected {
+				candidate.Amount = candidate.Amount.Add64(candidate.OpLimits.GetAllocationFee() - result.Result.GetAllocationFee())
+			}
+		}
+
+		result.Transaction.OpLimits = result.Result
+		return *result.Transaction
+	})
 
 	ctx.StageData.ValidPayouts = payouts
 	ctx.StageData.AccumulatedPayouts = accumulatedPayouts

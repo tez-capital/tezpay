@@ -80,16 +80,31 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 	failureDetected := false
 
 	validPayoutReports := append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)
-	reportsOfAccumulatedPayouts := lo.Map(ctx.AccumulatedPayouts, func(payout common.PayoutRecipe, _ int) common.PayoutReport {
-		return payout.ToPayoutReport()
-	})
-	validPayoutReports = append(validPayoutReports, reportsOfAccumulatedPayouts...)
 
+	validAccumulatedPayouts := make([]common.PayoutReport, 0, len(ctx.AccumulatedPayouts))
+	invalidAccumulatedPayouts := make([]common.PayoutRecipe, 0, len(ctx.AccumulatedPayouts))
+	for _, payout := range ctx.AccumulatedPayouts {
+		wasAccumulated, id, cycle := payout.GetAccumulatedPayoutDetails()
+		if !wasAccumulated {
+			continue
+		}
+		if !lo.ContainsBy(validPayoutReports, func(report common.PayoutReport) bool {
+			return report.Cycle == cycle && report.Id == id
+		}) {
+			validAccumulatedPayouts = append(validAccumulatedPayouts, payout.ToPayoutReport())
+		} else {
+			invalidAccumulatedPayouts = append(invalidAccumulatedPayouts, payout)
+		}
+	}
+
+	validPayoutReports = append(validPayoutReports, validAccumulatedPayouts...)
 	if err := reporter.ReportPayouts(validPayoutReports); err != nil {
 		log.Warnf("failed to report sent payouts - %s", err.Error())
 		failureDetected = true
 	}
-	if err := reporter.ReportInvalidPayouts(ctx.InvalidPayouts); err != nil {
+
+	invalidPayoutReports := append(ctx.InvalidPayouts, invalidAccumulatedPayouts...)
+	if err := reporter.ReportInvalidPayouts(invalidPayoutReports); err != nil {
 		log.Warnf("failed to report invalid payouts - %s", err.Error())
 		failureDetected = true
 	}
