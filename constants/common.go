@@ -20,6 +20,9 @@ const (
 	DEFAULT_KT_TX_FEE_BUFFER              = int64(0)
 	DEFAULT_SIMULATION_TX_BATCH_SIZE      = 50
 
+	// buffer for signature, branch etc.
+	DEFAULT_BATCHING_OPERATION_DATA_BUFFER = 3000
+
 	PAYOUT_FEE_BUFFER  = 1000 // buffer per payout to check baker balance is sufficient
 	MAX_OPERATION_TTL  = 12   // 12 blocks
 	ALLOCATION_STORAGE = 257

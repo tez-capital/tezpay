@@ -27,7 +27,8 @@
 				"--pay-only-address-prefix=KT",
 				"pay",
 				"--cycle=623",
-				//"--confirm"
+				"--confirm",
+				"--dry-run"
 			],
 		},
 		{

@@ -21,7 +21,7 @@ func NewBatch(limits *OperationLimits, metadataDeserializationGasLimit int64) ba
 		Payouts:     make([]PayoutRecipe, 0),
 		UsedStorage: 0,
 		UsedGas:     metadataDeserializationGasLimit,
-		Op:          codec.NewOp().WithSource(tezos.ZeroAddress), // dummy address
+		Op:          codec.NewOp().WithSource(tezos.ZeroAddress).WithBranch(tezos.MustParseBlockHash("BM4VEjb3EGdgNgJhwfVUsUqPYvZWJUHdmKKgabuDkwy6SmUKDve")), // dummy address
 		limits: OperationLimits{
 			HardGasLimitPerOperation:     limits.HardGasLimitPerOperation * 95 / 100,     // little reserve
 			HardStorageLimitPerOperation: limits.HardStorageLimitPerOperation * 95 / 100, // little reserve
@@ -38,7 +38,7 @@ func (b *batchBlueprint) AddPayout(payout PayoutRecipe) bool {
 		return false
 	}
 	InjectTransferContents(b.Op, payout.Recipient, &payout)
-	if len(b.Op.Bytes()) > b.limits.MaxOperationDataLength {
+	if len(b.Op.Bytes()) > b.limits.MaxOperationDataLength-constants.DEFAULT_BATCHING_OPERATION_DATA_BUFFER {
 		return false
 	}
 	b.UsedStorage += payout.OpLimits.StorageLimit
