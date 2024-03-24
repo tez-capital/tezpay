@@ -132,7 +132,9 @@ This hook is NOT capable of mutating data *currently*.
         "transaction_fee": 1,
         "storage_limit": 1,
         "gas_limit": 1,
-        "deserialization_gas_limit": 1
+        "deserialization_gas_limit": 1,
+        "allocation_burn": 1,
+        "storage_burn": 1
       },
       "note": "reason"
     }
@@ -180,7 +182,9 @@ This hook is capable of mutating data *currently*.
         "transaction_fee": 1,
         "storage_limit": 1,
         "gas_limit": 1,
-        "deserialization_gas_limit": 1
+        "deserialization_gas_limit": 1,
+        "allocation_burn": 1,
+        "storage_burn": 1
       },
       "note": "reason"
     }
@@ -190,7 +194,7 @@ This hook is capable of mutating data *currently*.
     {
       "id": "fd8d0230c9d70458",
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2024-03-11T13:22:29.821984497Z",
+      "timestamp": "2024-03-24T18:36:23.101181462Z",
       "cycle": 1,
       "kind": "invalid",
       "tx_kind": "fa1",
