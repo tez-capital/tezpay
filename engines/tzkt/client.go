@@ -98,11 +98,7 @@ func (client *Client) Get(ctx context.Context, path string) (*http.Response, err
 
 func unmarshallTzktResponse[T any](resp *http.Response, result *T) error {
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return errors.Join(constants.ErrCycleDataUnmarshalFailed, err)
-	}
-	err = json.Unmarshal(body, &result)
+	err := json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return errors.Join(constants.ErrCycleDataUnmarshalFailed, err)
 	}
@@ -166,12 +162,8 @@ func (client *Client) getFirstBlockCycleAfterTimestamp(ctx context.Context, time
 		return 0, errors.Join(constants.ErrCycleDataFetchFailed, err)
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, errors.Join(constants.ErrCycleDataFetchFailed, err)
-	}
 	var cycles []int64
-	err = json.Unmarshal(body, &cycles)
+	err = json.NewDecoder(resp.Body).Decode(&cycles)
 	if err != nil {
 		return 0, errors.Join(constants.ErrCycleDataUnmarshalFailed, err)
 	}

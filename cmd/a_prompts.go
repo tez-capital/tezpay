@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -41,13 +40,8 @@ func checkForNewVersionAvailable() (bool, string) {
 		log.Debugf("Failed to check latest version!")
 		return false, ""
 	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Debugf("Failed to check latest version!")
-		return false, ""
-	}
 	var info versionInfo
-	err = json.Unmarshal(body, &info)
+	err = json.NewDecoder(resp.Body).Decode(&info)
 	if err != nil {
 		log.Debugf("Failed to check latest version!")
 		return false, ""
