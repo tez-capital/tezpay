@@ -2,6 +2,7 @@ package seed
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -9,6 +10,7 @@ import (
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/alis-is/tezpay/notifications"
 	"github.com/hjson/hjson-go/v4"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -80,9 +82,64 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 		}
 	}
 
+	delegatorBellowMinimumBalanceRewardDestination := enums.REWARD_DESTINATION_NONE
+	feeOverrides := make(map[string][]tezos.Address, 0)
+	ignores := make([]tezos.Address, 0)
 	if len(configuration.RulesMap) > 0 {
-		// TODO: rules
-		log.Warnf("we do not support migration of rules right now")
+		for k, v := range configuration.RulesMap {
+			if k == "mindelegation" {
+				if v == "TOE" {
+					delegatorBellowMinimumBalanceRewardDestination = enums.REWARD_DESTINATION_EVERYONE
+				}
+				continue
+			}
+
+			switch v {
+			// if TOE -> ignore
+			case "TOE":
+				if addr, err := tezos.ParseAddress(k); err == nil {
+					ignores = append(ignores, addr)
+				} else {
+					log.Warnf("failed to parse address %s, please adjust configuration manually", k)
+				}
+				// if TOB -> fee 1
+			case "TOB":
+				fallthrough
+				// if TOF -> fee 1
+			case "TOF":
+				if addr, err := tezos.ParseAddress(k); err == nil {
+					if _, ok := feeOverrides["1"]; !ok {
+						feeOverrides["1"] = make([]tezos.Address, 0)
+					}
+					feeOverrides["1"] = append(feeOverrides["1"], addr)
+				} else {
+					log.Warnf("failed to parse address %s, please adjust configuration manually", k)
+				}
+			case "Dexter":
+				log.Warnf("we do not support dexter right now, please check your configuration file and migrate it manually")
+			default:
+				targetAddr, err := tezos.ParseAddress(v)
+				if err == nil { // if address redirect
+					if sourceAddr, err := tezos.ParseAddress(k); err == nil {
+						if v, ok := delegatorOverrides[sourceAddr.String()]; ok {
+							if v.Recipient != tezos.ZeroAddress {
+								log.Warnf("address %s already has recipient %s, please adjust configuration manually", k, v.Recipient)
+							} else {
+								v.Recipient = targetAddr
+							}
+						} else {
+							delegatorOverrides[sourceAddr.String()] = tezpay_configuration.DelegatorOverrideV0{
+								Recipient: targetAddr,
+							}
+						}
+					} else {
+						log.Warnf("failed to parse address %s, please adjust configuration manually", k)
+					}
+				} else {
+					log.Warnf("failed to parse '%s' - unknown rules map value, please adjust configuration manually", v)
+				}
+			}
+		}
 	}
 
 	notificationConfigurations := make([]json.RawMessage, 0)
@@ -90,9 +147,49 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 		for t, plugin := range configuration.Plugins {
 			switch t {
 			case "email":
-				log.Warnf("we are not able to migrate email plugin configuration right now, please check your configuration file and migrate it manually")
+				oldConfig := trd_seed.EmailPluginConfigurationV1{}
+				err := plugin.Decode(&oldConfig)
+				if err != nil {
+					log.Warnf("we are not able to migrate email plugin configuration right now, please check your configuration file and migrate it manually")
+					continue
+				}
+				configuration := notifications.EmailNotificatorConfiguration{
+					Type:       "email",
+					Sender:     oldConfig.SMTPSender,
+					SmtpUser:   oldConfig.SMTPUser,
+					SmtpPass:   oldConfig.SMTPPass,
+					Recipients: oldConfig.SMTPRecipients,
+				}
+				if oldConfig.SMTPPort == 0 {
+					configuration.SmtpServer = oldConfig.SMTPHost
+				} else {
+					configuration.SmtpServer = fmt.Sprintf("%s:%d", oldConfig.SMTPHost, oldConfig.SMTPPort)
+				}
+				result, err := json.Marshal(configuration)
+				if err != nil {
+					log.Warnf("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually")
+					continue
+				}
+				notificationConfigurations = append(notificationConfigurations, result)
 			case "webhook":
-				log.Warnf("we do not support webhook notificators right now")
+				log.Warnf("POST request by trd webhook plugin differs from tezpay, you may have to adjust your webhook logic")
+				var configuration trd_seed.WebhookPluginConfigurationV1
+				err := plugin.Decode(&configuration)
+				if err != nil {
+					// log and skip
+					log.Warnf("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually")
+					continue
+				}
+				result, err := json.Marshal(map[string]interface{}{
+					"type":  "webhook",
+					"url":   configuration.Endpoint,
+					"token": configuration.Token,
+				})
+				if err != nil {
+					log.Warnf("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually")
+					continue
+				}
+				notificationConfigurations = append(notificationConfigurations, result)
 			case "telegram":
 				var configuration trd_seed.TelegramPluginConfigurationV1
 				err := plugin.Decode(&configuration)
@@ -114,6 +211,9 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					} else {
 						log.Warnf("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually\n - %s", err.Error())
 					}
+				}
+				if len(configuration.ChatIds) > 0 {
+					configuration.PayoutChatsIds = append(configuration.PayoutChatsIds, configuration.ChatIds...)
 				}
 				if len(configuration.PayoutChatsIds) > 0 {
 					config, err := json.Marshal(map[string]interface{}{
@@ -175,9 +275,12 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 		},
 		Delegators: tezpay_configuration.DelegatorsConfigurationV0{
 			Requirements: tezpay_configuration.DelegatorRequirementsV0{
-				MinimumBalance: configuration.MinDelegation,
+				MinimumBalance:                        configuration.MinDelegation,
+				BellowMinimumBalanceRewardDestination: &delegatorBellowMinimumBalanceRewardDestination,
 			},
-			Overrides: delegatorOverrides,
+			Overrides:    delegatorOverrides,
+			FeeOverrides: feeOverrides,
+			Ignore:       ignores,
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_TZKT_URL,
@@ -188,11 +291,13 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 			IsProtectionEnabled: true,
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
-			Fee:           configuration.ServiceFee / 100,
-			IsPayingTxFee: !configuration.DelPaysXferFee,
-			WalletMode:    enums.WALLET_MODE_REMOTE_SIGNER,
-			PayoutMode:    enums.EPayoutMode(configuration.RewardsType),
-			MinimumAmount: configuration.MinPayment,
+			Fee:                     configuration.ServiceFee / 100,
+			IsPayingTxFee:           !configuration.DelPaysXferFee,
+			IsPayingAllocationTxFee: !configuration.DelPaysRaFee,
+			IgnoreEmptyAccounts:     !configuration.ReactivateZero,
+			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:              enums.EPayoutMode(configuration.RewardsType),
+			MinimumAmount:           configuration.MinPayment,
 		},
 		NotificationConfigurations: notificationConfigurations,
 	}

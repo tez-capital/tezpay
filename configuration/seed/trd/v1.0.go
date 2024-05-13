@@ -13,6 +13,7 @@ type TelegramPluginConfigurationV1 struct {
 	Type           string  `json:"type" yaml:"-"`
 	AdminChatsIds  []int64 `yaml:"admin_chats_ids"`                       // chat ids to send admin messages to
 	PayoutChatsIds []int64 `yaml:"payout_chats_ids"`                      // chat ids to send payout messages to
+	ChatIds        []int64 `yaml:"chat_ids"`                              // chat ids to send messages to
 	BotApiKey      string  `json:"api_token" yaml:"bot_api_key"`          // telegram bot api key
 	TelegramText   string  `json:"message_template" yaml:"telegram_text"` // telegram text
 }
@@ -36,6 +37,21 @@ type DiscordPluginConfigurationV1 struct {
 	DiscordText string `json:"message_template" yaml:"discord_text"`
 }
 
+type EmailPluginConfigurationV1 struct {
+	SMTPUser       string   `yaml:"smtp_user"`
+	SMTPPass       string   `yaml:"smtp_pass"`
+	SMTPHost       string   `yaml:"smtp_host"`
+	SMTPPort       int      `yaml:"smtp_port"`
+	SMTPTLS        bool     `yaml:"smtp_tls"`
+	SMTPSender     string   `yaml:"smtp_sender"`
+	SMTPRecipients []string `yaml:"smtp_recipients"`
+}
+
+type WebhookPluginConfigurationV1 struct {
+	Endpoint string `json:"url" yaml:"endpoint"`
+	Token    string `json:"token" yaml:"token"`
+}
+
 type ConfigurationV1 struct {
 	Version        string               `yaml:"version"`
 	BakingAddress  string               `yaml:"baking_address"`
@@ -52,7 +68,7 @@ type ConfigurationV1 struct {
 	DelPaysXferFee bool                 `yaml:"delegator_pays_xfer_fee"`
 	DelPaysRaFee   bool                 `yaml:"delegator_pays_ra_fee"`
 	PayDenRewards  bool                 `yaml:"pay_denunciation_rewards"`
-	RulesMap       map[string]yaml.Node `yaml:"rules_map"`
+	RulesMap       map[string]string    `yaml:"rules_map"`
 	Plugins        map[string]yaml.Node `yaml:"plugins"`
 }
 
@@ -73,7 +89,7 @@ func GetDefault() ConfigurationV1 {
 		DelPaysXferFee: false,
 		DelPaysRaFee:   false,
 		PayDenRewards:  false,
-		RulesMap:       make(map[string]yaml.Node),
+		RulesMap:       make(map[string]string),
 		Plugins:        make(map[string]yaml.Node),
 	}
 }

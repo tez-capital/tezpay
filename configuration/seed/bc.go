@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"regexp"
 	"strings"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -21,6 +22,12 @@ func bcAliasing(configuration []byte) []byte {
 	config = strings.ReplaceAll(config, "api_key", "consumer_key")
 	// discord
 	config = strings.ReplaceAll(config, "webhook:", "webhook_url:")
+	// telegram
+	// chat_id": "-1001498662018"
+	// replace with receivers: ["-1001498662018"]
+	regex := regexp.MustCompile(`"chat_id"\s*:\s*"?(.*)"?,?`)
+	config = regex.ReplaceAllString(config, `"receivers": [ $1 ]`)
+
 	// message template aliasing
 	config = strings.ReplaceAll(config, "<T_REWARDS>", "<DistributedRewards>")
 	config = strings.ReplaceAll(config, "<CYCLE>", "<Cycle>")

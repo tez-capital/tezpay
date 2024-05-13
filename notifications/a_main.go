@@ -20,6 +20,8 @@ func LoadNotificatior(kind NotificatorKind, configuration []byte) (common.Notifi
 		return InitEmailNotificator(configuration)
 	case EXTERNAL_NOTIFICATOR:
 		return InitExternalNotificator(configuration)
+	case WEBHOOK_NOTIFICATOR:
+		return InitWebhookNotificator(configuration)
 	default:
 		return nil, errors.Join(constants.ErrUnsupportedNotificator, fmt.Errorf("kind: %s", kind))
 	}
@@ -35,6 +37,8 @@ func ValidateNotificatorConfiguration(kind NotificatorKind, configuration []byte
 		return ValidateTelegramConfiguration(configuration)
 	case EMAIL_NOTIFICATOR:
 		return ValidateEmailConfiguration(configuration)
+	case NotificatorKind(WEBHOOK_NOTIFICATOR):
+		return ValidateWebhookConfiguration(configuration)
 	case EXTERNAL_NOTIFICATOR:
 		return ValidateExternalConfiguration(configuration)
 	default:

@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type emailNotificatorConfiguration struct {
+type EmailNotificatorConfiguration struct {
 	Type            string   `json:"type"`
 	Sender          string   `json:"sender"`
 	SmtpServer      string   `json:"smtp_server"`
@@ -34,7 +34,7 @@ const (
 )
 
 func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) {
-	configuration := emailNotificatorConfiguration{}
+	configuration := EmailNotificatorConfiguration{}
 	err := json.Unmarshal(configurationBytes, &configuration)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) 
 }
 
 func ValidateEmailConfiguration(configurationBytes []byte) error {
-	configuration := emailNotificatorConfiguration{}
+	configuration := EmailNotificatorConfiguration{}
 	err := json.Unmarshal(configurationBytes, &configuration)
 	if err != nil {
 		return err

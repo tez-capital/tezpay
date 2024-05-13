@@ -134,6 +134,7 @@ func GetDefaultV0() ConfigurationV0 {
 			MinimumDelayBlocks:         &minimumPayoutDelayBlocks,
 			MaximumDelayBlocks:         &maximumPayoutDelayBlocks,
 			SimulationBatchSize:        &simulationBatchSize,
+			IgnoreEmptyAccounts:        false,
 		},
 		IncomeRecipients:           IncomeRecipientsV0{},
 		NotificationConfigurations: make([]json.RawMessage, 0),

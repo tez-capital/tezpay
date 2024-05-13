@@ -26,6 +26,7 @@ const (
 	DISCORD_NOTIFICATOR  NotificatorKind = "discord"
 	EMAIL_NOTIFICATOR    NotificatorKind = "email"
 	EXTERNAL_NOTIFICATOR NotificatorKind = "external"
+	WEBHOOK_NOTIFICATOR  NotificatorKind = "webhook"
 )
 
 func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary, additionalData map[string]string) string {
