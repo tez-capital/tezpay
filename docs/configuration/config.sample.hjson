@@ -61,7 +61,7 @@
       tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE
     ]
 
-    # List of delegator addresses to ignore
+    # List of delegator addresses to ignore - wont be included in reward set, rewards will be redistributed
     ignore: [
       tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU
       tz1burnburnburnburnburnburnburjAYjjX
