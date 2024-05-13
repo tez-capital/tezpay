@@ -1,7 +1,6 @@
 package seed
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -23,7 +22,7 @@ func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, er
 	var versionInfo common.ConfigurationVersionInfo
 	switch kind {
 	case enums.BC_CONFIGURATION_SEED:
-		err := json.Unmarshal(sourceBytes, &versionInfo)
+		err := hjson.Unmarshal(sourceBytes, &versionInfo)
 		if err != nil {
 			return nil, errors.Join(constants.ErrInvalidSourceVersionInfo, err)
 		}
