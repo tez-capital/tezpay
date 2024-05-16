@@ -2,6 +2,7 @@ package transactor_engines
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"blockwatch.cc/tzgo/codec"
@@ -79,12 +80,16 @@ func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 }
 
 func InitDefaultTransactor(config *configuration.RuntimeConfiguration) (*DefaultRpcTransactor, error) {
-	rpcClient, err := rpc.NewClient(config.Network.RpcUrl, nil)
+	client := &http.Client{
+		Timeout: 10 * 60 * time.Second,
+	}
+
+	rpcClient, err := rpc.NewClient(config.Network.RpcUrl, client)
 	if err != nil {
 		return nil, err
 	}
 
-	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, nil)
+	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, client)
 	if err != nil {
 		return nil, err
 	}

@@ -76,7 +76,9 @@ func InitClient(rootUrl string, httpClient *http.Client) (*Client, error) {
 	}
 
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{
+			Timeout: 10 * time.Second,
+		}
 	}
 
 	return &Client{
