@@ -4,7 +4,7 @@ TEZPAY
 
 ### Synopsis
 
-TEZPAY 0.14.0-alpha.3 - the tezos reward distributor
+TEZPAY 0.14.0-alpha.4 - the tezos reward distributor
 Copyright © 2024 alis.is
 
 
