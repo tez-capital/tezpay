@@ -39,17 +39,17 @@ type tzktBakersCycleData struct {
 	OwnStakingBalance        int64 `json:"ownStakedBalance"`      // OwnDelegatedBalance + ExternalDelegatedBalance
 	ExternalStakingBalance   int64 `json:"externalStakedBalance"` // ExternalDelegatedBalance
 
-	BlockRewardsDelegated    *int64 `json:"blockRewardsDelegated"`
-	BlockRewardsLiquid       int64  `json:"blockRewardsLiquid"`
-	BlockRewardsStakedOwn    int64  `json:"blockRewardsStakedOwn"`
-	BlockRewardsStakedShared int64  `json:"blockRewardsStakedShared"`
+	BlockRewardsDelegated  int64 `json:"blockRewardsDelegated"`
+	BlockRewardsLiquid     int64 `json:"blockRewardsLiquid"`
+	BlockRewardsStakedOwn  int64 `json:"blockRewardsStakedOwn"`
+	BlockRewardsStakedEdge int64 `json:"blockRewardsStakedEdge"`
 	// BlockRewards             int64            `json:"blockRewards"` // BlockRewardsLiquid + BlockRewardsStakedOwn
 	MissedBlockRewards int64 `json:"missedBlockRewards"`
 
-	EndorsementRewardsDelegated    *int64 `json:"endorsementRewardsDelegated"`
-	EndorsementRewardsLiquid       int64  `json:"endorsementRewardsLiquid"`
-	EndorsementRewardsStakedOwn    int64  `json:"endorsementRewardsStakedOwn"`
-	EndorsementRewardsStakedShared int64  `json:"endorsementRewardsStakedShared"`
+	EndorsementRewardsDelegated  int64 `json:"endorsementRewardsDelegated"`
+	EndorsementRewardsLiquid     int64 `json:"endorsementRewardsLiquid"`
+	EndorsementRewardsStakedOwn  int64 `json:"endorsementRewardsStakedOwn"`
+	EndorsementRewardsStakedEdge int64 `json:"endorsementRewardsStakedEdge"`
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
 	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
 
@@ -233,39 +233,39 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 
 	precision := int64(10000)
 
-	var blockRewards, endorsingRewards, delegationShare tezos.Z
-	if tzktBakerCycleData.BlockRewardsDelegated == nil {
-		blockRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsLiquid).Add64(tzktBakerCycleData.BlockRewardsStakedOwn).Add64(tzktBakerCycleData.BlockRewardsStakedShared)
-	} else { // Paris
-		blockRewards = tezos.NewZ(*tzktBakerCycleData.BlockRewardsDelegated)
-	}
-
-	if tzktBakerCycleData.EndorsementRewardsDelegated == nil {
-		endorsingRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsLiquid).Add64(tzktBakerCycleData.EndorsementRewardsStakedOwn).Add64(tzktBakerCycleData.EndorsementRewardsStakedShared)
-	} else { // Paris
-		endorsingRewards = tezos.NewZ(*tzktBakerCycleData.EndorsementRewardsDelegated)
-	}
-
-	if tzktBakerCycleData.BlockRewardsDelegated == nil || tzktBakerCycleData.EndorsementRewardsDelegated == nil {
+	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
+	if (cycle < 1000 && cycle > constants.PARIS_AI_ACTIVATION_CYCLE) || cycle > constants.GHOSTNET_PARIS_AI_ACTIVATION_CYCLE {
+		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
+		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
+		delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakingBalance - tzktBakerCycleData.ExternalStakingBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
+	} else {
+		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsLiquid).Add64(tzktBakerCycleData.BlockRewardsStakedOwn)
+		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsLiquid).Add64(tzktBakerCycleData.EndorsementRewardsStakedOwn)
 		delegationShare = tezos.NewZ(1)
 		precision = 1
-	} else { // Paris
-		delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakingBalance - tzktBakerCycleData.ExternalStakingBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
 	}
 
+	blockDelegatedFees := delegationShare.Mul64(tzktBakerCycleData.BlockFees).Div64(precision)
+	blockStakingFees := tezos.NewZ(tzktBakerCycleData.BlockFees).Sub(blockDelegatedFees)
+
 	return &common.BakersCycleData{
-		OwnStakingBalance:        tezos.NewZ(tzktBakerCycleData.OwnStakingBalance),
-		OwnDelegatedBalance:      tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance),
-		ExternalStakingBalance:   tezos.NewZ(tzktBakerCycleData.ExternalStakingBalance),
-		ExternalDelegatedBalance: tezos.NewZ(tzktBakerCycleData.ExternalDelegatedBalance),
-		BlockRewards:             blockRewards,
-		IdealBlockRewards:        blockRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
-		EndorsementRewards:       endorsingRewards,
-		IdealEndorsementRewards:  endorsingRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedEndorsementRewards).Div64(precision)),
-		DelegatorsCount:          tzktBakerCycleData.DelegatorsCount,
-		StakersCount:             tzktBakerCycleData.StakersCount,
-		FrozenDepositLimit:       tezos.NewZ(tzktBakerData.FrozenDepositLimit),
-		BlockFees:                tezos.NewZ(tzktBakerCycleData.BlockFees),
+		DelegatorsCount:                  tzktBakerCycleData.DelegatorsCount,
+		OwnDelegatedBalance:              tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance),
+		ExternalDelegatedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalDelegatedBalance),
+		BlockDelegatedRewards:            blockDelegatedRewards,
+		IdealBlockDelegatedRewards:       blockDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
+		EndorsementDelegatedRewards:      endorsingDelegatedRewards,
+		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedEndorsementRewards).Div64(precision)),
+		BlockDelegatedFees:               blockDelegatedFees,
+
+		StakersCount:                  tzktBakerCycleData.StakersCount,
+		OwnStakingBalance:             tezos.NewZ(tzktBakerCycleData.OwnStakingBalance),
+		ExternalStakingBalance:        tezos.NewZ(tzktBakerCycleData.ExternalStakingBalance),
+		BlockStakingRewardsEdge:       tezos.NewZ(tzktBakerCycleData.BlockRewardsStakedEdge),
+		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.EndorsementRewardsStakedEdge),
+		BlockStakingFees:              blockStakingFees,
+
+		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),
 		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) common.Delegator {
 			addr, err := tezos.ParseAddress(delegator.Address)
 			if err != nil {

@@ -17,11 +17,11 @@ func TestGetBakerBondsAmount(t *testing.T) {
 	configWithOverdelegationProtectionDisabled.Overdelegation.IsProtectionEnabled = false
 
 	cycleData := common.BakersCycleData{
-		OwnStakingBalance:        tezos.NewZ(500_000),
-		OwnDelegatedBalance:      tezos.NewZ(500_000),
-		ExternalDelegatedBalance: tezos.NewZ(19_000_000),
-		BlockRewards:             tezos.NewZ(1000),
-		EndorsementRewards:       tezos.NewZ(10000),
+		OwnStakingBalance:           tezos.NewZ(500_000),
+		OwnDelegatedBalance:         tezos.NewZ(500_000),
+		ExternalDelegatedBalance:    tezos.NewZ(19_000_000),
+		BlockDelegatedRewards:       tezos.NewZ(1000),
+		EndorsementDelegatedRewards: tezos.NewZ(10000),
 	}
 
 	bakerBondsAmount := getBakerBondsAmount(&cycleData, tezos.NewZ(19_000_000), &configWithOverdelegationProtectionEnabled)
@@ -37,11 +37,11 @@ func TestGetBakerBondsAmount(t *testing.T) {
 	assert.Equal(bakerBondsAmount, tezos.NewZ(1100))
 
 	cycleData = common.BakersCycleData{
-		OwnStakingBalance:        tezos.NewZ(600_000),
-		OwnDelegatedBalance:      tezos.NewZ(400_000),
-		ExternalDelegatedBalance: tezos.NewZ(9_000_000),
-		BlockRewards:             tezos.NewZ(1000),
-		EndorsementRewards:       tezos.NewZ(10000),
+		OwnStakingBalance:           tezos.NewZ(600_000),
+		OwnDelegatedBalance:         tezos.NewZ(400_000),
+		ExternalDelegatedBalance:    tezos.NewZ(9_000_000),
+		BlockDelegatedRewards:       tezos.NewZ(1000),
+		EndorsementDelegatedRewards: tezos.NewZ(10000),
 	}
 
 	bakerBondsAmount = getBakerBondsAmount(&cycleData, tezos.NewZ(9_000_000), &configWithOverdelegationProtectionEnabled)

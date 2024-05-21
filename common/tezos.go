@@ -13,19 +13,24 @@ type Delegator struct {
 }
 
 type BakersCycleData struct {
-	OwnStakingBalance        tezos.Z
-	ExternalStakingBalance   tezos.Z
-	OwnDelegatedBalance      tezos.Z
-	ExternalDelegatedBalance tezos.Z
-	BlockRewards             tezos.Z
-	IdealBlockRewards        tezos.Z
-	EndorsementRewards       tezos.Z
-	IdealEndorsementRewards  tezos.Z
-	FrozenDepositLimit       tezos.Z
-	DelegatorsCount          int32
-	StakersCount             int32
-	BlockFees                tezos.Z
-	Delegators               []Delegator
+	OwnDelegatedBalance              tezos.Z
+	ExternalDelegatedBalance         tezos.Z
+	BlockDelegatedRewards            tezos.Z
+	IdealBlockDelegatedRewards       tezos.Z
+	EndorsementDelegatedRewards      tezos.Z
+	IdealEndorsementDelegatedRewards tezos.Z
+	BlockDelegatedFees               tezos.Z
+	DelegatorsCount                  int32
+
+	OwnStakingBalance             tezos.Z
+	ExternalStakingBalance        tezos.Z
+	BlockStakingRewardsEdge       tezos.Z
+	EndorsementStakingRewardsEdge tezos.Z
+	BlockStakingFees              tezos.Z
+	StakersCount                  int32
+
+	FrozenDepositLimit tezos.Z
+	Delegators         []Delegator
 }
 
 type ShareInfo struct {
@@ -34,11 +39,11 @@ type ShareInfo struct {
 }
 
 func (cycleData *BakersCycleData) getTotalRewards() tezos.Z {
-	return cycleData.BlockFees.Add(cycleData.BlockRewards).Add(cycleData.EndorsementRewards)
+	return cycleData.BlockDelegatedFees.Add(cycleData.BlockDelegatedRewards).Add(cycleData.EndorsementDelegatedRewards)
 }
 
 func (cycleData *BakersCycleData) getIdealRewards() tezos.Z {
-	return cycleData.IdealBlockRewards.Add(cycleData.IdealEndorsementRewards).Add(cycleData.BlockFees)
+	return cycleData.IdealBlockDelegatedRewards.Add(cycleData.IdealEndorsementDelegatedRewards).Add(cycleData.BlockDelegatedFees)
 }
 
 // GetTotalRewards returns the total rewards for the cycle based on payout mode
