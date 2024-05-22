@@ -63,6 +63,9 @@ var continualCmd = &cobra.Command{
 		onchainCompletedCycle := assertRunWithResultAndErrFmt(func() (int64, error) {
 			return collector.GetLastCompletedCycle()
 		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+		// TODO: remove after AI
+		startedAtCompletedCycle := onchainCompletedCycle
+		// TODO: end remove after AI
 
 		lastProcessedCycle := int64(onchainCompletedCycle)
 		if initialCycle != 0 {
@@ -118,6 +121,14 @@ var continualCmd = &cobra.Command{
 					notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
 					continue
 				}
+				// TODO: remove after AI
+				if startedAtCompletedCycle < constants.FIRST_PARIS_AI_ACTIVATED_CYCLE /* if started before AI activation */ &&
+					lastProcessedCycle+1 >= constants.FIRST_PARIS_AI_ACTIVATED_CYCLE /* and if we are going to process AI activated cycle */ {
+					log.Errorf("AI activation cycle reached, stopping payouts until operator takes action")
+					notifyAdmin(config, "AI activation cycle reached, stopping payouts until operator takes action")
+					continue
+				}
+				// TODO: end remove after AI
 			}
 
 			defer extension.CloseScopedExtensions()

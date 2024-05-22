@@ -237,18 +237,18 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 	precision := int64(10000)
 
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
-	aiActivationCycle := constants.PARIS_AI_ACTIVATION_CYCLE
+	firstAiActivatedCycle := constants.FIRST_PARIS_AI_ACTIVATED_CYCLE
 	if strings.Contains(client.rootUrl.Host, "ghostnet") {
 		envAiActivationCycle := os.Getenv("GHOSTNET_PARIS_AI_ACTIVATION_CYCLE")
 		if envAiActivationCycle != "" {
-			aiActivationCycle, err = strconv.ParseInt(envAiActivationCycle, 10, 64)
+			firstAiActivatedCycle, err = strconv.ParseInt(envAiActivationCycle, 10, 64)
 			if err != nil {
 				panic(err)
 			}
 		}
 	}
 
-	if cycle > aiActivationCycle {
+	if cycle >= firstAiActivatedCycle {
 		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
 		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
 		delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakingBalance - tzktBakerCycleData.ExternalStakingBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
