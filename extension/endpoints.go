@@ -15,7 +15,7 @@ This is done so we can adjust calls (inject call prefix) while mainting consiste
 "github.com/alis-is/jsonrpc2/endpoints" should not be used directly
 */
 
-type IEndpointClient = endpoints.IEndpointClient
+type IEndpointClient = endpoints.EndpointClient
 
 func Request[TParams rpc.ParamsType, TResult rpc.ResultType](ctx context.Context, c IEndpointClient, method string, params TParams) (*rpc.Response[TResult], error) {
 	return endpoints.Request[TParams, TResult](ctx, c, constants.EXTENSION_CALL_PREFIX+method, params)
