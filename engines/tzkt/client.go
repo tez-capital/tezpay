@@ -9,8 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -239,13 +237,7 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
 	firstAiActivatedCycle := constants.FIRST_PARIS_AI_ACTIVATED_CYCLE
 	if strings.Contains(client.rootUrl.Host, "ghostnet") {
-		envAiActivationCycle := os.Getenv("GHOSTNET_PARIS_AI_ACTIVATION_CYCLE")
-		if envAiActivationCycle != "" {
-			firstAiActivatedCycle, err = strconv.ParseInt(envAiActivationCycle, 10, 64)
-			if err != nil {
-				panic(err)
-			}
-		}
+		firstAiActivatedCycle = constants.FIRST_GHOSTNET_PARIS_AI_ACTIVATED_CYCLE
 	}
 
 	if cycle >= firstAiActivatedCycle {
