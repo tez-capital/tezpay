@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"math"
 
-	"blockwatch.cc/tzgo/tezos"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type RuntimeDelegatorRequirements struct {

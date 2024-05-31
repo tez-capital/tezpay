@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch common.RecipeBatch) *common.BatchResult {

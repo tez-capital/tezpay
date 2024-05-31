@@ -3,11 +3,11 @@ package generate
 import (
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/extension"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func sumValidPayoutsAmount(payouts []common.PayoutRecipe) tezos.Z {

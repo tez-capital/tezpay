@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"blockwatch.cc/tzgo/codec"
-	"blockwatch.cc/tzgo/rpc"
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/engines/tzkt"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/codec"
+	"github.com/trilitech/tzgo/rpc"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type DefaultRpcTransactor struct {

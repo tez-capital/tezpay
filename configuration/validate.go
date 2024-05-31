@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func _assert(condition bool, msg string) {

@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"time"
 
-	"blockwatch.cc/tzgo/rpc"
 	"github.com/alis-is/tezpay/constants"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/rpc"
 )
 
 type CycleMonitorOptions struct {

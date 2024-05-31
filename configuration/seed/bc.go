@@ -4,13 +4,13 @@ import (
 	"regexp"
 	"strings"
 
-	"blockwatch.cc/tzgo/tezos"
 	bc_seed "github.com/alis-is/tezpay/configuration/seed/bc"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/hjson/hjson-go/v4"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func bcAliasing(configuration []byte) []byte {

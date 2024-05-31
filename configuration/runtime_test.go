@@ -3,9 +3,9 @@ package configuration
 import (
 	"testing"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/stretchr/testify/assert"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func TestIsDonatingToTezCapital(t *testing.T) {

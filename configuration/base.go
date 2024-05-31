@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"blockwatch.cc/tzgo/tezos"
+	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/alis-is/tezpay/common"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"

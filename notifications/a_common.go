@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type NotificationKind string

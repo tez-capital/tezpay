@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
@@ -19,6 +18,7 @@ import (
 	"github.com/alis-is/tezpay/state"
 	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type configurationAndEngines struct {

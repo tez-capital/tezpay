@@ -1,10 +1,10 @@
 package generate
 
 import (
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type PayoutCandidate struct {

@@ -7,11 +7,11 @@ import (
 	"errors"
 	"syscall/js"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/core"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func main() {

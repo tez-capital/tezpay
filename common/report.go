@@ -3,9 +3,9 @@ package common
 import (
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type PayoutReport struct {

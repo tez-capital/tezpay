@@ -3,11 +3,11 @@ package tezpay_configuration
 import (
 	"encoding/json"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/notifications"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type IncomeRecipientsV0 struct {

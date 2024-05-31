@@ -1,10 +1,10 @@
 package generate
 
 import (
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func ValidateSimulatedPayouts(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {

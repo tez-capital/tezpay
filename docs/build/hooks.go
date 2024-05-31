@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/core/generate"
 	"github.com/alis-is/tezpay/core/prepare"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func GenerateHookSampleData() {

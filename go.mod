@@ -3,7 +3,6 @@ module github.com/alis-is/tezpay
 go 1.22
 
 require (
-	blockwatch.cc/tzgo v1.18.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/alis-is/jsonrpc2 v0.0.0-20240422124701-8b08a3805144
 	github.com/bwmarrin/discordgo v0.28.1
@@ -20,6 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
+	github.com/trilitech/tzgo v1.19.3
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842
 	gopkg.in/yaml.v3 v3.0.1
 )

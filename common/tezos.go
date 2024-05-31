@@ -1,8 +1,8 @@
 package common
 
 import (
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type Delegator struct {

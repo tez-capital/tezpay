@@ -1,8 +1,8 @@
 package common
 
 import (
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type BatchResult struct {

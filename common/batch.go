@@ -1,11 +1,11 @@
 package common
 
 import (
-	"blockwatch.cc/tzgo/codec"
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/codec"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type batchBlueprint struct {

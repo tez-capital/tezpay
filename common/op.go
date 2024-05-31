@@ -1,12 +1,12 @@
 package common
 
 import (
-	"blockwatch.cc/tzgo/codec"
-	"blockwatch.cc/tzgo/contract"
-	"blockwatch.cc/tzgo/rpc"
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/codec"
+	"github.com/trilitech/tzgo/contract"
+	"github.com/trilitech/tzgo/rpc"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type OpExecutionContext struct {

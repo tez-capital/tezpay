@@ -1,10 +1,10 @@
 package generate
 
 import (
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants/enums"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type PayoutSimulatedCandidateValidation func(candidate *PayoutCandidateSimulated, configuration *configuration.RuntimeConfiguration, overrides *configuration.RuntimeDelegatorOverride)

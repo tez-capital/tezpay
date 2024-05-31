@@ -3,13 +3,13 @@ package generate
 import (
 	"testing"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/alis-is/tezpay/test/mock"
 	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 var (

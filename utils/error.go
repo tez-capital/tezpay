@@ -3,8 +3,8 @@ package utils
 import (
 	"errors"
 
-	"blockwatch.cc/tzgo/rpc"
 	log "github.com/sirupsen/logrus"
+	"github.com/trilitech/tzgo/rpc"
 )
 
 func WarnIfFailed(err error, errfmt string) error {

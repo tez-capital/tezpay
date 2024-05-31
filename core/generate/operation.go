@@ -1,11 +1,11 @@
 package generate
 
 import (
-	"blockwatch.cc/tzgo/codec"
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/codec"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func splitIntoBatches[T interface{}](candidates []T, capacity int) [][]T {

@@ -3,10 +3,10 @@ package utils
 import (
 	"net/url"
 
-	"blockwatch.cc/tzgo/codec"
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/codec"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 // all buffers and additional costs should be added through txExtra

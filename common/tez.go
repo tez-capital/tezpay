@@ -3,9 +3,9 @@ package common
 import (
 	"fmt"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func FormatAmount(kind enums.EPayoutTransactionKind, amount int64) string {

@@ -3,8 +3,8 @@ package utils
 import (
 	"testing"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/stretchr/testify/assert"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func TestGetZPortion(t *testing.T) {

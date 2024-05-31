@@ -3,10 +3,10 @@ package generate
 import (
 	"testing"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/stretchr/testify/assert"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func TestDelegatorToPayoutCandidate(t *testing.T) {

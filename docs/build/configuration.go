@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"os"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/hjson/hjson-go/v4"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func GenerateDefaultHJson() {

@@ -5,11 +5,11 @@ import (
 	"errors"
 	"net/url"
 
-	"blockwatch.cc/tzgo/codec"
-	"blockwatch.cc/tzgo/signer"
-	"blockwatch.cc/tzgo/signer/remote"
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/trilitech/tzgo/codec"
+	"github.com/trilitech/tzgo/signer"
+	"github.com/trilitech/tzgo/signer/remote"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type RemoteSignerSpecs struct {

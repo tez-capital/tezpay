@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/constants"
+	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"

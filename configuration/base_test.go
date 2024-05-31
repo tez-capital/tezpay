@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"blockwatch.cc/tzgo/tezos"
 	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	test_assert "github.com/stretchr/testify/assert"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func TestConfigurationToRuntimeConfiguration(t *testing.T) {

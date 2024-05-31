@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/common"
 	"github.com/alis-is/tezpay/configuration"
 	"github.com/alis-is/tezpay/constants"
@@ -12,6 +11,7 @@ import (
 	"github.com/alis-is/tezpay/test/mock"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 var (

@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
-	"blockwatch.cc/tzgo/tezos"
 	"github.com/alis-is/tezpay/constants"
 	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type OpLimits struct {
