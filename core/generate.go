@@ -28,8 +28,8 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.GeneratePayoutCandidates,
 		// hooks
 		generate.DistributeBonds,
-		generate.CheckSufficientBalance,
 		generate.CollectBakerFee,
+		generate.CheckSufficientBalance,
 		generate.CollectTransactionFees,
 		generate.ValidateSimulatedPayouts,
 		generate.FinalizePayouts,
