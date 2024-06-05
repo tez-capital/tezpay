@@ -236,11 +236,7 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
 	firstAiActivatedCycle := constants.FIRST_PARIS_AI_ACTIVATED_CYCLE
-	if strings.Contains(client.rootUrl.Host, "ghostnet") {
-		firstAiActivatedCycle = constants.FIRST_GHOSTNET_PARIS_AI_ACTIVATED_CYCLE
-	}
-
-	if cycle >= firstAiActivatedCycle {
+	if cycle >= firstAiActivatedCycle || strings.Contains(client.rootUrl.Host, "ghostnet") {
 		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
 		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
 		delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakingBalance - tzktBakerCycleData.ExternalStakingBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
