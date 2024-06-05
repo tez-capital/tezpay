@@ -74,7 +74,8 @@ This hook is NOT capable of mutating data.
       "bonds_amount": "1000000000",
       "tx_kind": "fa1",
       "fa_token_id": "10",
-      "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT"
+      "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
+      "fee": "1000000000"
     }
   ]
 }
@@ -194,7 +195,7 @@ This hook is capable of mutating data *currently*.
     {
       "id": "fd8d0230c9d70458",
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2024-06-05T11:16:21.376095005Z",
+      "timestamp": "2024-06-05T20:36:31.856843204Z",
       "cycle": 1,
       "kind": "invalid",
       "tx_kind": "fa1",
