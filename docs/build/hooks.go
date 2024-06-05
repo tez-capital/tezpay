@@ -49,9 +49,7 @@ func GenerateHookSampleData() {
 		SkipTezCheck: true,
 		Message:      "This message is used to carry errors from hook to the caller.",
 		IsSufficient: true,
-		Payouts: []generate.PayoutCandidateWithBondAmount{
-			payoutCandidate.PayoutCandidateWithBondAmount,
-		},
+		Payouts:      []generate.PayoutCandidateWithBondAmountAndFee{payoutCandidate},
 	}
 	ofc := generate.OnFeesCollectionHookData{
 		580,
