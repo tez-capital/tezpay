@@ -3,10 +3,10 @@ package utils
 import (
 	"encoding/json"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 

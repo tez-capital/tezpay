@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
 	test_assert "github.com/stretchr/testify/assert"
+	tezpay_configuration "github.com/tez-capital/tezpay/configuration/v"
 	"github.com/trilitech/tzgo/tezos"
 )
 

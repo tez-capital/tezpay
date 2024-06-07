@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/alis-is/tezpay/configuration/seed"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/state"
 	"github.com/echa/log"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/configuration/seed"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/state"
 	"golang.org/x/exp/slices"
 )
 

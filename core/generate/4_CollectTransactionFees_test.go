@@ -4,13 +4,13 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/test/mock"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/test/mock"
 	"github.com/trilitech/tzgo/tezos"
 )
 

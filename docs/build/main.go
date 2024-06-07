@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/alis-is/tezpay/cmd"
+	"github.com/tez-capital/tezpay/cmd"
 
 	"github.com/spf13/cobra/doc"
 )

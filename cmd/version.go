@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/constants"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 var versionCmd = &cobra.Command{

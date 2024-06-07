@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/samber/lo"

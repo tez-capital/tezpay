@@ -3,8 +3,8 @@ package common
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 

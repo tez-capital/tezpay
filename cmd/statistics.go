@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/common"
-	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
-	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/common"
+	reporter_engines "github.com/tez-capital/tezpay/engines/reporter"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 var statisticsCmd = &cobra.Command{

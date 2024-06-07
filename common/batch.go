@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/alis-is/tezpay/constants"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/codec"
 	"github.com/trilitech/tzgo/tezos"
 )

@@ -1,10 +1,10 @@
 package core
 
 import (
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core/prepare"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/core/prepare"
 )
 
 func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*common.PreparePayoutsResult, error) {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/alis-is/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/codec"
 	"github.com/trilitech/tzgo/signer"
 	"github.com/trilitech/tzgo/signer/remote"

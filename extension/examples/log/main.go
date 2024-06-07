@@ -10,8 +10,8 @@ import (
 
 	"github.com/alis-is/jsonrpc2/endpoints"
 	"github.com/alis-is/jsonrpc2/rpc"
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
 )
 
 type rwCloser struct {

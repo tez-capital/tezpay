@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/alis-is/jsonrpc2/rpc"
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/echa/log"
 	"github.com/google/uuid"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
 )
 
 type ExtensionStoreEnviromnent struct {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/alis-is/jsonrpc2/endpoints"
 	"github.com/alis-is/jsonrpc2/rpc"
-	"github.com/alis-is/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 /*

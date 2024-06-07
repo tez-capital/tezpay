@@ -5,10 +5,10 @@ import (
 	"errors"
 	"os"
 
-	"github.com/alis-is/tezpay/common"
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/state"
+	"github.com/tez-capital/tezpay/common"
+	tezpay_configuration "github.com/tez-capital/tezpay/configuration/v"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/state"
 
 	"github.com/hjson/hjson-go/v4"
 )

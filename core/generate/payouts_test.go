@@ -3,9 +3,9 @@ package generate
 import (
 	"testing"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/configuration"
 	"github.com/stretchr/testify/assert"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
 	"github.com/trilitech/tzgo/tezos"
 )
 

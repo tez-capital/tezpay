@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/codec"
 	"github.com/trilitech/tzgo/contract"
 	"github.com/trilitech/tzgo/rpc"

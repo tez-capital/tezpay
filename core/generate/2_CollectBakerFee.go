@@ -1,12 +1,12 @@
 package generate
 
 import (
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/extension"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/extension"
+	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 )
 

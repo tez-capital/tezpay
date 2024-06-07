@@ -1,4 +1,4 @@
-module github.com/alis-is/tezpay
+module github.com/tez-capital/tezpay
 
 go 1.22
 

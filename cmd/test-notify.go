@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/alis-is/tezpay/notifications"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/notifications"
 )
 
 var notificationTestCmd = &cobra.Command{

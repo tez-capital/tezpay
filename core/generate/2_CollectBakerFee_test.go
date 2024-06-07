@@ -3,12 +3,12 @@ package generate
 import (
 	"testing"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/test/mock"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/test/mock"
+	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 )
 

@@ -4,14 +4,14 @@ import (
 	"errors"
 	"os"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core"
-	"github.com/alis-is/tezpay/extension"
-	"github.com/alis-is/tezpay/state"
-	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/core"
+	"github.com/tez-capital/tezpay/extension"
+	"github.com/tez-capital/tezpay/state"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 var generatePayoutsCmd = &cobra.Command{

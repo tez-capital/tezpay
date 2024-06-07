@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 type extedrnalNotificatorConfiguration struct {

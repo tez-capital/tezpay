@@ -3,8 +3,8 @@ package generate
 import (
 	"os"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 func SendAnalytics(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {

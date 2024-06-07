@@ -3,15 +3,15 @@ package generate
 import (
 	"fmt"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/core/estimate"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/core/estimate"
 	"github.com/trilitech/tzgo/tezos"
 
-	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[string]float64, amount tezos.Z, ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) ([]common.PayoutRecipe, error) {

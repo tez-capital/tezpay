@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/configuration"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
 )
 
 type StdioReporter struct {

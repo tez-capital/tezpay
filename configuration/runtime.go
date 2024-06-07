@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"math"
 
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/notifications"
+	tezpay_configuration "github.com/tez-capital/tezpay/configuration/v"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/notifications"
 	"github.com/trilitech/tzgo/tezos"
 )
 

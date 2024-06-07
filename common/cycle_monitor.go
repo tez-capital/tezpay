@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/alis-is/tezpay/constants"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/rpc"
 )
 

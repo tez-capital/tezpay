@@ -1,9 +1,9 @@
 package execute
 
 import (
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/utils"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 type StageData struct {

@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/alis-is/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 

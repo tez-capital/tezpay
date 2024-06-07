@@ -6,11 +6,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/samber/lo"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
 )
 
 const (

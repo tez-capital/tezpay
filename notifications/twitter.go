@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
 	"github.com/dghubble/oauth1"
 	twitter "github.com/g8rswimmer/go-twitter/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 type twitterNotificatorConfiguration struct {

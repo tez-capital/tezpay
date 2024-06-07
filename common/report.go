@@ -3,8 +3,8 @@ package common
 import (
 	"time"
 
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 

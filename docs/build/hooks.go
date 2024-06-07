@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/core/generate"
-	"github.com/alis-is/tezpay/core/prepare"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/core/generate"
+	"github.com/tez-capital/tezpay/core/prepare"
 	"github.com/trilitech/tzgo/tezos"
 )
 

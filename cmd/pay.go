@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core"
-	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
-	"github.com/alis-is/tezpay/extension"
-	"github.com/alis-is/tezpay/state"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/core"
+	reporter_engines "github.com/tez-capital/tezpay/engines/reporter"
+	"github.com/tez-capital/tezpay/extension"
+	"github.com/tez-capital/tezpay/state"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 var payCmd = &cobra.Command{
@@ -47,7 +47,7 @@ var payCmd = &cobra.Command{
 		}
 
 		var generationResult *common.CyclePayoutBlueprint
-		fromFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
+		fromFile, _ := cmd.Flags().GetString(FROM_FILE_FLAG)
 		if fromFile != "" {
 			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
 				return loadGeneratedPayoutsResultFromFile(fromFile)

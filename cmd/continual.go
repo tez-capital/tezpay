@@ -7,16 +7,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/core"
-	reporter_engines "github.com/alis-is/tezpay/engines/reporter"
-	"github.com/alis-is/tezpay/extension"
-	"github.com/alis-is/tezpay/state"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/core"
+	reporter_engines "github.com/tez-capital/tezpay/engines/reporter"
+	"github.com/tez-capital/tezpay/extension"
+	"github.com/tez-capital/tezpay/state"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 var continualCmd = &cobra.Command{

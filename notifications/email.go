@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
 	"github.com/nikoksr/notify/service/mail"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 type EmailNotificatorConfiguration struct {

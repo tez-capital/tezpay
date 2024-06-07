@@ -3,8 +3,8 @@ package common
 import (
 	"testing"
 
-	"github.com/alis-is/tezpay/constants"
 	"github.com/stretchr/testify/assert"
+	"github.com/tez-capital/tezpay/constants"
 )
 
 type dummyCycleMonitor struct {

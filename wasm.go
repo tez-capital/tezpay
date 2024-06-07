@@ -7,10 +7,11 @@ import (
 	"errors"
 	"syscall/js"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/core"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/core"
 	"github.com/trilitech/tzgo/tezos"
 )
 

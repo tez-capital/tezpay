@@ -8,14 +8,14 @@ import (
 
 	"github.com/trilitech/tzgo/tezos"
 
-	"github.com/alis-is/tezpay/common"
-	tezpay_configuration "github.com/alis-is/tezpay/configuration/v"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/state"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	tezpay_configuration "github.com/tez-capital/tezpay/configuration/v"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/state"
 )
 
 func FloatAmountToMutez(amount float64) tezos.Z {

@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/samber/lo"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 

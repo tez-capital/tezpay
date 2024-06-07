@@ -8,9 +8,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants/enums"
 )
 
 type rwCloser struct {

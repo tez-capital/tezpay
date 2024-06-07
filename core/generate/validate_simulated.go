@@ -1,9 +1,9 @@
 package generate
 
 import (
-	"github.com/alis-is/tezpay/configuration"
-	"github.com/alis-is/tezpay/constants/enums"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/configuration"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 

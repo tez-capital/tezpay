@@ -3,11 +3,11 @@ package execute
 import (
 	"errors"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/samber/lo"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 )
 

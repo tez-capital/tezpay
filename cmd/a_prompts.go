@@ -8,10 +8,10 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/utils"
 	"github.com/hashicorp/go-version"
 	log "github.com/sirupsen/logrus"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 func requireConfirmation(msg string) error {

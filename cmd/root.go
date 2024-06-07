@@ -5,14 +5,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	signer_engines "github.com/alis-is/tezpay/engines/signer"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	signer_engines "github.com/tez-capital/tezpay/engines/signer"
 
-	"github.com/alis-is/tezpay/state"
-	"github.com/alis-is/tezpay/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tez-capital/tezpay/state"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 const (

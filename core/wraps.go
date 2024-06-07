@@ -1,10 +1,10 @@
 package core
 
 import (
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/core/execute"
-	"github.com/alis-is/tezpay/core/generate"
-	"github.com/alis-is/tezpay/core/prepare"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/core/execute"
+	"github.com/tez-capital/tezpay/core/generate"
+	"github.com/tez-capital/tezpay/core/prepare"
 )
 
 type PayoutContext interface {

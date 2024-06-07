@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/alis-is/tezpay/common"
-	"github.com/alis-is/tezpay/constants"
-	"github.com/alis-is/tezpay/constants/enums"
 	"github.com/echa/log"
 	"github.com/hjson/hjson-go/v4"
+	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
 	"gopkg.in/yaml.v3"
 )
 

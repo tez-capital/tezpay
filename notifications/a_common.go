@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/alis-is/tezpay/common"
+	"github.com/tez-capital/tezpay/common"
 	"github.com/trilitech/tzgo/tezos"
 )
 
