@@ -56,6 +56,8 @@ var (
 	ErrNotRevealed                           = errors.New("address is not revealed")
 	ErrCycleDataCollectionFailed             = errors.New("failed to collect cycle data")
 	ErrPayoutsFromFileLoadFailed             = errors.New("failed to load payouts from file")
+	ErrPayoutsFromBytesLoadFailed            = errors.New("failed to load payouts from bytes")
+	ErrPayoutsFromStdinLoadFailed            = errors.New("failed to load payouts from stdin")
 	ErrPayoutsSaveToFileFailed               = errors.New("failed to save payouts to file")
 	ErrInsufficientBalance                   = errors.New("insufficient balance")
 	ErrFailedToEstimateSerializationGasLimit = errors.New("failed to estimate batch serialization gas limit")

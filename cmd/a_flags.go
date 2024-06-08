@@ -7,6 +7,7 @@ const (
 	NOTIFICATOR_FLAG        = "notificator"
 	TO_FILE_FLAG            = "to-file"
 	FROM_FILE_FLAG          = "from-file"
+	FROM_STDIN_FLAG         = "from-stdin"
 	SIGNER_FLAG             = "signer"
 	SKIP_VERSION_CHECK_FLAG = "skip-version-check"
 	SKIP_BALANCE_CHECK_FLAG = "skip-balance-check"

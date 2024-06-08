@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -78,17 +79,30 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	}, nil
 }
 
-func loadGeneratedPayoutsResultFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
+func loadGeneratedPayoutsFromBytes(data []byte) (*common.CyclePayoutBlueprint, error) {
+	payouts, err := utils.PayoutBlueprintFromJson(data)
+	if err != nil {
+		return nil, errors.Join(constants.ErrPayoutsFromBytesLoadFailed, err)
+	}
+	return payouts, nil
+}
+
+func loadGeneratedPayoutsFromStdin() (*common.CyclePayoutBlueprint, error) {
+	scanner := bufio.NewScanner(os.Stdin) // by default reads line by line
+	log.Infof("reading payouts from stdin")
+	if !scanner.Scan() {
+		return nil, errors.Join(constants.ErrPayoutsFromStdinLoadFailed, errors.New("no data available"))
+	}
+	return loadGeneratedPayoutsFromBytes(scanner.Bytes())
+}
+
+func loadGeneratedPayoutsFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
 	log.Infof("reading payouts from '%s'", fromFile)
 	data, err := os.ReadFile(fromFile)
 	if err != nil {
 		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, err)
 	}
-	payouts, err := utils.PayoutBlueprintFromJson(data)
-	if err != nil {
-		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, err)
-	}
-	return payouts, nil
+	return loadGeneratedPayoutsFromBytes(data)
 }
 
 func writePayoutBlueprintToFile(toFile string, blueprint *common.CyclePayoutBlueprint) error {

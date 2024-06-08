@@ -48,11 +48,17 @@ var payCmd = &cobra.Command{
 
 		var generationResult *common.CyclePayoutBlueprint
 		fromFile, _ := cmd.Flags().GetString(FROM_FILE_FLAG)
-		if fromFile != "" {
+		fromStdin, _ := cmd.Flags().GetBool(FROM_STDIN_FLAG)
+		switch {
+		case fromStdin:
 			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
-				return loadGeneratedPayoutsResultFromFile(fromFile)
+				return loadGeneratedPayoutsFromStdin()
 			}, EXIT_PAYOUTS_READ_FAILURE)
-		} else {
+		case fromFile != "":
+			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
+				return loadGeneratedPayoutsFromFile(fromFile)
+			}, EXIT_PAYOUTS_READ_FAILURE)
+		default:
 			var err error
 			generationResult, err = core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 				&common.GeneratePayoutsOptions{
@@ -68,6 +74,7 @@ var payCmd = &cobra.Command{
 				os.Exit(EXIT_OPERTION_FAILED)
 			}
 		}
+
 		log.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
@@ -129,6 +136,7 @@ func init() {
 	payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
 	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
+	payCmd.Flags().Bool(FROM_STDIN_FLAG, false, "loads payouts from stdin instead of generating on the fly")
 	payCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	payCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	payCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
