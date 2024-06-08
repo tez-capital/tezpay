@@ -3,11 +3,11 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -38,17 +38,17 @@ var payDateRangeCmd = &cobra.Command{
 		stdioReporter := reporter_engines.NewStdioReporter(config)
 
 		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
-			assertRequireConfirmation("With your current configuration you are not going to donate to tez.capital. Do you want to proceed?")
+			assertRequireConfirmation("⚠️  With your current configuration you are not going to donate to tez.capital.😔 Do you want to proceed?")
 		}
 
 		startDate, endDate, err := parseDateFlags(cmd)
 		if err != nil {
-			log.Error(err.Error())
+			slog.Error("failed to parse date flags", "error", err)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
 		if endDate.After(time.Now()) {
-			log.Error("end date cannot be in the future")
+			slog.Error("end date cannot be in the future")
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
@@ -56,11 +56,11 @@ var payDateRangeCmd = &cobra.Command{
 
 		cycles, err := collector.GetCyclesInDateRange(startDate, endDate)
 		if err != nil {
-			log.Errorf("failed to get cycles in date range - %s", err)
+			slog.Error("failed to get cycles in date selected range", "error", err)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
-		log.Infof("Generating payouts for cycles: %s", utils.FormatCycleNumbers(cycles))
+		slog.Info("generating payouts for cycles in the date range", "date_range", fmt.Sprintf("%s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)), "cycles", cycles)
 		generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
 
 		channels := make([]chan *common.CyclePayoutBlueprint, 0, len(cycles))
@@ -75,11 +75,11 @@ var payDateRangeCmd = &cobra.Command{
 						SkipBalanceCheck: skipBalanceCheck,
 					})
 				if errors.Is(err, constants.ErrNoCycleDataAvailable) {
-					log.Infof("no data available for cycle %d, nothing to pay out...", cycle)
+					slog.Info("no data available for cycle, skipping", "cycle", cycle)
 					return
 				}
 				if err != nil {
-					log.Errorf("failed to generate payouts - %s", err)
+					slog.Error("failed to generate payouts", "error", err)
 					os.Exit(EXIT_OPERTION_FAILED)
 				}
 				ch <- generationResult
@@ -92,7 +92,7 @@ var payDateRangeCmd = &cobra.Command{
 			}
 		}
 
-		log.Info("checking past reports")
+		slog.Info("checking reports of past payouts")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
 				Accumulate: true,
@@ -111,7 +111,7 @@ var payDateRangeCmd = &cobra.Command{
 		}
 
 		if len(preparationResult.ValidPayouts) == 0 {
-			log.Info("nothing to pay out")
+			slog.Info("nothing to pay out")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
 				notifyPayoutsProcessed(config, generationResults.GetSummary(), notificator)
@@ -123,7 +123,7 @@ var payDateRangeCmd = &cobra.Command{
 			assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 		}
 
-		log.Info("executing payout")
+		slog.Info("executing payout")
 		executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 			var reporter common.ReporterEngine
 			reporter = fsReporter
@@ -140,7 +140,7 @@ var payDateRangeCmd = &cobra.Command{
 		// notify
 		failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
 		if len(executionResult.BatchResults) > 0 && failedCount > 0 {
-			log.Errorf("%d of operations failed", failedCount)
+			slog.Error("failed operations detected", "failed_count", failedCount, "total_count", len(executionResult.BatchResults))
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {

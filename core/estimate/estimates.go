@@ -3,7 +3,6 @@ package estimate
 import (
 	"errors"
 	"fmt"
-	"os"
 	"slices"
 
 	"github.com/samber/lo"
@@ -81,8 +80,6 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 	// remove first and last contents and limits it is only burn tx to measure serialization cost
 	costs = costs[1 : len(costs)-1]
 	if len(costs) != len(batch) {
-		fmt.Println(len(costs), len(batch))
-		os.Exit(1)
 		utils.PanicWithMetadata("partial estimate", "d93813b9a34cf314a9dceb648736061ef499836c3a04b4be2239c0c7da2c3c47", costs, batch)
 	}
 	result := make([]*common.OpLimits, 0)

@@ -2,7 +2,7 @@ package reporter_engines
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"sort"
 
 	"github.com/tez-capital/tezpay/common"
@@ -23,20 +23,12 @@ func (engine *StdioReporter) GetExistingReports(cycle int64) ([]common.PayoutRep
 	return []common.PayoutReport{}, nil
 }
 
-type PayoutsReport struct {
-	Payouts []common.PayoutReport `json:"payouts"`
-}
-
 func (engine *StdioReporter) ReportPayouts(payouts []common.PayoutReport) error {
 	sort.Slice(payouts, func(i, j int) bool {
 		return !payouts[i].Amount.IsLess(payouts[j].Amount)
 	})
-	data, err := json.Marshal(PayoutsReport{Payouts: payouts})
-	if err != nil {
-		return err
-	}
 
-	fmt.Println(string(data))
+	slog.Info("REPORT", "payouts", payouts)
 	return nil
 }
 
@@ -45,12 +37,7 @@ type InvalidPayoutsReport struct {
 }
 
 func (engine *StdioReporter) ReportInvalidPayouts(reports []common.PayoutRecipe) error {
-	data, err := json.Marshal(InvalidPayoutsReport{InvalidPayouts: reports})
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(data))
+	slog.Info("REPORT", "invalid_payouts", reports)
 	return nil
 }
 
@@ -64,7 +51,7 @@ func (engine *StdioReporter) ReportCycleSummary(summary common.CyclePayoutSummar
 		return err
 	}
 
-	fmt.Println(string(data))
+	slog.Info("REPORT", "cycle_summary", string(data))
 	return nil
 }
 

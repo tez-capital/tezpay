@@ -28,6 +28,8 @@ func ExecuteAfterPayoutsBlueprintGenerated(data AfterPayoutsBlueprintGeneratedHo
 
 func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	stageData := ctx.StageData
+	logger := ctx.logger.With("phase", "create_blueprint")
+	logger.Info("creating payout blueprint")
 
 	blueprint := common.CyclePayoutBlueprint{
 		Cycle:   options.Cycle,

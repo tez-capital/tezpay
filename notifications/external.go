@@ -3,10 +3,10 @@ package notifications
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"os/exec"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 )
@@ -28,7 +28,7 @@ func InitExternalNotificator(configurationBytes []byte) (*ExternalNotificator, e
 	if err != nil {
 		return nil, err
 	}
-	log.Trace("external notificator initialized")
+	slog.Debug("external notificator initialized")
 
 	args := configuration.Args
 	if len(args) == 0 {

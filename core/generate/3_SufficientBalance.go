@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"log/slog"
+
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
@@ -75,7 +76,7 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGeneration
 	return nil
 }
 
-func runBalanceCheck(ctx *PayoutGenerationContext, check func(*CheckBalanceHookData) error, data *CheckBalanceHookData, options *common.GeneratePayoutsOptions) error {
+func runBalanceCheck(ctx *PayoutGenerationContext, logger *slog.Logger, check func(*CheckBalanceHookData) error, data *CheckBalanceHookData, options *common.GeneratePayoutsOptions) error {
 	notificatorTrigger := 0
 	for {
 		// we reset values before each check so we get relevant data for this check only
@@ -84,7 +85,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, check func(*CheckBalanceHookD
 
 		if err := check(data); err != nil {
 			if options.WaitForSufficientBalance {
-				log.Errorf("failed to check balance - %s, waiting 5 minutes...", err.Error())
+				logger.Error("failed to check balance, retrying in 5 minutes", "error", err)
 				time.Sleep(time.Minute * 5)
 				continue
 			}
@@ -93,7 +94,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, check func(*CheckBalanceHookD
 
 		if !data.IsSufficient {
 			if options.WaitForSufficientBalance {
-				log.Warnf("insufficient balance - %s, waiting 5 minutes...", data.Message)
+				logger.Warn("insufficient balance, retrying in 5 minutes...", "message", data.Message)
 				if notificatorTrigger%12 == 0 { // every hour
 					ctx.AdminNotify(fmt.Sprintf("insufficient balance - %s", data.Message))
 				}
@@ -115,11 +116,12 @@ So we just try to estimate with a buffer which should be enough for most cases.
 */
 
 func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
+	logger := ctx.logger.With("phase", "check_sufficient_balance")
 	if options.SkipBalanceCheck { // skip
 		return ctx, nil
 	}
 
-	log.Debugf("checking for sufficient balance")
+	logger.Debug("checking sufficient balance")
 	hookResponse := CheckBalanceHookData{
 		IsSufficient: true,
 		Payouts:      ctx.StageData.PayoutCandidatesWithBondAmountAndFees,
@@ -127,17 +129,17 @@ func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.Genera
 
 	checks := []func(*CheckBalanceHookData) error{
 		func(data *CheckBalanceHookData) error {
-			log.Trace("checking balance with hook")
+			logger.Debug("checking balance with hook")
 			return checkBalanceWithHook(data)
 		},
 		func(data *CheckBalanceHookData) error {
-			log.Trace("checking tez balance with collector")
+			logger.Debug("checking tez balance with collector")
 			return checkBalanceWithCollector(data, ctx)
 		},
 	}
 
 	for _, check := range checks {
-		err := runBalanceCheck(ctx, check, &hookResponse, options)
+		err := runBalanceCheck(ctx, logger, check, &hookResponse, options)
 		if err != nil {
 			return ctx, err
 		}

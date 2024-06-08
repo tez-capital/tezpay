@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 	"os"
 	"strconv"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -25,7 +25,7 @@ var transferCmd = &cobra.Command{
 		mutez, _ := cmd.Flags().GetBool(MUTEZ_FLAG)
 
 		if len(args)%2 != 0 {
-			log.Error("invalid number of arguments (expects pairs of destination and amount)")
+			slog.Error("invalid number of arguments (expects pairs of destination and amount)")
 			os.Exit(EXIT_IVNALID_ARGS)
 		}
 		total := int64(0)
@@ -37,13 +37,13 @@ var transferCmd = &cobra.Command{
 		for i := 0; i < len(args); i += 2 {
 			destination, err := tezos.ParseAddress(args[i])
 			if err != nil {
-				log.Errorf("invalid destination address '%s' - '%s'", args[i], err.Error())
+				slog.Error("invalid destination address", "address", args[i], "error", err)
 				os.Exit(EXIT_IVNALID_ARGS)
 			}
 
 			amount, err := strconv.ParseFloat(args[i+1], 64)
 			if err != nil {
-				log.Errorf("invalid amount '%s' - '%s'", args[i+1], err.Error())
+				slog.Error("invalid amount", "amount", args[i+1], "error", err)
 				os.Exit(EXIT_IVNALID_ARGS)
 			}
 			if !mutez {
@@ -59,21 +59,21 @@ var transferCmd = &cobra.Command{
 		if err := requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", common.MutezToTezS(total), strings.Join(destinations, ", "))); err != nil {
 			os.Exit(EXIT_OPERTION_CANCELED)
 		}
-		log.Infof("transfering tez... waiting for %d confirmations", constants.DEFAULT_REQUIRED_CONFIRMATIONS)
+		slog.Info("transferring tez", "total", common.MutezToTezS(total), "destinations", strings.Join(destinations, ", "), "confirmations_required", constants.DEFAULT_REQUIRED_CONFIRMATIONS)
 		opts := rpc.DefaultOptions
 		opts.Confirmations = constants.DEFAULT_REQUIRED_CONFIRMATIONS
 		opts.Signer = signer.GetSigner()
 
 		rcpt, err := transactor.Send(op, &opts)
 		if err != nil {
-			log.Errorf("failed to confirm tx - %s", err.Error())
+			slog.Error("failed to confirm tx", "error", err)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if !rcpt.IsSuccess() {
-			log.Errorf("tx failed - %s", rcpt.Error().Error())
+			slog.Error("tx failed", "error", rcpt.Error().Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
-		log.Info("transfer successful")
+		slog.Info("transfer successful")
 	},
 }
 

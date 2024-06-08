@@ -2,11 +2,10 @@ package utils
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func CallbackOnInterrupt(ctx context.Context, cb func()) {
@@ -43,7 +42,7 @@ func NewProtectedSection(info string) *ProtectedSection {
 				break
 			}
 			result.signaled = true
-			log.Warnf("received signal '%s', %s", sig, info)
+			slog.Warn("received signal", "signal", sig, "info", info)
 		}
 	}()
 

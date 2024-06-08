@@ -1,11 +1,11 @@
 package seed
 
 import (
+	"log/slog"
 	"regexp"
 	"strings"
 
 	"github.com/hjson/hjson-go/v4"
-	log "github.com/sirupsen/logrus"
 	bc_seed "github.com/tez-capital/tezpay/configuration/seed/bc"
 	tezpay_configuration "github.com/tez-capital/tezpay/configuration/v"
 	"github.com/tez-capital/tezpay/constants"
@@ -36,7 +36,7 @@ func bcAliasing(configuration []byte) []byte {
 }
 
 func MigrateBcv0ToTPv0(sourceBytes []byte) ([]byte, error) {
-	log.Debug("migrating bc configuration to tezpay")
+	slog.Debug("migrating bc configuration to tezpay")
 	configuration := bc_seed.GetDefault()
 	err := hjson.Unmarshal(bcAliasing(sourceBytes), &configuration)
 	if err != nil {
@@ -67,7 +67,7 @@ func MigrateBcv0ToTPv0(sourceBytes []byte) ([]byte, error) {
 		if addr, err := tezos.ParseAddress(pkh); err == nil {
 			overdelegationExcludedAddresses[index] = addr
 		} else {
-			log.Warnf("invalid PKH in overdelegation protections address list: '%s'", pkh)
+			slog.Warn("invalid PKH in overdelegation protections address list", "pkh", pkh)
 			continue
 		}
 	}
@@ -81,7 +81,7 @@ func MigrateBcv0ToTPv0(sourceBytes []byte) ([]byte, error) {
 				MinimumBalance: 0,
 			}
 		} else {
-			log.Warnf("invalid PKH in delegator overrides: '%s'", delegatorOverride.Recipient)
+			slog.Warn("invalid PKH in delegator overrides", "pkh", delegatorOverride.Recipient)
 			continue
 		}
 	}
@@ -125,6 +125,6 @@ func MigrateBcv0ToTPv0(sourceBytes []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	log.Debug("migrated bc configuration successfully")
+	slog.Debug("migrated bc configuration successfully")
 	return migratedBytes, nil
 }

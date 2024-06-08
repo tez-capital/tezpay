@@ -1,44 +1,38 @@
 package cmd
 
 import (
+	"log/slog"
 	"os"
-
-	log "github.com/sirupsen/logrus"
 )
 
-func assertRunWithErrFmt(toExecute func() error, exitCode int, errorFormat string) {
+func assertRunWithErrorMessage(toExecute func() error, exitCode int, msg string, args ...any) {
 	err := toExecute()
 	if err != nil {
-		log.Errorf(errorFormat, err.Error())
+		args = append(args, "error", err)
+		slog.Error(msg, args...)
 		os.Exit(exitCode)
 	}
 }
 
-func assertRun(toExecute func() error, exitCode int) {
-	assertRunWithErrFmt(toExecute, exitCode, "%s")
-}
-
-func assertRunWithParamWithErrFmt[T interface{}](toExecute func(T) error, param T, exitCode int, errorFormat string) {
+func assertRunWithParamAndErrorMessage[T interface{}](toExecute func(T) error, param T, exitCode int, msg string, args ...any) {
 	err := toExecute(param)
 	if err != nil {
-		log.Errorf(errorFormat, err.Error())
+		args = append(args, "error", err)
+		slog.Error(msg, args...)
 		os.Exit(exitCode)
 	}
 }
 
-func assertRunWithParam[T interface{}](toExecute func(T) error, param T, exitCode int) {
-	assertRunWithParamWithErrFmt(toExecute, param, exitCode, "%s")
-}
-
-func assertRunWithResultAndErrFmt[T interface{}](toExecute func() (T, error), exitCode int, errorFormat string) T {
+func assertRunWithResultAndErrorMessage[T interface{}](toExecute func() (T, error), exitCode int, msg string, args ...any) T {
 	result, err := toExecute()
 	if err != nil {
-		log.Errorf(errorFormat, err.Error())
+		args = append(args, "error", err)
+		slog.Error(msg, args...)
 		os.Exit(exitCode)
 	}
 	return result
 }
 
 func assertRunWithResult[T interface{}](toExecute func() (T, error), exitCode int) T {
-	return assertRunWithResultAndErrFmt(toExecute, exitCode, "%s")
+	return assertRunWithResultAndErrorMessage(toExecute, exitCode, "%s")
 }

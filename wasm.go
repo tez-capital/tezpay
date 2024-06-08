@@ -5,9 +5,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"syscall/js"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	log.Infof("tezpay wasm v%s loaded", constants.VERSION)
+	slog.Info("tezpay wasm loaded", "version", constants.VERSION)
 }
 
 //export generate_payouts
@@ -52,6 +52,6 @@ func generate_payouts(key js.Value, cycle int64, configurationJs js.Value) (js.V
 //export test
 func test(data js.Value) (js.Value, error) {
 	x := data.String()
-	log.Info(x)
+	slog.Info(x)
 	return js.ValueOf(x), errors.New("test")
 }

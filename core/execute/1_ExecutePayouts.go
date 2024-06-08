@@ -3,63 +3,64 @@ package execute
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 )
 
-func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch common.RecipeBatch) *common.BatchResult {
-	log.Infof("dry running batch %s (%d transactions)", batchId, len(batch))
+func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchId string, batch common.RecipeBatch) *common.BatchResult {
+	logger.Info("dry running batch", "id", batchId, "tx_count", len(batch))
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
 	if err != nil {
-		log.Warnf("batch %s - %s", batchId, err.Error())
+		logger.Warn("failed to create operation execution context", "id", batchId, "error", err)
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
 	}
 	return common.NewSuccessBatchResult(batch, tezos.ZeroOpHash)
 }
 
-func executePayoutBatch(ctx *PayoutExecutionContext, batchId string, batch common.RecipeBatch) *common.BatchResult {
-	log.Infof("creating batch %s (%d transactions)", batchId, len(batch))
+func executePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchId string, batch common.RecipeBatch) *common.BatchResult {
+	logger.Info("creating batch", "id", batchId, "tx_count", len(batch))
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
 	if err != nil {
-		log.Warnf("batch %s - %s", batchId, err.Error())
+		logger.Warn("failed to create operation execution context", "id", batchId, "error", err)
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
 	}
 
-	log.Infof("broadcasting batch %s", batchId)
+	logger.Info("broadcasting batch", "id", batchId)
 	err = opExecCtx.Dispatch(nil)
 	if err != nil {
-		log.Warnf("failed to broadcast batch %s - %s", batchId, utils.TryUnwrapRPCError(err).Error())
+		logger.Warn("failed to broadcast batch", "id", batchId, "error", err)
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationBroadcastFailed, err))
 	}
 
-	log.Infof("waiting for confirmation of batch %s (%s)", batchId, utils.GetOpReference(opExecCtx.GetOpHash(), ctx.configuration.Network.Explorer))
+	logger.Info("waiting for confirmation of batch", "id", batchId, "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer))
 	ctx.protectedSection.Pause() // pause protected section to allow confirmation canceling
 	err = opExecCtx.WaitForApply()
 	ctx.protectedSection.Resume() // resume protected section
 	if err != nil {
-		log.Warnf("failed to apply batch %s - %s", batchId, err.Error())
+		logger.Warn("failed to apply batch", "id", batchId, "error", err)
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationConfirmationFailed, err))
 	}
 
-	log.Infof("batch %s - success", batchId)
+	logger.Info("batch successful", "id", batchId)
 	return common.NewSuccessBatchResult(batch, opExecCtx.GetOpHash())
 }
 
 func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsOptions) *PayoutExecutionContext {
+	logger := ctx.logger.With("phase", "execute_payouts")
 	batchCount := len(ctx.StageData.Batches)
 	batchesResults := make(common.BatchResults, 0)
 
 	ctx.protectedSection.Start()
-	log.Infof("paying out in %d batches", batchCount)
+	logger.Info("paying out", "batches_count", batchCount)
 	reporter := ctx.GetReporter()
 	for i, batch := range ctx.StageData.Batches {
 		if err := reporter.ReportPayouts(batchesResults.ToReports()); err != nil {
-			log.Warnf("failed to write partial report of payouts - %s", err.Error())
+			logger.Warn("failed to write partial report of payouts", "error", err)
 		}
 
 		if ctx.protectedSection.Signaled() {
@@ -70,9 +71,9 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 
 		batchId := fmt.Sprintf("%d/%d", i+1, batchCount)
 		if options.DryRun {
-			batchesResults = append(batchesResults, *druRunExecutePayoutBatch(ctx, batchId, batch))
+			batchesResults = append(batchesResults, *druRunExecutePayoutBatch(ctx, logger, batchId, batch))
 		} else {
-			batchesResults = append(batchesResults, *executePayoutBatch(ctx, batchId, batch))
+			batchesResults = append(batchesResults, *executePayoutBatch(ctx, logger, batchId, batch))
 		}
 	}
 
@@ -99,23 +100,23 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 
 	validPayoutReports = append(validPayoutReports, validAccumulatedPayouts...)
 	if err := reporter.ReportPayouts(validPayoutReports); err != nil {
-		log.Warnf("failed to report sent payouts - %s", err.Error())
+		logger.Warn("failed to report sent payouts", "error", err)
 		failureDetected = true
 	}
 
 	invalidPayoutReports := append(ctx.InvalidPayouts, invalidAccumulatedPayouts...)
 	if err := reporter.ReportInvalidPayouts(invalidPayoutReports); err != nil {
-		log.Warnf("failed to report invalid payouts - %s", err.Error())
+		logger.Warn("failed to report invalid payouts", "error", err)
 		failureDetected = true
 	}
 	for _, blueprint := range ctx.PayoutBlueprints {
 		if err := reporter.ReportCycleSummary(blueprint.Summary); err != nil {
-			log.Warnf("failed to report cycle summary - %s", err.Error())
+			logger.Warn("failed to report cycle summary", "error", err)
 			failureDetected = true
 		}
 	}
 	if !failureDetected {
-		log.Info("all payouts reports written successfully")
+		logger.Info("all payouts reports written successfully")
 	}
 
 	ctx.protectedSection.Stop()

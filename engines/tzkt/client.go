@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,7 +18,6 @@ import (
 	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -114,7 +114,7 @@ func unmarshallTzktResponse[T any](resp *http.Response, result *T) error {
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=${limit}&offset=${offset}
 func (client *Client) getDelegatorsCycleData(ctx context.Context, baker []byte, cycle int64, limit int32, offset int) ([]splitDelegator, error) {
 	u := fmt.Sprintf("v1/rewards/split/%s/%d?limit=%d&offset=%d", baker, cycle, limit, offset)
-	log.Debugf("getting delegators data of '%s' for cycle %d (%s)", baker, cycle, u)
+	slog.Debug("getting delegators data", "baker", baker, "cycle", cycle, "url", u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
@@ -129,7 +129,7 @@ func (client *Client) getDelegatorsCycleData(ctx context.Context, baker []byte, 
 
 func (client *Client) getBakerData(ctx context.Context, baker []byte) (*bakerData, error) {
 	u := fmt.Sprintf("v1/delegates/%s", baker)
-	log.Debugf("getting baker data of '%s' (%s)", baker, u)
+	slog.Debug("getting baker data", "baker", baker, "url", u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
@@ -144,7 +144,7 @@ func (client *Client) getBakerData(ctx context.Context, baker []byte) (*bakerDat
 
 func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int64) (*tzktBakersCycleData, error) {
 	u := fmt.Sprintf("v1/rewards/split/%s/%d?limit=0", baker, cycle)
-	log.Debugf("getting cycle data of '%s' for cycle %d (%s)", baker, cycle, u)
+	slog.Debug("getting cycle data", "baker", baker, "cycle", cycle, "url", u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
@@ -162,7 +162,7 @@ func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int6
 
 func (client *Client) getFirstBlockCycleAfterTimestamp(ctx context.Context, timestamp time.Time) (int64, error) {
 	u := fmt.Sprintf("v1/blocks?select=cycle&limit=1&timestamp.gt=%s", timestamp.Format(time.RFC3339))
-	log.Debugf("getting first block cycle after %s (%s)", timestamp.Format(time.RFC3339), u)
+	slog.Debug("getting first block cycle after timestamp", "timestamp", timestamp, "url", u)
 	resp, err := client.Get(ctx, u)
 	if err != nil {
 		return 0, errors.Join(constants.ErrCycleDataFetchFailed, err)
@@ -230,7 +230,7 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 			return
 		}
 	})()
-	log.Tracef("fetched baker data with %d delegators", len(collectedDelegators))
+	slog.Debug("fetched baker data", "delegators_count", len(collectedDelegators))
 
 	precision := int64(10000)
 

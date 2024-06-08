@@ -5,11 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
@@ -58,9 +57,9 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 		return nil, err
 	}
 
-	if utils.IsTty() && state.Global.GetIsInDebugMode() {
+	if utils.IsTty() {
 		marshaled, _ := json.MarshalIndent(config, "", "\t")
-		fmt.Println("Loaded configuration:", string(marshaled))
+		slog.Debug("loaded configuration", "configuration", string(marshaled))
 	}
 
 	extEnv := &extension.ExtensionStoreEnviromnent{
@@ -88,8 +87,8 @@ func loadGeneratedPayoutsFromBytes(data []byte) (*common.CyclePayoutBlueprint, e
 }
 
 func loadGeneratedPayoutsFromStdin() (*common.CyclePayoutBlueprint, error) {
+	slog.Info("reading payouts from stdin")
 	scanner := bufio.NewScanner(os.Stdin) // by default reads line by line
-	log.Infof("reading payouts from stdin")
 	if !scanner.Scan() {
 		return nil, errors.Join(constants.ErrPayoutsFromStdinLoadFailed, errors.New("no data available"))
 	}
@@ -97,7 +96,7 @@ func loadGeneratedPayoutsFromStdin() (*common.CyclePayoutBlueprint, error) {
 }
 
 func loadGeneratedPayoutsFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
-	log.Infof("reading payouts from '%s'", fromFile)
+	slog.Info("reading payouts from file", "path", fromFile)
 	data, err := os.ReadFile(fromFile)
 	if err != nil {
 		return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, err)
@@ -106,7 +105,7 @@ func loadGeneratedPayoutsFromFile(fromFile string) (*common.CyclePayoutBlueprint
 }
 
 func writePayoutBlueprintToFile(toFile string, blueprint *common.CyclePayoutBlueprint) error {
-	log.Infof("writing payouts to '%s'", toFile)
+	slog.Info("writing payouts to file", "path", toFile)
 	err := os.WriteFile(toFile, utils.PayoutBlueprintToJson(blueprint), 0644)
 	if err != nil {
 		return errors.Join(constants.ErrPayoutsSaveToFileFailed, err)
@@ -121,8 +120,8 @@ type versionInfo struct {
 func GetProtocolWithRetry(collector common.CollectorEngine) tezos.ProtocolHash {
 	protocol, err := collector.GetCurrentProtocol()
 	for err != nil {
-		log.Warnf("failed to get protocol - %s", err.Error())
-		log.Warnf("retrying in 10 seconds")
+		slog.Warn("failed to get protocol", "error", err)
+		slog.Info("retrying in 10 seconds")
 		time.Sleep(time.Second * 10)
 		protocol, err = collector.GetCurrentProtocol()
 	}

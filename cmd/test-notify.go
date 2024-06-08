@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/notifications"
 )
@@ -18,16 +19,16 @@ var notificationTestCmd = &cobra.Command{
 				continue
 			}
 
-			log.Infof("Sending notification with %s", notificatorConfiguration.Type)
+			slog.Info("sending notification", "notificator", notificatorConfiguration.Type)
 			notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 			if err != nil {
-				log.Warnf("failed to send notification - %s", err.Error())
+				slog.Warn("failed to send notification", "error", err)
 				continue
 			}
 
 			err = notificator.TestNotify()
 			if err != nil {
-				log.Warnf("failed to send notification - %s", err.Error())
+				slog.Warn("failed to send notification", "error", err)
 				continue
 			}
 		}

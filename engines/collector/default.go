@@ -3,11 +3,11 @@ package collector_engines
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/engines/tzkt"
@@ -114,7 +114,7 @@ func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.K
 
 		rcpt, err = engine.rpc.Simulate(context.Background(), o, nil)
 		if err != nil && rcpt == nil { // we do not retry on receipt errors
-			log.Debug("Internal simulate error - likely networking, retrying: ", err)
+			slog.Debug("Internal simulate error - likely networking, retrying", "error", err)
 			// sleep 5s * i
 			time.Sleep(time.Duration(i*5) * time.Second)
 			continue
@@ -135,8 +135,7 @@ func (engine *DefaultRpcAndTzktColletor) CreateCycleMonitor(options common.Cycle
 		return nil, err
 	}
 	utils.CallbackOnInterrupt(ctx, monitor.Cancel)
-	log.Info("tracking cycles... (cancel with Ctrl-C/SIGINT)\n\n")
-
+	slog.Info("tracking cycles... (cancel with Ctrl-C/SIGINT)\n\n")
 	return monitor, nil
 }
 

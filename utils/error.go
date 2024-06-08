@@ -3,16 +3,8 @@ package utils
 import (
 	"errors"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/trilitech/tzgo/rpc"
 )
-
-func WarnIfFailed(err error, errfmt string) error {
-	if err != nil {
-		log.Warnf(errfmt, err)
-	}
-	return err
-}
 
 // returns true if all errors are nil
 func HasNoError(errs []error) bool {

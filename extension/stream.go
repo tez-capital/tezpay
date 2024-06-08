@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"net"
 	"os/exec"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 )
@@ -54,7 +54,7 @@ func (e *StdioExtension) Load() error {
 
 	objStream := NewPlainObjectStream(rwCloser{pr, pw})
 	streamEndpoint := NewStreamEndpoint(e.ctx, objStream)
-	streamEndpoint.UseLogger(logrus.StandardLogger())
+	streamEndpoint.UseLogger(slog.Default().With("extension", e.GetDefinition().Name))
 	if err := cmd.Start(); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (e *TcpExtension) Load() error {
 	}
 	objStream := NewPlainObjectStream(conn)
 	streamEndpoint := NewStreamEndpoint(e.ctx, objStream)
-	streamEndpoint.UseLogger(logrus.StandardLogger())
+	streamEndpoint.UseLogger(slog.Default().With("extension", e.GetDefinition().Name))
 	e.endpoint = streamEndpoint
 	e.loaded = true
 	return nil

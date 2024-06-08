@@ -3,10 +3,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
-	"github.com/echa/log"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/configuration/seed"
@@ -55,16 +55,16 @@ var generateConfigurationCmd = &cobra.Command{
 		}
 
 		// load source bytes
-		sourceBytes := assertRunWithResultAndErrFmt(func() ([]byte, error) {
+		sourceBytes := assertRunWithResultAndErrorMessage(func() ([]byte, error) {
 			return os.ReadFile(sourceFile)
 		}, EXIT_CONFIGURATION_LOAD_FAILURE, "failed to read source file - %s")
 
 		seededBytes, err := seed.Generate(sourceBytes, enums.EConfigurationSeedKind(args[0]))
 		if err != nil {
-			log.Errorf("failed to generate configuration - %s", err)
+			slog.Error("failed to generate configuration", "error", err)
 			os.Exit(EXIT_CONFIGURATION_GENERATE_FAILURE)
 		}
-		assertRunWithErrFmt(func() error {
+		assertRunWithErrorMessage(func() error {
 			if target, err := os.Stat(destiantionFile); err == nil {
 				if source, err := os.Stat(sourceFile); err == nil {
 					if os.SameFile(target, source) {
@@ -75,7 +75,7 @@ var generateConfigurationCmd = &cobra.Command{
 			}
 			return os.WriteFile(destiantionFile, seededBytes, 0644)
 		}, EXIT_CONFIGURATION_SAVE_FAILURE, "failed to save configuration file - %s")
-		log.Info("tezpay configuration generated successfully")
+		slog.Info("configuration imported successfully")
 	},
 }
 

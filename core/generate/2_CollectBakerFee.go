@@ -2,7 +2,6 @@ package generate
 
 import (
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/extension"
@@ -21,7 +20,8 @@ func ExecuteOnFeesCollection(data *OnFeesCollectionHookData) error {
 
 func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
-	log.Debugf("collecting baker fee")
+	logger := ctx.logger.With("phase", "collect_baker_fee")
+	logger.Debug("collecting baker fee")
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
 
 	candidatesWithBondsAndFees := lo.Map(candidates, func(candidateWithBondsAmount PayoutCandidateWithBondAmount, _ int) PayoutCandidateWithBondAmountAndFee {
@@ -32,7 +32,7 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		}
 
 		if candidateWithBondsAmount.TxKind != enums.PAYOUT_TX_KIND_TEZ {
-			log.Trace("skipping fee collection for non tezos payout")
+			logger.Debug("skipping fee collection for non tezos payout", "delegate", candidateWithBondsAmount.Source, "tx_kind", candidateWithBondsAmount.TxKind)
 			return PayoutCandidateWithBondAmountAndFee{
 				PayoutCandidateWithBondAmount: candidateWithBondsAmount,
 			}

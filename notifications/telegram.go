@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/nikoksr/notify/service/telegram"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
+	"golang.org/x/exp/slog"
 )
 
 type telegramNotificatorConfiguration struct {
@@ -47,7 +47,7 @@ func InitTelegramNotificator(configurationBytes []byte) (*TelegramNotificator, e
 		session.AddReceivers(v)
 	}
 
-	log.Trace("telegram notificator initialized")
+	slog.Debug("telegram notificator initialized")
 
 	return &TelegramNotificator{
 		session:         session,

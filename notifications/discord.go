@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 )
@@ -57,7 +57,7 @@ func InitDiscordNotificator(configurationBytes []byte) (*DiscordNotificator, err
 			id = matched[1]
 			token = matched[2]
 		} else {
-			log.Warnf("failed to parse discord webhook")
+			slog.Warn("failed to parse discord webhook")
 		}
 	}
 
@@ -66,7 +66,7 @@ func InitDiscordNotificator(configurationBytes []byte) (*DiscordNotificator, err
 		return nil, err
 	}
 
-	log.Trace("discord notificator initialized")
+	slog.Debug("discord notificator initialized")
 
 	return &DiscordNotificator{
 		session:         session,

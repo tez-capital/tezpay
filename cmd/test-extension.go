@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/extension"
@@ -23,16 +24,16 @@ var extensionTestCmd = &cobra.Command{
 			Message: "hello",
 		}
 		if err := extension.ExecuteHook(enums.EXTENSION_HOOK_TEST_NOTIFY, "0.1", &data); err != nil {
-			log.Errorf("failed to execute hook - %s", err.Error())
+			slog.Error("failed to execute hook", "error", err)
 			return
 		}
-		log.Info("test-notify hook executed successfully")
+		slog.Info("test-notify hook executed successfully")
 		extension.CloseScopedExtensions()
 		if err := extension.ExecuteHook(enums.EXTENSION_HOOK_TEST_REQUEST, "0.1", &data); err != nil {
-			log.Errorf("failed to execute hook - %s", err.Error())
+			slog.Error("failed to execute hook", "error", err)
 			return
 		}
-		log.Infof("test-request hook executed successfully - response message: %s", data.Message)
+		slog.Info("test-request hook executed successfully", "response message", data.Message)
 	},
 }
 

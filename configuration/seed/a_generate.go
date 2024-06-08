@@ -3,8 +3,8 @@ package seed
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 
-	"github.com/echa/log"
 	"github.com/hjson/hjson-go/v4"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -40,7 +40,7 @@ func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, er
 		}
 		if versionInfo.Version == nil {
 			defVer := "1.0"
-			log.Warnf("trd version is not defined, assuming version: %v", defVer)
+			slog.Warn("trd version is not defined, using default", "version", defVer)
 			versionInfo.Version = &defVer
 		}
 		switch *versionInfo.Version {

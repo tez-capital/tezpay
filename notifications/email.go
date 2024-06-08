@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 
 	"github.com/nikoksr/notify/service/mail"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 )
@@ -56,7 +56,7 @@ func InitEmailNotificator(configurationBytes []byte) (*EmailNotificator, error) 
 		session.AuthenticateSMTP(configuration.SmtpIdentity, configuration.SmtpUser, configuration.SmtpPass, smtpHost)
 	}
 
-	log.Trace("email notificator initialized")
+	slog.Debug("email notificator initialized")
 
 	return &EmailNotificator{
 		session:         session,

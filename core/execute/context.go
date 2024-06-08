@@ -1,6 +1,8 @@
 package execute
 
 import (
+	"log/slog"
+
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/utils"
@@ -25,6 +27,8 @@ type PayoutExecutionContext struct {
 	InvalidPayouts     []common.PayoutRecipe
 	AccumulatedPayouts []common.PayoutRecipe
 	PayoutBlueprints   []*common.CyclePayoutBlueprint
+
+	logger *slog.Logger
 }
 
 func (ctx *PayoutExecutionContext) GetConfiguration() *configuration.RuntimeConfiguration {
@@ -49,5 +53,7 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 		InvalidPayouts:     preparationResult.InvalidPayouts,
 		AccumulatedPayouts: preparationResult.AccumulatedPayouts,
 		PayoutBlueprints:   preparationResult.Blueprints,
+
+		logger: slog.Default().With("stage", "execute"),
 	}, nil
 }

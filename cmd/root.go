@@ -9,7 +9,8 @@ import (
 	"github.com/tez-capital/tezpay/constants"
 	signer_engines "github.com/tez-capital/tezpay/engines/signer"
 
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/state"
 	"github.com/tez-capital/tezpay/utils"
@@ -24,15 +25,27 @@ const (
 )
 
 var (
-	LOG_LEVEL_MAP = map[string]log.Level{
-		"":      log.InfoLevel,
-		"trace": log.TraceLevel,
-		"debug": log.DebugLevel,
-		"info":  log.InfoLevel,
-		"warn":  log.WarnLevel,
-		"error": log.ErrorLevel,
+	LOG_LEVEL_MAP = map[string]slog.Level{
+		"":      slog.LevelInfo,
+		"debug": slog.LevelDebug,
+		"info":  slog.LevelInfo,
+		"warn":  slog.LevelWarn,
+		"error": slog.LevelError,
 	}
 )
+
+func setupJsonLogger(level slog.Level) {
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+	slog.SetDefault(slog.New(handler))
+}
+
+func setupTextLogger(level slog.Level) {
+	handler := utils.NewPrettyTextLogHandler(os.Stdout, utils.PrettyHandlerOptions{
+		HandlerOptions: slog.HandlerOptions{Level: level},
+	})
+	slog.SetDefault(slog.New(handler))
+}
+
 var (
 	RootCmd = &cobra.Command{
 		Use:   "tezpay",
@@ -43,39 +56,29 @@ Copyright © %d alis.is
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			format, _ := cmd.Flags().GetString(OUTPUT_FORMAT_FLAG)
 			disableDonationPrompt, _ := cmd.Flags().GetBool(DISABLE_DONATION_PROMPT_FLAG)
-			outputJson := false
+			level, _ := cmd.Flags().GetString(LOG_LEVEL_FLAG)
 
 			switch format {
 			case "json":
-				outputJson = true
-				log.SetFormatter(&utils.LogJsonFormatter{})
-				log.Trace("Output format set to 'json'")
+				setupJsonLogger(LOG_LEVEL_MAP[level])
 			case "text":
-				log.SetFormatter(&utils.LogTextFormatter{})
-				log.Trace("Output format set to 'text'")
+				setupTextLogger(LOG_LEVEL_MAP[level])
 			default:
 				if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
-					outputJson = true
-					log.SetFormatter(&utils.LogJsonFormatter{})
-					log.Trace("Output format automatically set to 'json'")
+					setupJsonLogger(LOG_LEVEL_MAP[level])
 				} else {
-					log.SetFormatter(&utils.LogTextFormatter{})
-					log.Trace("Output format automatically set to 'text'")
+					setupTextLogger(LOG_LEVEL_MAP[level])
 				}
 			}
+			slog.Debug("logger configured", "format", format, "level", level)
 
 			workingDirectory, _ := cmd.Flags().GetString(PATH_FLAG)
-
-			level, _ := cmd.Flags().GetString("log-level")
-			log.SetLevel(LOG_LEVEL_MAP[level])
-			log.Trace("Log level set to '" + log.GetLevel().String() + "'")
-
 			singerFlagData, _ := cmd.Flags().GetString(SIGNER_FLAG)
 			var signerOverride common.SignerEngine
 			if singerFlagData != "" {
-				log.Debug("trying to load signer override")
+				slog.Debug("trying to load signer override")
 				if loadedSigner, err := signer_engines.Load(singerFlagData); err != nil {
-					log.Warnf("Failed to load signer from parameters (%s)", singerFlagData)
+					slog.Warn("failed to load signer from parameters", "error", err)
 				} else {
 					signerOverride = loadedSigner
 				}
@@ -83,18 +86,18 @@ Copyright © %d alis.is
 
 			payOnlyAddressPrefix, _ := cmd.Flags().GetString(PAY_ONLY_ADDRESS_PREFIX)
 			if payOnlyAddressPrefix != "" {
-				log.Warnf("Paying out only addresses starting %s", payOnlyAddressPrefix)
+				slog.Warn("Paying out only addresses starting with specified prefix", "prefix", payOnlyAddressPrefix)
 			}
 
 			stateOptions := state.StateInitOptions{
-				WantsJsonOutput:       outputJson,
+				WantsJsonOutput:       format == "json",
 				SignerOverride:        signerOverride,
 				Debug:                 level == "trace" || level == "debug",
 				DisableDonationPrompt: disableDonationPrompt,
 				PayOnlyAddressPrefix:  payOnlyAddressPrefix,
 			}
 			if err := state.Init(workingDirectory, stateOptions); err != nil {
-				log.Errorf("Failed to initialize state: %s", err.Error())
+				slog.Error("Failed to initialize state", "error", err)
 				os.Exit(EXIT_STATE_LOAD_FAILURE)
 			}
 

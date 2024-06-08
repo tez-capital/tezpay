@@ -1,7 +1,8 @@
 package prepare
 
 import (
-	"github.com/echa/log"
+	"log/slog"
+
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -17,6 +18,9 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 	if !options.Accumulate {
 		return ctx, nil
 	}
+
+	logger := ctx.logger.With("phase", "accumulate_payouts")
+	logger.Info("accumulating payouts")
 
 	payouts := make([]common.PayoutRecipe, 0, len(ctx.StageData.ValidPayouts))
 	accumulatedPayouts := make([]common.PayoutRecipe, 0, len(ctx.StageData.ValidPayouts))
@@ -58,7 +62,7 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 	// get new estimates
 	payouts = lo.Map(estimate.EstimateTransactionFees(utils.MapToPointers(payouts), estimateContext), func(result estimate.EstimateResult[*common.PayoutRecipe], _ int) common.PayoutRecipe {
 		if result.Error != nil {
-			log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')\nerror: %s", result.Transaction.Recipient, payoutKey.Address(), result.Transaction.Amount.Int64(), result.Transaction.TxKind, result.Error.Error())
+			slog.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", payoutKey.Address(), "amount", result.Transaction.Amount.Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
 			result.Transaction.IsValid = false
 			result.Transaction.Note = string(enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 		}

@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"encoding/json"
+	"log/slog"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants/enums"
@@ -16,7 +16,7 @@ func collectAdditionalData(_ *common.CyclePayoutSummary) map[string]string {
 
 	err := extension.ExecuteHook(enums.EXTENSION_HOOK_COLLECT_ADDITIONAL_NOTIFICATION_DATA, "0.1", &data)
 	if err != nil {
-		log.Warnf("failed to execute hook - %s", err.Error())
+		slog.Warn("failed to execute hook", "error", err)
 	}
 	result := make(map[string]string)
 	for key, value := range data {
@@ -36,21 +36,21 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 			continue
 		}
 
-		log.Infof("sending notification with %s", notificatorConfiguration.Type)
+		slog.Info("sending notification", "notificator", notificatorConfiguration.Type)
 		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
-			log.Warnf("failed to send notification - %s", err.Error())
+			slog.Warn("failed to send notification", "error", err)
 			continue
 		}
 
 		additionalData := collectAdditionalData(summary)
 		err = notificator.PayoutSummaryNotify(summary, additionalData)
 		if err != nil {
-			log.Warnf("failed to send notification - %s", err.Error())
+			slog.Warn("failed to send notification", "error", err)
 			continue
 		}
 	}
-	log.Info("notifications sent.")
+	slog.Info("notifications sent")
 }
 func notifyPayoutsProcessedThroughAllNotificators(configuration *configuration.RuntimeConfiguration, summary *common.CyclePayoutSummary) {
 	notifyPayoutsProcessed(configuration, summary, "")
@@ -62,20 +62,20 @@ func notifyAdmin(configuration *configuration.RuntimeConfiguration, msg string) 
 			continue
 		}
 
-		log.Debugf("sending admin notification with %s", notificatorConfiguration.Type)
+		slog.Debug("sending admin notification", "notificator", notificatorConfiguration.Type)
 		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
-			log.Warnf("failed to send notification - %s", err.Error())
+			slog.Warn("failed to send notification", "error", err)
 			continue
 		}
 
 		err = notificator.AdminNotify(msg)
 		if err != nil {
-			log.Warnf("failed to send notification - %s", err.Error())
+			slog.Warn("failed to send notification", "error", err)
 			continue
 		}
 	}
-	log.Debug("admin notifications sent.")
+	slog.Debug("admin notifications sent")
 }
 
 func notifyAdminFactory(configuration *configuration.RuntimeConfiguration) func(string) {

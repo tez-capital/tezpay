@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
@@ -23,9 +23,9 @@ type Extension interface {
 
 func RegisterExtension(ctx context.Context, def common.ExtensionDefinition) (Extension, error) {
 	if def.Kind == enums.EXTENSION_STDIO_RPC {
-		log.Infof("Initialization of extension %s (kind '%s')", def.Command, def.Kind)
+		slog.Info("initializing extension", "kind", def.Kind, "command", def.Command)
 	} else {
-		log.Infof("Initialization of extension %s (kind '%s')", def.Url, def.Kind)
+		slog.Info("initializing extension", "kind", def.Kind, "url", def.Url)
 	}
 
 	switch def.Kind {
@@ -44,7 +44,7 @@ func LoadExtension(ext Extension) error {
 		return nil
 	}
 	def := ext.GetDefinition()
-	log.Tracef("loading extension - %s#%s@%s", def.Name, def.Command, def.Url)
+	slog.Debug("loading extension", "name", def.Name, "command", def.Command, "url", def.Url)
 	if err := ext.Load(); err != nil {
 		return err
 	}

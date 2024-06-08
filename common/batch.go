@@ -1,8 +1,9 @@
 package common
 
 import (
+	"log/slog"
+
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/codec"
 	"github.com/trilitech/tzgo/tezos"
@@ -78,7 +79,8 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 	if err != nil {
 		return nil, err
 	}
-	log.Tracef("op: %x", op.Bytes())
+
+	slog.Debug("new op context", "op", op.Bytes(), "op_hash", op.Hash())
 	err = signer.Sign(op)
 	if err != nil {
 		return nil, err

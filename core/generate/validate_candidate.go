@@ -1,10 +1,10 @@
 package generate
 
 import (
+	"log/slog"
 	"strings"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/state"
@@ -32,9 +32,9 @@ func (validationContext *PayoutValidationContext) Validate(validators ...PayoutC
 		return validationContext
 	}
 	for _, validator := range validators {
-		log.Tracef("validating payout to %s with %s", validationContext.Payout.Recipient, validator.Id)
+		slog.Debug("validating payout", "recipient", validationContext.Payout.Recipient, "validator", validator.Id)
 		validator.Validate(validationContext.Payout, validationContext.Configuration, validationContext.Overrides, validationContext.Ctx)
-		log.Tracef("payout to %s validation result: %t", validationContext.Payout.Recipient, !validationContext.Payout.IsInvalid)
+		slog.Debug("payout validation result", "recipient", validationContext.Payout.Recipient, "is_valid", !validationContext.Payout.IsInvalid)
 		if validationContext.Payout.IsInvalid {
 			break
 		}

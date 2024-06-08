@@ -4,10 +4,9 @@ go 1.22
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/alis-is/jsonrpc2 v0.0.0-20240422124701-8b08a3805144
+	github.com/alis-is/jsonrpc2 v0.0.0-20240608185122-5f8c3990a8da
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/dghubble/oauth1 v0.7.3
-	github.com/echa/log v1.2.4
 	github.com/g8rswimmer/go-twitter/v2 v2.1.5
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/google/uuid v1.6.0
@@ -29,6 +28,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/echa/bson v0.0.0-20220430141917-c0fbdf7f8b79 // indirect
+	github.com/echa/log v1.2.4 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
@@ -40,6 +40,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
+	github.com/phsym/console-slog v0.3.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect

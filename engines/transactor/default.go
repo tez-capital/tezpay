@@ -2,10 +2,10 @@ package transactor_engines
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
@@ -36,18 +36,18 @@ func (result *DefaultRpcTransactorOpResult) GetOpHash() tezos.OpHash {
 func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	utils.CallbackOnInterrupt(ctx, func() {
-		log.Warnf("waiting for confirmation of '%s' canceled", result.opHash)
+		slog.Warn("waiting for confirmation canceled", "op_hash", result.opHash)
 		cancel()
 	})
 	appliedChan := make(chan common.OperationStatus, 1)
 	go func() {
 		utils.SleepContext(ctx, 130*time.Second) //give monitor 4 blocks before fallback kicks in
 		if ctx.Err() != context.Canceled {
-			log.Debug(`failed to confirm with live monitoring, falling back to polling...`)
+			slog.Debug(`failed to confirm with live monitoring, falling back to polling`)
 		}
 		for ctx.Err() != context.Canceled {
 			applied, _ := result.tzkt.WasOperationApplied(ctx, result.opHash)
-			log.Debugf("operation '%s' status check result: %s", result.opHash, applied)
+			slog.Debug("operation status checked", "op_hash", result.opHash, "applied", applied)
 			if applied == common.OPERATION_STATUS_APPLIED || applied == common.OPERATION_STATUS_FAILED {
 				cancel()
 				appliedChan <- applied
@@ -190,7 +190,7 @@ func (transactor *DefaultRpcTransactor) WaitOpConfirmation(opHash tezos.OpHash, 
 	transactor.rpc.Listen()
 	res.Listen(transactor.rpc.BlockObserver)
 	utils.CallbackOnInterrupt(ctx, func() {
-		log.Warnf("waiting for confirmation of '%s' canceled", opHash)
+		slog.Warn("waiting for confirmation canceled", "op_hash", opHash)
 		cancel()
 	})
 	res.WaitContext(ctx)

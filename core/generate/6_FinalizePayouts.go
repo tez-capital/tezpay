@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -10,11 +11,10 @@ import (
 	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/utils"
 )
 
-func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[string]float64, amount tezos.Z, ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) ([]common.PayoutRecipe, error) {
+func getDistributionPayouts(logger *slog.Logger, kind enums.EPayoutKind, distributionDefinition map[string]float64, amount tezos.Z, ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) ([]common.PayoutRecipe, error) {
 	totalPercentage := lo.Reduce(lo.Values(distributionDefinition), func(agg float64, entry float64, _ int) float64 {
 		return agg + entry
 	}, float64(0))
@@ -57,51 +57,6 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 			continue
 		}
 
-		// // simulate - because of batch spliting
-		// op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
-		// op.WithTTL(constants.MAX_OPERATION_TTL)
-		// op.WithTransfer(tezos.BurnAddress, 1)
-		// op.WithTransfer(recipient, recipientPortion.Int64())
-		// op.WithTransfer(tezos.BurnAddress, 1)
-
-		// receipt, err := ctx.GetCollector().Simulate(op, ctx.PayoutKey)
-
-		// if err != nil {
-		// 	return []common.PayoutRecipe{}, err
-		// }
-		// costs := receipt.Costs()
-		// if len(costs) < 3 {
-		// 	return []common.PayoutRecipe{}, fmt.Errorf("invalid costs length, cannot estimate")
-		// }
-
-		// // we use entire serialization cost even with two burn txs, it is used as some offset to avoid exhaustion
-		// serializationGas := (costs[0].GasUsed - costs[len(costs)-1].GasUsed) - ctx.StageData.BatchMetadataDeserializationGasLimit
-		// op.Contents = op.Contents[1 : len(op.Contents)-1]
-		// costs = costs[1 : len(costs)-1]
-		// cost := costs[0]
-
-		// common.InjectLimits(op, []tezos.Limits{{
-		// 	GasLimit:     cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
-		// 	StorageLimit: utils.CalculateStorageLimit(cost),
-		// 	Fee:          cost.Fee,
-		// }})
-
-		// feeBuffer := ctx.configuration.PayoutConfiguration.TxFeeBuffer
-		// if recipient.IsContract() {
-		// 	feeBuffer = ctx.configuration.PayoutConfiguration.KtTxFeeBuffer
-		// }
-
-		// totalOpGasUsed := cost.GasUsed + serializationGas +
-		// 	ctx.configuration.PayoutConfiguration.TxGasLimitBuffer + // buffer for gas limit
-		// 	ctx.StageData.BatchMetadataDeserializationGasLimit + // potential gas used for deserialization if only one tx in batch
-		// 	ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer // buffer for deserialization gas limit
-
-		// recipe.OpLimits = &common.OpLimits{
-		// 	GasLimit:                cost.GasUsed + ctx.configuration.PayoutConfiguration.TxGasLimitBuffer,
-		// 	StorageLimit:            utils.CalculateStorageLimit(cost),
-		// 	TransactionFee:          utils.EstimateTransactionFee(op, []int64{totalOpGasUsed}, feeBuffer),
-		// 	DeserializationGasLimit: serializationGas + ctx.configuration.PayoutConfiguration.TxDeserializationGasBuffer,
-		// }
 		valid = append(valid, recipe)
 	}
 
@@ -114,7 +69,7 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 
 	all := lo.Map(estimate.EstimateTransactionFees(utils.MapToPointers(valid), estimateContext), func(result estimate.EstimateResult[*common.PayoutRecipe], _ int) common.PayoutRecipe {
 		if result.Error != nil {
-			log.Warnf("failed to estimate tx costs to '%s' (delegator: '%s', amount %d, kind '%s')\nerror: %s", result.Transaction.Recipient, ctx.PayoutKey.Address(), result.Transaction.Amount.Int64(), result.Transaction.TxKind, result.Error.Error())
+			logger.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", ctx.PayoutKey.Address(), "amount", result.Transaction.Amount.Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
 			result.Transaction.IsValid = false
 			result.Transaction.Note = string(enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 		}
@@ -128,7 +83,8 @@ func getDistributionPayouts(kind enums.EPayoutKind, distributionDefinition map[s
 // injects bonds, fee and donation payments and finalizes Payouts
 func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	configuration := ctx.GetConfiguration()
-	log.Debug("finalizing payouts")
+	logger := ctx.logger.With("phase", "finalize_payouts")
+	logger.Info("finalizing payouts")
 	simulated := ctx.StageData.PayoutCandidatesSimulated
 
 	delegatorPayouts := lo.Map(simulated, func(candidate PayoutCandidateSimulated, _ int) common.PayoutRecipe {
@@ -136,13 +92,13 @@ func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	})
 
 	// bonds
-	bondsPayouts, err := getDistributionPayouts(enums.PAYOUT_KIND_BAKER_REWARD, configuration.IncomeRecipients.Bonds, ctx.StageData.BakerBondsAmount, ctx, options)
+	bondsPayouts, err := getDistributionPayouts(logger, enums.PAYOUT_KIND_BAKER_REWARD, configuration.IncomeRecipients.Bonds, ctx.StageData.BakerBondsAmount, ctx, options)
 	if err != nil {
 		return ctx, fmt.Errorf("invalid bonds distribution - %s", err.Error())
 	}
 
 	// fees
-	feesPayouts, err := getDistributionPayouts(enums.PAYOUT_KIND_FEE_INCOME, configuration.IncomeRecipients.Fees, ctx.StageData.BakerFeesAmount, ctx, options)
+	feesPayouts, err := getDistributionPayouts(logger, enums.PAYOUT_KIND_FEE_INCOME, configuration.IncomeRecipients.Fees, ctx.StageData.BakerFeesAmount, ctx, options)
 	if err != nil {
 		return ctx, fmt.Errorf("invalid fees distribution - %s", err.Error())
 	}
@@ -150,12 +106,12 @@ func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	// donations
 	donationDistributionDefinition := configuration.IncomeRecipients.Donations
 	if len(donationDistributionDefinition) == 0 && configuration.IncomeRecipients.DonateBonds+configuration.IncomeRecipients.DonateFees > 0 { // inject default destination
-		log.Trace("no donation destination found, donating to tez.capital")
+		logger.Debug("no donation destination found, donating to tez.capital")
 		donationDistributionDefinition = map[string]float64{
 			constants.DEFAULT_DONATION_ADDRESS: 100,
 		}
 	}
-	donationPayouts, err := getDistributionPayouts(enums.PAYOUT_KIND_DONATION, donationDistributionDefinition, ctx.StageData.DonateBondsAmount.Add(ctx.StageData.DonateFeesAmount), ctx, options)
+	donationPayouts, err := getDistributionPayouts(logger, enums.PAYOUT_KIND_DONATION, donationDistributionDefinition, ctx.StageData.DonateBondsAmount.Add(ctx.StageData.DonateFeesAmount), ctx, options)
 	if err != nil {
 		return ctx, fmt.Errorf("invalid donation distribution - %s", err.Error())
 	}

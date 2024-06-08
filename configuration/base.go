@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"encoding/json"
+	"log/slog"
 	"math"
 	"os"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/hjson/hjson-go/v4"
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	tezpay_configuration "github.com/tez-capital/tezpay/configuration/v"
 	"github.com/tez-capital/tezpay/constants"
@@ -182,7 +182,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			var isValid bool
 			var notificatorConfigurationBase tezpay_configuration.NotificatorConfigurationBase
 			if err := json.Unmarshal(item, &notificatorConfigurationBase); err != nil {
-				log.Warnf("invalid notificator configuration %v", err)
+				slog.Warn("invalid notificator configuration", "error", err)
 			}
 
 			return RuntimeNotificatorConfiguration{
@@ -201,7 +201,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 func Load() (*RuntimeConfiguration, error) {
 	hasInjectedConfiguration, configurationBytes := state.Global.GetInjectedConfiguration()
 	if !hasInjectedConfiguration {
-		log.Debugf("loading configuration from '%s'", state.Global.GetConfigurationFilePath())
+		slog.Debug("loading configuration from file", "path", state.Global.GetConfigurationFilePath())
 		// we load configuration from file if it wasnt injected
 		var err error
 		configurationBytes, err = os.ReadFile(state.Global.GetConfigurationFilePath())
@@ -209,17 +209,16 @@ func Load() (*RuntimeConfiguration, error) {
 			return nil, err
 		}
 	} else {
-		log.Debug("using injected configuration")
+		slog.Debug("using injected configuration")
 	}
 
-	log.Debug("loading version info")
+	slog.Debug("loading version info")
 	versionInfo := common.ConfigurationVersionInfo{}
 	err := hjson.Unmarshal(configurationBytes, &versionInfo)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Trace("migrating if required")
+	slog.Debug("loading configuration")
 	configuration, err := Migrate(configurationBytes, &versionInfo, !hasInjectedConfiguration)
 	if err != nil {
 		return nil, err
@@ -233,14 +232,13 @@ func Load() (*RuntimeConfiguration, error) {
 }
 
 func LoadFromString(configurationBytes []byte) (*RuntimeConfiguration, error) {
-	log.Debug("loading version info")
+	slog.Debug("loading version info")
 	versionInfo := common.ConfigurationVersionInfo{}
 	err := hjson.Unmarshal(configurationBytes, &versionInfo)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Trace("migrating if required")
+	slog.Debug("loading configuration")
 	configuration, err := Migrate(configurationBytes, &versionInfo, false)
 	if err != nil {
 		return nil, err

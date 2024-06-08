@@ -3,11 +3,11 @@ package signer_engines
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/hjson/hjson-go/v4"
-	"github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
@@ -19,9 +19,9 @@ func Load(kind string) (common.SignerEngine, error) {
 	case string(enums.WALLET_MODE_LOCAL_PRIVATE_KEY2):
 		fallthrough
 	case string(enums.WALLET_MODE_LOCAL_PRIVATE_KEY):
-		logrus.Debug("creating InMemorySigner")
+		slog.Debug("creating InMemorySigner")
 		privateKeyFile := state.Global.GetPrivateKeyFilePath()
-		logrus.Debugf("Loading private key from file '%s'", privateKeyFile)
+		slog.Debug("loading private key from file", "path", privateKeyFile)
 		keyBytes, err := os.ReadFile(privateKeyFile)
 		if err != nil {
 			return nil, errors.Join(constants.ErrSignerLoadFailed, err)
@@ -30,9 +30,9 @@ func Load(kind string) (common.SignerEngine, error) {
 	case string(enums.WALLET_MODE_REMOTE_SIGNER2):
 		fallthrough
 	case string(enums.WALLET_MODE_REMOTE_SIGNER):
-		logrus.Debug("creating RemoteSigner")
+		slog.Debug("creating RemoteSigner")
 		remoteSpecsFile := state.Global.GetRemoteSpecsFilePath()
-		logrus.Debugf("Loading remote specification from file '%s'", remoteSpecsFile)
+		slog.Debug("loading remote specification from file", "path", remoteSpecsFile)
 		remoteSpecsBytes, err := os.ReadFile(remoteSpecsFile)
 		if err != nil {
 			return nil, errors.Join(constants.ErrSignerLoadFailed, err)
@@ -46,12 +46,12 @@ func Load(kind string) (common.SignerEngine, error) {
 	}
 
 	if strings.HasPrefix(kind, "key:") {
-		logrus.Debug("creating InMemorySigner from parameters")
+		slog.Debug("creating InMemorySigner from parameters")
 		return InitInMemorySigner(strings.TrimPrefix(kind, "key:"))
 	}
 
 	if strings.HasPrefix(kind, "remote:") {
-		logrus.Debug("creating RemoteSigner from parameters")
+		slog.Debug("creating RemoteSigner from parameters")
 		specs := strings.TrimPrefix(kind, "remote:")
 		parts := strings.Split(specs, "@")
 		if len(parts) != 2 {

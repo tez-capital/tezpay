@@ -2,10 +2,10 @@ package state
 
 import (
 	"errors"
+	"log/slog"
 	"os"
 	"path"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 )
@@ -32,7 +32,6 @@ type State struct {
 	injectedConfiguration    []byte
 	hasInjectedConfiguration bool
 	SignerOverride           common.SignerEngine
-	debug                    bool
 	disableDonationPrompt    bool
 
 	payOnlyAddressPrefix string
@@ -50,7 +49,6 @@ func Init(workingDirectory string, options StateInitOptions) error {
 		wantsJsonOutput:          options.WantsJsonOutput,
 		hasInjectedConfiguration: hasInjectedConfiguration,
 		SignerOverride:           options.SignerOverride,
-		debug:                    options.Debug,
 		disableDonationPrompt:    options.DisableDonationPrompt,
 		payOnlyAddressPrefix:     options.PayOnlyAddressPrefix,
 	}
@@ -61,14 +59,14 @@ func Init(workingDirectory string, options StateInitOptions) error {
 func (state *State) validateReportsDirectory() error {
 	reportsDirectoryPath := state.GetReportsDirectory()
 	if _, err := os.Stat(reportsDirectoryPath); os.IsNotExist(err) {
-		log.Debugf("Reports directory '%s' does not exist. Creating it.", reportsDirectoryPath)
+		slog.Debug("reports directory does not exist, creating", "path", reportsDirectoryPath)
 		if err := os.Mkdir(reportsDirectoryPath, 0755); err != nil {
 			return err
 		}
 	}
 	// write test file
 	testFilePath := path.Join(reportsDirectoryPath, ".test")
-	log.Debugf("Writing test file to '%s'", testFilePath)
+	slog.Debug("writing test file to reports directory", "path", testFilePath)
 	if err := os.WriteFile(testFilePath, []byte("test"), 0644); err != nil {
 		return err
 	}
@@ -117,10 +115,6 @@ func (state *State) GetRemoteSpecsFilePath() string {
 		return remoteSpecsConfigurationFile
 	}
 	return path.Join(state.GetWorkingDirectory(), REMOTE_SPECS_FILE_NAME)
-}
-
-func (state *State) GetIsInDebugMode() bool {
-	return state.debug
 }
 
 func (state *State) GetPayOnlyAddressPrefix() string {

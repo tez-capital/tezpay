@@ -33,6 +33,8 @@ func splitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLim
 }
 
 func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayoutsOptions) (*PayoutExecutionContext, error) {
+	logger := ctx.logger.With("phase", "split_into_batches")
+	logger.Info("splitting into batches")
 	var err error
 	ctx.StageData.Limits, err = ctx.GetTransactor().GetLimits()
 	if err != nil {

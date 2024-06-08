@@ -3,11 +3,11 @@ package extension
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/alis-is/jsonrpc2/rpc"
-	"github.com/echa/log"
 	"github.com/google/uuid"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -101,7 +101,6 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 		if hook == enums.EXTENSION_HOOK_TEST_REQUEST {
 			matchedMode = enums.EXTENSION_HOOK_MODE_READ_WRITE
 		}
-		log.Debugf("executing hook %s with mode %s on extension %s", hook, matchedMode, def.Name)
 
 		var err error
 		for i := 0; i < def.GetRetry(); i++ {
@@ -129,11 +128,13 @@ func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string
 
 			switch matchedMode {
 			case enums.EXTENSION_HOOK_MODE_READ_ONLY:
+				slog.Debug("executing hook", "hook", hook, "mode", matchedMode, "extension", def.Name)
 				err = Notify(ctx, ext.GetEndpoint(), string(hook), common.ExtensionHookData[TData]{
 					Version: version,
 					Data:    data,
 				})
 			case enums.EXTENSION_HOOK_MODE_READ_WRITE:
+				slog.Debug("executing hook", "hook", hook, "mode", matchedMode, "extension", def.Name)
 				var response rpc.Response[TData]
 				err = RequestTo(ctx, ext.GetEndpoint(), string(hook), common.ExtensionHookData[TData]{
 					Version: version,

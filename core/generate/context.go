@@ -1,7 +1,8 @@
 package generate
 
 import (
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/trilitech/tzgo/tezos"
@@ -33,10 +34,12 @@ type PayoutGenerationContext struct {
 	StageData *StageData
 
 	PayoutKey tezos.Key
+
+	logger *slog.Logger
 }
 
 func NewPayoutGenerationContext(configuration *configuration.RuntimeConfiguration, engineContext *common.GeneratePayoutsEngineContext) (*PayoutGenerationContext, error) {
-	log.Trace("tezpay payout context initialization")
+	slog.Debug("tezpay payout context initialization")
 	if err := engineContext.Validate(); err != nil {
 		return nil, err
 	}
@@ -48,6 +51,8 @@ func NewPayoutGenerationContext(configuration *configuration.RuntimeConfiguratio
 		StageData: &StageData{},
 
 		PayoutKey: engineContext.GetSigner().GetKey(),
+
+		logger: slog.Default().With("stage", "generate"),
 	}
 
 	return &ctx, nil

@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/common"
 	reporter_engines "github.com/tez-capital/tezpay/engines/reporter"
@@ -30,7 +30,7 @@ var statisticsCmd = &cobra.Command{
 			cycle := lastCycle - int64(i)
 			summary, err := fsReporter.GetExistingCycleSummary(cycle)
 			if err != nil {
-				log.Warnf("failed to read report of #%d, skipping...", cycle)
+				slog.Warn("failed to read report", "cycle", cycle, "error", err)
 				continue
 			}
 			total = *total.CombineNumericData(summary)

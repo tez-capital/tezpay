@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/dghubble/oauth1"
 	twitter "github.com/g8rswimmer/go-twitter/v2"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 )
@@ -58,7 +58,7 @@ func InitTwitterNotificator(configurationBytes []byte) (*TwitterNotificator, err
 		msgTemplate = DEFAULT_TWITTER_MESSAGE_TEMPLATE
 	}
 
-	log.Trace("twitter notificator initialized")
+	slog.Debug("twitter notificator initialized")
 
 	return &TwitterNotificator{
 		client:          client,

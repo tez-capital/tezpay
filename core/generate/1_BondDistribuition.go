@@ -1,7 +1,6 @@
 package generate
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
@@ -41,7 +40,9 @@ func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsS
 
 func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
-	log.Debugf("distributing bonds")
+	logger := ctx.logger.With("phase", "distribute_bonds")
+
+	logger.Debug("distributing bonds")
 
 	candidates := ctx.StageData.PayoutCandidates
 	effectiveStakingBalance := lo.Reduce(candidates, func(total tezos.Z, candidate PayoutCandidate, _ int) tezos.Z {

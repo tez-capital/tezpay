@@ -2,10 +2,10 @@ package common
 
 import (
 	"context"
+	"log/slog"
 	"math/rand"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/rpc"
 )
@@ -36,7 +36,7 @@ func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorO
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	log.Infof("Initialized cycle monitor with ~%d blocks delay", options.NotificationDelay)
+	slog.Info("Initialized cycle monitor", "delay", options.NotificationDelay, "check_frequency", options.CheckFrequency)
 	monitor := &cycleMonitor{
 		Cycle:         make(chan int64),
 		ctx:           ctx,
@@ -48,7 +48,7 @@ func NewCycleMonitor(ctx context.Context, rpc *rpc.Client, options CycleMonitorO
 }
 
 func (monitor *cycleMonitor) Cancel() {
-	log.Debugf("cycle monitoring canceled")
+	slog.Debug("cycle monitoring canceled")
 	monitor.Terminate()
 }
 func (monitor *cycleMonitor) Terminate() {
@@ -65,7 +65,7 @@ func (monitor *cycleMonitor) CreateBlockHeaderMonitor() error {
 		for ctx.Err() == nil {
 			metadata, err := monitor.rpc.GetBlockMetadata(ctx, rpc.Head)
 			if err != nil {
-				log.Errorf("failed to fetch head metadata - %s", err.Error())
+				slog.Error("failed to fetch head metadata", "error", err)
 				time.Sleep(time.Second * 10)
 				continue
 			}
@@ -77,7 +77,7 @@ func (monitor *cycleMonitor) CreateBlockHeaderMonitor() error {
 				monitor.Cycle <- cycle - 1
 			}
 
-			log.Tracef("received new head %d", metadata.LevelInfo.Level)
+			slog.Debug("received new head", "level", metadata.LevelInfo.Level)
 			select {
 			case <-ctx.Done():
 			case <-time.After(time.Second * time.Duration(monitor.options.CheckFrequency) * 30):
@@ -92,7 +92,7 @@ func waitForNextCompletedCycle(lastProcessedCompletedCycle int64, monitor CycleM
 	var ok bool
 	for lastProcessedCompletedCycle >= currentCycle-1 {
 		if currentCycle > 0 {
-			log.Debugf("current cycle %d, last processed %d", currentCycle, lastProcessedCompletedCycle)
+			slog.Debug("cycle monitor - update", "current_cycle", currentCycle, "last_processed", lastProcessedCompletedCycle)
 		}
 		currentCycle, ok = <-monitor.GetCycleChannel()
 		if !ok {

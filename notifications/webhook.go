@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 )
@@ -40,7 +40,7 @@ func InitWebhookNotificator(configurationBytes []byte) (*WebhookNotificator, err
 		return nil, err
 	}
 
-	log.Trace("webhook notificator initialized")
+	slog.Debug("webhook notificator initialized")
 
 	return &WebhookNotificator{
 		url:   configuration.Url,

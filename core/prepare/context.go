@@ -1,6 +1,8 @@
 package prepare
 
 import (
+	"log/slog"
+
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 )
@@ -19,6 +21,8 @@ type PayoutPrepareContext struct {
 	StageData *StageData
 
 	PayoutBlueprints []*common.CyclePayoutBlueprint
+
+	logger *slog.Logger
 }
 
 func (ctx *PayoutPrepareContext) GetConfiguration() *configuration.RuntimeConfiguration {
@@ -37,5 +41,7 @@ func NewPayoutPreparationContext(blueprints []*common.CyclePayoutBlueprint, conf
 		StageData: &StageData{},
 
 		PayoutBlueprints: blueprints,
+
+		logger: slog.Default().With("context", "prepare"),
 	}, nil
 }

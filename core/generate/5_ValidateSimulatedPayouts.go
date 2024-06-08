@@ -2,16 +2,16 @@ package generate
 
 import (
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/trilitech/tzgo/tezos"
 )
 
 func ValidateSimulatedPayouts(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	configuration := ctx.GetConfiguration()
+	logger := ctx.logger.With("phase", "validate_simulated_payouts")
 	simulated := ctx.StageData.PayoutCandidatesSimulated
 
-	log.Debug("validating simulated payout candidates")
+	logger.Info("validating simulated payout candidates")
 
 	ctx.StageData.PayoutCandidatesSimulated = lo.Map(simulated, func(candidate PayoutCandidateSimulated, _ int) PayoutCandidateSimulated {
 		if candidate.IsInvalid {

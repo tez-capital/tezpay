@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"log/slog"
 	"os"
+	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -25,12 +26,13 @@ var generatePayoutsCmd = &cobra.Command{
 		defer extension.CloseExtensions()
 
 		if cycle <= 0 {
-			lastCompletedCycle := assertRunWithResultAndErrFmt(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+			lastCompletedCycle := assertRunWithResultAndErrorMessage(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 			cycle = lastCompletedCycle + cycle
 		}
 
-		if !config.IsDonatingToTezCapital() {
-			log.Warn("With your current configuration you are not going to donate to tez.capital")
+		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
+			slog.Warn("⚠️  With your current configuration you are not going to donate to tez.capital 😔")
+			time.Sleep(time.Second * 5)
 		}
 
 		generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
@@ -39,19 +41,19 @@ var generatePayoutsCmd = &cobra.Command{
 				SkipBalanceCheck: skipBalanceCheck,
 			})
 		if errors.Is(err, constants.ErrNoCycleDataAvailable) {
-			log.Infof("no data available for cycle %d, nothing to pay out...", cycle)
+			slog.Info("no data available, nothing to pay out", "cycle", cycle)
 			return
 		}
 		if err != nil {
-			log.Errorf("failed to generate payouts - %s", err)
+			slog.Error("failed to generate payouts", "error", err)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
 		if targetFile != "" {
-			assertRun(func() error {
+			assertRunWithErrorMessage(func() error {
 				return writePayoutBlueprintToFile(targetFile, generationResult)
-			}, EXIT_PAYOUT_WRITE_FAILURE)
+			}, EXIT_PAYOUT_WRITE_FAILURE, "failed to write payouts to file")
 			return
 		}
 

@@ -24,6 +24,8 @@ func ExecuteAfterPayoutsPrepared(data *AfterPayoutsPreapered) error {
 }
 
 func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOptions) (*PayoutPrepareContext, error) {
+	logger := ctx.logger.With("phase", "prepare_payouts")
+	logger.Info("preparing payouts")
 	var err error
 	if ctx.PayoutBlueprints == nil {
 		return nil, constants.ErrMissingPayoutBlueprint

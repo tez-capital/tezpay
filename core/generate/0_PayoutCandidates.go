@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
@@ -23,6 +22,8 @@ func ExecuteAfterCandidateGenerated(data *AfterCandidateGeneratedHookData) error
 
 func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
+	logger := ctx.logger.With("phase", "generate_payout_candidates")
+	logger.Info("generating payouts", "cycle", options.Cycle, "baker", configuration.BakerPKH.String())
 
 	if options.Cycle == 0 {
 		cycle, err := ctx.GetCollector().GetLastCompletedCycle()
@@ -31,16 +32,15 @@ func GeneratePayoutCandidates(ctx *PayoutGenerationContext, options *common.Gene
 		}
 		options.Cycle = cycle
 	}
-	log.Infof("generating payouts for cycle %d (baker: '%s')", options.Cycle, configuration.BakerPKH)
 
-	log.Infof("collecting rewards split through %s collector", ctx.GetCollector().GetId())
+	logger.Debug("collecting rewards split", "collector", ctx.GetCollector().GetId())
 	var err error
 	ctx.StageData.CycleData, err = ctx.GetCollector().GetCycleStakingData(configuration.BakerPKH, options.Cycle)
 	if err != nil {
 		return ctx, errors.Join(constants.ErrCycleDataCollectionFailed, fmt.Errorf("collector: %s", ctx.GetCollector().GetId()), err)
 	}
 
-	log.Debugf("genrating payout candidates")
+	logger.Debug("generating payout candidates")
 	payoutCandidates := lo.Map(ctx.StageData.CycleData.Delegators, func(delegator common.Delegator, _ int) PayoutCandidate {
 		payoutCandidate := DelegatorToPayoutCandidate(delegator, configuration)
 		validationContext := payoutCandidate.ToValidationContext(ctx)

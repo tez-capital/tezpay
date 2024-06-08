@@ -1,7 +1,8 @@
 package generate
 
 import (
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants/enums"
 )
@@ -28,9 +29,9 @@ func (validationContext *PresimPayoutCandidateValidationContext) Validate(valida
 		return validationContext
 	}
 	for _, validator := range validators {
-		log.Tracef("validating payout to %s with %s", validationContext.Payout.Recipient, validator.Id)
+		slog.Debug("validating payout", "recipient", validationContext.Payout.Recipient, "validator", validator.Id)
 		validator.Validate(validationContext.Payout, validationContext.Configuration)
-		log.Tracef("payout to %s validation result: %t", validationContext.Payout.Recipient, validationContext.Payout.IsInvalid)
+		slog.Debug("payout validation result", "recipient", validationContext.Payout.Recipient, "is_valid", !validationContext.Payout.IsInvalid)
 		if validationContext.Payout.IsInvalid {
 			break
 		}

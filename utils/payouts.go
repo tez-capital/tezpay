@@ -2,9 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"log/slog"
 
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
@@ -124,7 +124,7 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 	paidOut := make(map[payoutId]common.PayoutReport)
 	validOpHashes := make(map[string]bool)
 	if collector == nil {
-		log.Debugf("collector undefined filtering payout recipes only by succcess status from reports")
+		slog.Debug("collector undefined filtering payout recipes only by succcess status from reports")
 	}
 
 	for _, report := range reports {
@@ -134,10 +134,10 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 				continue
 			}
 
-			log.Debugf("checking with '%s' whether operation '%s' applied", collector.GetId(), report.OpHash)
+			slog.Debug("checking with collector whether operation applied", "collector", collector.GetId(), "op_hash", report.OpHash.String())
 			paid, err := collector.WasOperationApplied(report.OpHash)
 			if err != nil {
-				log.Warnf("collector check of '%s' failed", report.OpHash)
+				slog.Warn("collector check failed", "op_hash", report.OpHash.String(), "error", err)
 			}
 			if paid == common.OPERATION_STATUS_APPLIED {
 				paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
