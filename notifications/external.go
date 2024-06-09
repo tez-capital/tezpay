@@ -58,7 +58,7 @@ func (en *ExternalNotificator) mapArgs(kind NotificationKind, data string, addit
 	args := make([]string, len(en.args))
 	for i, v := range en.args {
 		mappedArg := v
-		mappedArg = strings.ReplaceAll(mappedArg, "<kind>", string(PAYOUT_SUMMARY_NOTIFICATION))
+		mappedArg = strings.ReplaceAll(mappedArg, "<kind>", string(kind))
 		mappedArg = strings.ReplaceAll(mappedArg, "<data>", data)
 		mappedArg = strings.ReplaceAll(mappedArg, "<additional_data>", additionalData)
 		args[i] = mappedArg
