@@ -21,7 +21,6 @@ type StateInitOptions struct {
 	WantsJsonOutput       bool
 	InjectedConfiguration *string
 	SignerOverride        common.SignerEngine
-	Debug                 bool
 	DisableDonationPrompt bool
 	PayOnlyAddressPrefix  string
 }

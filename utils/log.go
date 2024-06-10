@@ -38,7 +38,7 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 		level = color.RedString(level)
 	}
 
-	fields := make(map[string]interface{}, r.NumAttrs())
+	fields := make(map[string]any, r.NumAttrs())
 
 	for groupId, group := range h.attrs {
 		for _, attr := range group {
@@ -48,10 +48,10 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 				}
 				fields[attr.Key] = attr.Value.Any()
 			} else {
-				if m, ok := fields[groupId].(map[string]interface{}); ok {
+				if m, ok := fields[groupId].(map[string]any); ok {
 					m[attr.Key] = attr.Value.Any()
 				} else {
-					fields[groupId] = map[string]interface{}{
+					fields[groupId] = map[string]any{
 						attr.Key: attr.Value.Any(),
 					}
 				}

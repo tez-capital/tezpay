@@ -24,8 +24,8 @@ func getColumnsByIndexes[T any](row []T, indexes []int) []T {
 	})
 }
 
-func columnsAsInterfaces[T any](row []T) []interface{} {
-	return lo.Map(row, func(c T, _ int) interface{} {
+func columnsAsInterfaces[T any](row []T) []any {
+	return lo.Map(row, func(c T, _ int) any {
 		return c
 	})
 }
@@ -113,7 +113,7 @@ func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 	payoutTable.Render()
 }
 
-func FormatCycleNumbers(cycles []int64) string {
+func FormatCycleNumbers(cycles ...int64) string {
 	conscutive := false
 	if len(cycles) > 1 {
 		conscutive = true
@@ -142,10 +142,6 @@ func FormatCycleNumbers(cycles []int64) string {
 // func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
 // 	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - %s", FormatCycleNumbers(cycles)), true)
 // }
-
-func PrintPayoutsAsJson[T PayoutConstraint](payouts []T) {
-	fmt.Println(string(PayoutsToJson(payouts)))
-}
 
 func IsTty() bool {
 	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {

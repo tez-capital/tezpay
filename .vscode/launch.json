@@ -38,9 +38,10 @@
 			"mode": "auto",
 			"program": "main.go",
 			"args": [
-				"--log-level=trace",
+				"--log-level=debug",
 				"continual",
-				"--cycle=620"
+				"--cycle=-2",
+				"--dry-run"
 			],
 		},
 		{

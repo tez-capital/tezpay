@@ -68,7 +68,7 @@ func ValidateWebhookConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (wn *WebhookNotificator) post(data interface{}) error {
+func (wn *WebhookNotificator) post(data any) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return err

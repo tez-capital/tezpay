@@ -19,23 +19,136 @@ import (
 	"github.com/tez-capital/tezpay/utils"
 )
 
+var (
+	onchainCompletedCycle int64
+	lastProcessedCycle    int64
+	cycleToProcess        int64
+
+	// TODO: remove after AI
+	startedAtCompletedCycle int64
+	// TODO: end remove after AI
+
+	endCycle int64
+)
+
+func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool) (processed bool) {
+	processed = true
+	retry := func() bool {
+		processed = false
+		return false
+	}
+
+	defer func() { // complete cycle
+		switch {
+		case processed:
+			lastProcessedCycle = cycleToProcess
+			slog.Info("cycle processed successfully", "cycle", cycleToProcess)
+			slog.Info("===================== PROCESSING -END- =====================")
+			extension.CloseScopedExtensions()
+			if endCycle != 0 && lastProcessedCycle >= endCycle {
+				slog.Info("end cycle reached, exiting")
+				os.Exit(0)
+			}
+		default:
+			slog.Info("cycle processing failed, retrying in 5 minutes")
+			time.Sleep(time.Minute * 5) // wait for a while before retry
+		}
+	}()
+
+	config, collector, signer, transactor := context.Unwrap()
+	fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
+		DryRun: isDryRun,
+	})
+
+	// refresh engine params - for protoocol upgrades
+	if err := errors.Join(transactor.RefreshParams(), collector.RefreshParams()); err != nil {
+		slog.Error("failed to check for protocol changes", "error", err)
+		return retry()
+	}
+
+	slog.Info("===================== PROCESSING START =====================")
+	slog.Info("processing cycle", "cycle", cycleToProcess)
+
+	slog.Info("acquiring lock", "cycle", cycleToProcess)
+	unlock, err := lockCyclesWithTimeout(time.Minute*10, cycleToProcess)
+	if err != nil {
+		slog.Error("failed to acquire lock", "error", err)
+		return retry()
+	}
+	defer unlock()
+
+	generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
+		&common.GeneratePayoutsOptions{
+			Cycle:                    cycleToProcess,
+			WaitForSufficientBalance: true,
+		})
+	if err != nil {
+		if errors.Is(err, constants.ErrNoCycleDataAvailable) {
+			slog.Info("no data available for cycle, skipping", "cycle", cycleToProcess)
+			return
+		}
+		slog.Error("failed to generate payouts", "error", err)
+		return retry()
+	}
+
+	slog.Info("checking reports of past payouts")
+	preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
+		return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+	}, EXIT_OPERTION_FAILED)
+
+	if len(preparationResult.ValidPayouts) == 0 {
+		slog.Info("nothing to pay out, skipping")
+		return
+	}
+
+	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
+
+	if forceConfirmationPrompt && utils.IsTty() {
+		PrintPreparationResults(preparationResult, generationResult.Cycle)
+		assertRequireConfirmation("Do you want to pay out above VALID payouts?")
+	}
+
+	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
+	executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
+		return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
+			MixInContractCalls: mixInContractCalls,
+			MixInFATransfers:   mixInFATransfers,
+			DryRun:             isDryRun,
+		})
+	}, EXIT_OPERTION_FAILED)
+
+	// notify
+	failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
+	if len(executionResult.BatchResults) > 0 && failedCount > 0 {
+		slog.Error("failed operations detected", "failed", failedCount, "total", len(executionResult.BatchResults))
+		notifyAdmin(config, fmt.Sprintf("Failed operations detected: %d/%d in cycle %d", failedCount, len(executionResult.BatchResults), cycleToProcess))
+		return
+	}
+	if !silent {
+		notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
+	}
+	return
+}
+
 var continualCmd = &cobra.Command{
 	Use:   "continual",
 	Short: "continual payout",
 	Long:  "runs payout until stopped manually",
 	Run: func(cmd *cobra.Command, args []string) {
-		config, collector, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
+		configurationContext := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE)
+		config, collector, _, _ := configurationContext.Unwrap()
 		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
-		endCycle, _ := cmd.Flags().GetInt64(END_CYCLE_FLAG)
+		endCycle, _ = cmd.Flags().GetInt64(END_CYCLE_FLAG)
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
+		silent, _ := cmd.Flags().GetBool(SILENT_FLAG)
 
-		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
-			DryRun: isDryRun,
-		})
+		if isDryRun {
+			slog.Info("Dry run mode enabled")
+		}
 
 		if utils.IsTty() {
 			assertRequireConfirmation("\n\n\t !!! ATTENTION !!!\n\nPreliminary testing has been conducted on the continual mode, but potential for undiscovered bugs still exists.\n Do you want to proceed?")
@@ -62,30 +175,19 @@ var continualCmd = &cobra.Command{
 		}, EXIT_OPERTION_FAILED, "failed to init cycle monitor")
 
 		// last completed cycle at the time we started continual mode on
-		onchainCompletedCycle := assertRunWithResultAndErrorMessage(func() (int64, error) {
+		onchainCompletedCycle = assertRunWithResultAndErrorMessage(func() (int64, error) {
 			return collector.GetLastCompletedCycle()
 		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 		// TODO: remove after AI
-		startedAtCompletedCycle := onchainCompletedCycle
+		startedAtCompletedCycle = onchainCompletedCycle
 		// TODO: end remove after AI
 
-		lastProcessedCycle := int64(onchainCompletedCycle)
+		lastProcessedCycle = onchainCompletedCycle
 		if initialCycle != 0 {
 			if initialCycle > 0 {
 				lastProcessedCycle = initialCycle - 1
 			} else {
 				lastProcessedCycle = onchainCompletedCycle + initialCycle
-			}
-		}
-		var cycleToProcess int64
-
-		completeCycle := func() {
-			lastProcessedCycle = cycleToProcess
-			slog.Info("cycle processed successfully", "cycle", cycleToProcess)
-			slog.Info("=====================================================")
-			if endCycle != 0 && lastProcessedCycle >= endCycle {
-				slog.Info("end cycle reached, exiting")
-				os.Exit(0)
 			}
 		}
 
@@ -115,6 +217,7 @@ var continualCmd = &cobra.Command{
 					return
 				}
 			}
+
 			if !config.Network.IgnoreProtocolChanges {
 				slog.Debug("checking for protocol changes")
 				currentProtocol := GetProtocolWithRetry(collector)
@@ -134,7 +237,6 @@ var continualCmd = &cobra.Command{
 				// TODO: end remove after AI
 			}
 
-			defer extension.CloseScopedExtensions()
 			cycleToProcess = lastProcessedCycle + 1
 
 			if !notifiedNewVersionAvailable {
@@ -144,74 +246,7 @@ var continualCmd = &cobra.Command{
 				}
 			}
 
-			// refresh engine params - for protoocol upgrades
-			if err := errors.Join(transactor.RefreshParams(), collector.RefreshParams()); err != nil {
-				slog.Error("failed to check for protocol changes, retries in 5 minutes", "error", err)
-				time.Sleep(time.Minute * 5)
-				continue
-			}
-
-			slog.Info("=====================================================")
-			slog.Info("processing cycle", "cycle", cycleToProcess)
-
-			generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-				&common.GeneratePayoutsOptions{
-					Cycle:                    cycleToProcess,
-					WaitForSufficientBalance: true,
-				})
-			if err != nil {
-				if errors.Is(err, constants.ErrNoCycleDataAvailable) {
-					slog.Info("no data available for cycle, skipping", "cycle", cycleToProcess)
-					completeCycle()
-					continue
-				}
-				slog.Error("failed to generate payouts", "error", err)
-				time.Sleep(time.Minute * 5)
-				continue
-			}
-
-			slog.Info("checking reports of past payouts")
-			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-				return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
-			}, EXIT_OPERTION_FAILED)
-
-			if len(preparationResult.ValidPayouts) == 0 {
-				slog.Info("nothing to pay out, skipping")
-				completeCycle()
-				continue
-			}
-
-			slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
-
-			if forceConfirmationPrompt && utils.IsTty() {
-				cycles := []int64{generationResult.Cycle}
-				utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
-				utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
-				utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", utils.FormatCycleNumbers(cycles)), true)
-				utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
-				assertRequireConfirmation("Do you want to pay out above VALID payouts?")
-			}
-
-			slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
-			executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
-				return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
-					MixInContractCalls: mixInContractCalls,
-					MixInFATransfers:   mixInFATransfers,
-					DryRun:             isDryRun,
-				})
-			}, EXIT_OPERTION_FAILED)
-
-			// notify
-			failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
-			if len(executionResult.BatchResults) > 0 && failedCount > 0 {
-				slog.Error("failed operations detected", "failed", failedCount, "total", len(executionResult.BatchResults))
-				time.Sleep(time.Minute * 5)
-				continue
-			}
-			if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
-				notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
-			}
-			completeCycle()
+			processCycleInContinualMode(configurationContext, forceConfirmationPrompt, mixInContractCalls, mixInFATransfers, isDryRun, silent)
 		}
 	},
 }

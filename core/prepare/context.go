@@ -42,6 +42,6 @@ func NewPayoutPreparationContext(blueprints []*common.CyclePayoutBlueprint, conf
 
 		PayoutBlueprints: blueprints,
 
-		logger: slog.Default().With("context", "prepare"),
+		logger: slog.Default().With("stage", "prepare"),
 	}, nil
 }

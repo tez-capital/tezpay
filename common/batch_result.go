@@ -6,10 +6,10 @@ import (
 )
 
 type BatchResult struct {
-	Payouts   []PayoutRecipe
-	OpHash    tezos.OpHash
-	IsSuccess bool
-	Err       error
+	Payouts   []PayoutRecipe `json:"payouts"`
+	OpHash    tezos.OpHash   `json:"op_hash"`
+	IsSuccess bool           `json:"is_success"`
+	Err       error          `json:"err"`
 }
 
 func NewFailedBatchResult(payouts []PayoutRecipe, err error) *BatchResult {

@@ -70,7 +70,7 @@ func (e *StdioExtension) IsLoaded() bool {
 	if e.endpoint == nil {
 		return false
 	}
-	err := Notify[interface{}](e.ctx, e.endpoint, string(enums.EXTENSION_HEALTHCHECK_CALL), nil)
+	err := Notify[any](e.ctx, e.endpoint, string(enums.EXTENSION_HEALTHCHECK_CALL), nil)
 	return e.loaded && err == nil
 }
 
@@ -129,7 +129,7 @@ func (e *TcpExtension) IsLoaded() bool {
 	if e.endpoint == nil {
 		return false
 	}
-	err := Notify[interface{}](e.ctx, e.endpoint, string(enums.EXTENSION_HEALTHCHECK_CALL), nil)
+	err := Notify[any](e.ctx, e.endpoint, string(enums.EXTENSION_HEALTHCHECK_CALL), nil)
 	return e.loaded && err == nil
 }
 

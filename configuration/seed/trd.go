@@ -180,7 +180,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					slog.Warn("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
 					continue
 				}
-				result, err := json.Marshal(map[string]interface{}{
+				result, err := json.Marshal(map[string]any{
 					"type":  "webhook",
 					"url":   configuration.Endpoint,
 					"token": configuration.Token,
@@ -199,7 +199,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					continue
 				}
 				if len(configuration.AdminChatsIds) > 0 {
-					config, err := json.Marshal(map[string]interface{}{
+					config, err := json.Marshal(map[string]any{
 						"type":             "telegram",
 						"admin":            true,
 						"recipients":       configuration.AdminChatsIds,
@@ -216,7 +216,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					configuration.PayoutChatsIds = append(configuration.PayoutChatsIds, configuration.ChatIds...)
 				}
 				if len(configuration.PayoutChatsIds) > 0 {
-					config, err := json.Marshal(map[string]interface{}{
+					config, err := json.Marshal(map[string]any{
 						"type":             "telegram",
 						"admin":            false,
 						"recipients":       configuration.PayoutChatsIds,

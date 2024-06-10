@@ -3,8 +3,8 @@ package cmd
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -58,8 +58,7 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	}
 
 	if utils.IsTty() {
-		marshaled, _ := json.MarshalIndent(config, "", "\t")
-		slog.Debug("loaded configuration", "configuration", string(marshaled))
+		slog.Debug("loaded configuration", "configuration", config)
 	}
 
 	extEnv := &extension.ExtensionStoreEnviromnent{
@@ -126,4 +125,13 @@ func GetProtocolWithRetry(collector common.CollectorEngine) tezos.ProtocolHash {
 		protocol, err = collector.GetCurrentProtocol()
 	}
 	return protocol
+}
+
+func PrintPreparationResults(preparationResult *common.PreparePayoutsResult, cyclesForTitle ...int64) {
+	title := utils.FormatCycleNumbers(cyclesForTitle...)
+
+	utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", title), false)
+	utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false)
+	utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true)
+	utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", title), true)
 }

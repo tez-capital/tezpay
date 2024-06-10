@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"log/slog"
 	"testing"
 
 	"github.com/samber/lo"
@@ -57,6 +58,8 @@ func TestCollectBakerFees(t *testing.T) {
 		GeneratePayoutsEngineContext: *common.NewGeneratePayoutsEngines(collector, nil, nil),
 		StageData:                    &StageData{PayoutCandidatesWithBondAmount: payoutCandidatesWithBondAmount},
 		configuration:                &config,
+
+		logger: slog.Default(),
 	}
 
 	t.Log("check 0 fee")

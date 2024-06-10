@@ -14,16 +14,16 @@ func assertRunWithErrorMessage(toExecute func() error, exitCode int, msg string,
 	}
 }
 
-func assertRunWithParamAndErrorMessage[T interface{}](toExecute func(T) error, param T, exitCode int, msg string, args ...any) {
+func assertRunWithParamAndErrorMessage[T any](toExecute func(T) error, param T, exitCode int, msg string, args ...any) {
 	err := toExecute(param)
 	if err != nil {
-		args = append(args, "error", err)
+		args = append(args, "error", err.Error())
 		slog.Error(msg, args...)
 		os.Exit(exitCode)
 	}
 }
 
-func assertRunWithResultAndErrorMessage[T interface{}](toExecute func() (T, error), exitCode int, msg string, args ...any) T {
+func assertRunWithResultAndErrorMessage[T any](toExecute func() (T, error), exitCode int, msg string, args ...any) T {
 	result, err := toExecute()
 	if err != nil {
 		args = append(args, "error", err)
@@ -33,6 +33,6 @@ func assertRunWithResultAndErrorMessage[T interface{}](toExecute func() (T, erro
 	return result
 }
 
-func assertRunWithResult[T interface{}](toExecute func() (T, error), exitCode int) T {
+func assertRunWithResult[T any](toExecute func() (T, error), exitCode int) T {
 	return assertRunWithResultAndErrorMessage(toExecute, exitCode, "%s")
 }

@@ -24,11 +24,6 @@ func PayoutBlueprintToJson(payoutBlueprint *common.CyclePayoutBlueprint) []byte 
 	return marshaled
 }
 
-func PayoutsToJson[T PayoutConstraint](payouts []T) []byte {
-	marshaled, _ := json.Marshal(payouts)
-	return marshaled
-}
-
 func PayoutBlueprintFromJson(data []byte) (*common.CyclePayoutBlueprint, error) {
 	var payuts common.CyclePayoutBlueprint
 	err := json.Unmarshal(data, &payuts)

@@ -18,7 +18,7 @@ func SleepContext(ctx context.Context, delay time.Duration) {
 	}
 }
 
-func PanicWithMetadata(reason string, id string, metadata ...interface{}) {
+func PanicWithMetadata(reason string, id string, metadata ...any) {
 	slog.Error(reason, "id", id, "metadata", metadata)
 	slog.Info("Please report above to the developers.")
 	panic(reason)

@@ -2,6 +2,7 @@ package generate
 
 import (
 	"errors"
+	"log/slog"
 	"testing"
 
 	"github.com/samber/lo"
@@ -47,6 +48,8 @@ func TestCollectTransactionFees(t *testing.T) {
 		GeneratePayoutsEngineContext: *common.NewGeneratePayoutsEngines(collector, nil, nil),
 		StageData:                    &StageData{PayoutCandidatesWithBondAmountAndFees: payoutCandidatesWithBondAmountAndFees},
 		configuration:                &config,
+
+		logger: slog.Default(),
 	}
 
 	collector.SetOpts(&mock.SimpleCollectorOpts{

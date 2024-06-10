@@ -57,13 +57,15 @@ var generatePayoutsCmd = &cobra.Command{
 			return
 		}
 
-		if state.Global.GetWantsOutputJson() {
-			utils.PrintPayoutsAsJson(generationResult.Payouts)
-			return
-		}
 		cycles := []int64{generationResult.Cycle}
-		utils.PrintPayouts(utils.OnlyInvalidPayouts(generationResult.Payouts), utils.FormatCycleNumbers(cycles), false)
-		utils.PrintPayouts(utils.OnlyValidPayouts(generationResult.Payouts), utils.FormatCycleNumbers(cycles), true)
+
+		switch {
+		case state.Global.GetWantsOutputJson():
+			slog.Info(constants.LOG_MESSAGE_PAYOUTS_GENERATED, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_PAYOUTS, generationResult.Payouts)
+		default:
+			utils.PrintPayouts(utils.OnlyInvalidPayouts(generationResult.Payouts), utils.FormatCycleNumbers(cycles...), false)
+			utils.PrintPayouts(utils.OnlyValidPayouts(generationResult.Payouts), utils.FormatCycleNumbers(cycles...), true)
+		}
 	},
 }
 

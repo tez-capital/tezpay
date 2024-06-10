@@ -60,6 +60,14 @@ var payDateRangeCmd = &cobra.Command{
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
+		slog.Info("acquiring lock", "cycles", cycles)
+		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycles...)
+		if err != nil {
+			slog.Error("failed to acquire lock", "error", err)
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
+		defer unlock()
+
 		slog.Info("generating payouts for cycles in the date range", "date_range", fmt.Sprintf("%s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)), "cycles", cycles)
 		generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
 
@@ -99,15 +107,17 @@ var payDateRangeCmd = &cobra.Command{
 			})
 		}, EXIT_OPERTION_FAILED)
 
-		if state.Global.GetWantsOutputJson() {
-			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
-			utils.PrintPayoutsAsJson(preparationResult.AccumulatedPayouts)
-			utils.PrintPayoutsAsJson(preparationResult.ValidPayouts)
-		} else {
-			utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
-			utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
-			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", utils.FormatCycleNumbers(cycles)), true)
-			utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
+		switch {
+		case state.Global.GetWantsOutputJson():
+			slog.Info(constants.LOG_MESSAGE_PREPAYOUT_SUMMARY,
+				constants.LOG_FIELD_CYCLES, cycles,
+				constants.LOG_FIELD_REPORTS_OF_PAST_PAYOUTS, preparationResult.ReportsOfPastSuccesfulPayouts,
+				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.AccumulatedPayouts,
+				constants.LOG_FIELD_VALID_PAYOUTS, preparationResult.ValidPayouts,
+				constants.LOG_FIELD_INVALID_PAYOUTS, preparationResult.InvalidPayouts,
+			)
+		default:
+			PrintPreparationResults(preparationResult, cycles...)
 		}
 
 		if len(preparationResult.ValidPayouts) == 0 {
@@ -148,7 +158,12 @@ var payDateRangeCmd = &cobra.Command{
 			summary.PaidDelegators = executionResult.PaidDelegators
 			notifyPayoutsProcessedThroughAllNotificators(config, summary)
 		}
-		utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles)), config.Network.Explorer)
+		switch {
+		case state.Global.GetWantsOutputJson():
+			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults)
+		default:
+			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
+		}
 	},
 }
 

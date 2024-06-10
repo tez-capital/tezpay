@@ -23,7 +23,7 @@ type EstimationContext struct {
 	BatchMetadataDeserializationGasLimit int64
 }
 
-func splitIntoBatches[T interface{}](candidates []T, capacity int) [][]T {
+func splitIntoBatches[T any](candidates []T, capacity int) [][]T {
 	batches := make([][]T, 0)
 	if capacity == 0 {
 		capacity = constants.DEFAULT_SIMULATION_TX_BATCH_SIZE

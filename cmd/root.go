@@ -92,7 +92,6 @@ Copyright © %d alis.is
 			stateOptions := state.StateInitOptions{
 				WantsJsonOutput:       format == "json",
 				SignerOverride:        signerOverride,
-				Debug:                 level == "trace" || level == "debug",
 				DisableDonationPrompt: disableDonationPrompt,
 				PayOnlyAddressPrefix:  payOnlyAddressPrefix,
 			}

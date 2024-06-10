@@ -47,6 +47,14 @@ var payCmd = &cobra.Command{
 			cycle = lastCompletedCycle + cycle
 		}
 
+		slog.Info("acquiring lock", "cycle", cycle)
+		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycle)
+		if err != nil {
+			slog.Error("failed to acquire lock", "error", err)
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
+		defer unlock()
+
 		var generationResult *common.CyclePayoutBlueprint
 		fromFile, _ := cmd.Flags().GetString(FROM_FILE_FLAG)
 		fromStdin, _ := cmd.Flags().GetBool(FROM_STDIN_FLAG)
@@ -83,14 +91,17 @@ var payCmd = &cobra.Command{
 		}, EXIT_OPERTION_FAILED)
 
 		cycles := []int64{generationResult.Cycle}
-		if state.Global.GetWantsOutputJson() {
-			utils.PrintPayoutsAsJson(preparationResult.ReportsOfPastSuccesfulPayouts)
-			utils.PrintPayoutsAsJson(preparationResult.ValidPayouts)
-		} else {
-			utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", utils.FormatCycleNumbers(cycles)), false)
-			utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", utils.FormatCycleNumbers(cycles)), false)
-			utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - #%s", utils.FormatCycleNumbers(cycles)), true)
-			utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", utils.FormatCycleNumbers(cycles)), true)
+		switch {
+		case state.Global.GetWantsOutputJson():
+			slog.Info(constants.LOG_MESSAGE_PREPAYOUT_SUMMARY,
+				constants.LOG_FIELD_CYCLES, cycles,
+				constants.LOG_FIELD_REPORTS_OF_PAST_PAYOUTS, preparationResult.ReportsOfPastSuccesfulPayouts,
+				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.AccumulatedPayouts,
+				constants.LOG_FIELD_VALID_PAYOUTS, preparationResult.ValidPayouts,
+				constants.LOG_FIELD_INVALID_PAYOUTS, preparationResult.InvalidPayouts,
+			)
+		default:
+			PrintPreparationResults(preparationResult, cycles...)
 		}
 
 		if len(preparationResult.ValidPayouts) == 0 {
@@ -130,7 +141,12 @@ var payCmd = &cobra.Command{
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
 			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
 		}
-		utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles)), config.Network.Explorer)
+		switch {
+		case state.Global.GetWantsOutputJson():
+			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults)
+		default:
+			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
+		}
 	},
 }
 

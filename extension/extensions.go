@@ -55,7 +55,7 @@ func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefiniti
 
 func closeExtension(ext Extension) {
 	if ext.IsLoaded() {
-		Notify[interface{}](context.Background(), ext.GetEndpoint(), string(enums.EXTENSION_CLOSE_CALL), nil)
+		Notify[any](context.Background(), ext.GetEndpoint(), string(enums.EXTENSION_CLOSE_CALL), nil)
 		ext.Close()
 	}
 }
