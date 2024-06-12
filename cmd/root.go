@@ -19,6 +19,7 @@ import (
 const (
 	LOG_LEVEL_FLAG               = "log-level"
 	PATH_FLAG                    = "path"
+	VERSION_FLAG                 = "version"
 	DISABLE_DONATION_PROMPT_FLAG = "disable-donation-prompt"
 	OUTPUT_FORMAT_FLAG           = "output-format"
 	PAY_ONLY_ADDRESS_PREFIX      = "pay-only-address-prefix"
@@ -105,6 +106,15 @@ Copyright © %d alis.is
 				promptIfNewVersionAvailable()
 			}
 		},
+		Run: func(cmd *cobra.Command, args []string) {
+			version, _ := cmd.Flags().GetBool(VERSION_FLAG)
+			if version {
+				fmt.Println(constants.VERSION)
+				return
+			}
+
+			cmd.Help()
+		},
 	}
 )
 
@@ -113,6 +123,7 @@ func Execute() error {
 }
 
 func init() {
+	RootCmd.Flags().Bool(VERSION_FLAG, false, "Prints version")
 	RootCmd.PersistentFlags().StringP(PATH_FLAG, "p", ".", "path to working directory")
 	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets output log format (json/text/auto)")
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
