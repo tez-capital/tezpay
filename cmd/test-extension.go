@@ -24,13 +24,13 @@ var extensionTestCmd = &cobra.Command{
 			Message: "hello",
 		}
 		if err := extension.ExecuteHook(enums.EXTENSION_HOOK_TEST_NOTIFY, "0.1", &data); err != nil {
-			slog.Error("failed to execute hook", "error", err)
+			slog.Error("failed to execute hook", "error", err.Error())
 			return
 		}
 		slog.Info("test-notify hook executed successfully")
 		extension.CloseScopedExtensions()
 		if err := extension.ExecuteHook(enums.EXTENSION_HOOK_TEST_REQUEST, "0.1", &data); err != nil {
-			slog.Error("failed to execute hook", "error", err)
+			slog.Error("failed to execute hook", "error", err.Error())
 			return
 		}
 		slog.Info("test-request hook executed successfully", "response message", data.Message)

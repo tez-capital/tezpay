@@ -11,6 +11,7 @@ import (
 	"github.com/alis-is/jsonrpc2/endpoints"
 	"github.com/alis-is/jsonrpc2/rpc"
 	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
 )
 
@@ -46,7 +47,7 @@ func appendToFile(data []byte) error {
 func main() {
 	endpoint := endpoints.NewStreamEndpoint(context.Background(), endpoints.NewPlainObjectStream(rwCloser{os.Stdin, os.Stdout}))
 
-	endpoints.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_INIT_CALL), func(ctx context.Context, params common.ExtensionInitializationMessage) (common.ExtensionInitializationResult, *rpc.Error) {
+	endpoints.RegisterEndpointMethod(endpoint, constants.EXTENSION_CALL_PREFIX+string(enums.EXTENSION_INIT_CALL), func(ctx context.Context, params common.ExtensionInitializationMessage) (common.ExtensionInitializationResult, *rpc.Error) {
 		def := params.Definition
 		if def.Configuration == nil {
 			return common.ExtensionInitializationResult{
@@ -67,14 +68,14 @@ func main() {
 		}, nil
 	})
 
-	endpoints.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_TEST_NOTIFY), func(ctx context.Context, params common.ExtensionHookData[any]) (any, *rpc.Error) {
+	endpoints.RegisterEndpointMethod(endpoint, constants.EXTENSION_CALL_PREFIX+string(enums.EXTENSION_HOOK_TEST_NOTIFY), func(ctx context.Context, params common.ExtensionHookData[any]) (any, *rpc.Error) {
 		return params.Data, nil
 	})
 
 	type testHookData struct {
 		Message string `json:"message"`
 	}
-	endpoints.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_TEST_REQUEST), func(ctx context.Context, params common.ExtensionHookData[testHookData]) (*testHookData, *rpc.Error) {
+	endpoints.RegisterEndpointMethod(endpoint, constants.EXTENSION_CALL_PREFIX+string(enums.EXTENSION_HOOK_TEST_REQUEST), func(ctx context.Context, params common.ExtensionHookData[testHookData]) (*testHookData, *rpc.Error) {
 		data := params.Data
 		data.Message = "Hello from GO!"
 		return data, nil
@@ -82,7 +83,7 @@ func main() {
 
 	for _, hook := range enums.SUPPORTED_EXTENSION_HOOKS {
 		h := hook
-		endpoints.RegisterEndpointMethod(endpoint, string(hook), func(ctx context.Context, params common.ExtensionHookData[any]) (any, *rpc.Error) {
+		endpoints.RegisterEndpointMethod(endpoint, constants.EXTENSION_CALL_PREFIX+string(hook), func(ctx context.Context, params common.ExtensionHookData[any]) (any, *rpc.Error) {
 			messageData, err := json.Marshal(params)
 			if err != nil {
 				return nil, rpc.NewInternalErrorWithData(err.Error())
@@ -93,7 +94,7 @@ func main() {
 	}
 
 	closeChannel := make(chan struct{})
-	endpoints.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_CLOSE_CALL), func(ctx context.Context, params any) (any, *rpc.Error) {
+	endpoints.RegisterEndpointMethod(endpoint, constants.EXTENSION_CALL_PREFIX+string(enums.EXTENSION_CLOSE_CALL), func(ctx context.Context, params any) (any, *rpc.Error) {
 		close(closeChannel)
 		return nil, nil
 	})
