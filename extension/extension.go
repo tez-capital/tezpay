@@ -14,7 +14,7 @@ import (
 
 type Extension interface {
 	IsLoaded() bool
-	GetEndpoint() IEndpointClient
+	GetEndpoint() EndpointClient
 	Load() error
 	Close() error
 	GetDefinition() common.ExtensionDefinition
@@ -71,7 +71,7 @@ func LoadExtension(ext Extension) error {
 
 type ExtensionBase struct {
 	definition common.ExtensionDefinition
-	endpoint   IEndpointClient
+	endpoint   EndpointClient
 	loaded     bool
 }
 
@@ -79,7 +79,7 @@ func (e *ExtensionBase) GetDefinition() common.ExtensionDefinition {
 	return e.definition
 }
 
-func (e *ExtensionBase) GetEndpoint() IEndpointClient {
+func (e *ExtensionBase) GetEndpoint() EndpointClient {
 	return e.endpoint
 }
 
