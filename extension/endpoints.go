@@ -29,6 +29,10 @@ func RequestTo[TParams rpc.ParamsType, TResult rpc.ResultType](ctx context.Conte
 	return endpoints.RequestTo(ctx, c, constants.EXTENSION_CALL_PREFIX+method, params, result)
 }
 
+func RegisterEndpointMethod[TParam rpc.ParamsType, TResult rpc.ResultType](c endpoints.EndpointServer, method string, handler endpoints.RpcMethod[TParam, TResult]) {
+	endpoints.RegisterEndpointMethod(c, constants.EXTENSION_CALL_PREFIX+method, handler)
+}
+
 func NewPlainObjectStream(rw io.ReadWriteCloser) endpoints.ObjectStream {
 	return endpoints.NewPlainObjectStream(rw)
 }
