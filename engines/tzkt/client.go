@@ -197,7 +197,7 @@ func (client *Client) getCycleData(ctx context.Context, baker []byte, cycle int6
 }
 
 func (client *Client) getProtocolRewardsCycleData(ctx context.Context, baker []byte, cycle int64) (*tzktBakersCycleData, error) {
-	u := fmt.Sprintf("v1/rewards/split/%s/%d?limit=0", baker, cycle)
+	u := fmt.Sprintf("v1/rewards/split/%s/%d", baker, cycle)
 	slog.Debug("getting protocol rewards cycle data", "baker", baker, "cycle", cycle, "url", u)
 	resp, err := client.GetFromProtocolRewards(ctx, u)
 	if err != nil {
@@ -320,20 +320,21 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		tzktBakerCycleData.ExternalStakedBalance = protocolRewardsCycleData.ExternalStakedBalance
 		tzktBakerCycleData.DelegatorsCount = protocolRewardsCycleData.DelegatorsCount
 
-		delegatorsMap := make(map[string]splitDelegator, len(collectedDelegators))
-		for _, delegator := range collectedDelegators {
+		delegatorsMap := make(map[string]splitDelegator, len(protocolRewardsCycleData.Delegators))
+		for _, delegator := range protocolRewardsCycleData.Delegators {
 			delegatorsMap[delegator.Address] = delegator
 		}
 
-		for _, tzktCollectedDelegator := range collectedDelegators {
-			if protocolRewardsDelegator, ok := delegatorsMap[tzktCollectedDelegator.Address]; !ok {
-				tzktCollectedDelegator.DelegatedBalance = protocolRewardsDelegator.DelegatedBalance
-				tzktCollectedDelegator.StakedBalance = protocolRewardsDelegator.StakedBalance
+		collectedDelegators = lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) splitDelegator {
+			if protocolRewardsDelegator, ok := delegatorsMap[delegator.Address]; ok {
+				delegator.DelegatedBalance = protocolRewardsDelegator.DelegatedBalance
+				delegator.StakedBalance = protocolRewardsDelegator.StakedBalance
 			} else {
-				tzktCollectedDelegator.DelegatedBalance = 0
-				tzktCollectedDelegator.StakedBalance = 0
+				delegator.DelegatedBalance = 0
+				delegator.StakedBalance = 0
 			}
-		}
+			return delegator
+		})
 	}
 
 	return &common.BakersCycleData{
