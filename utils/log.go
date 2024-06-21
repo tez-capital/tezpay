@@ -69,7 +69,7 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 		var err error
 		fieldsSerialized, err = json.MarshalIndent(fields, "", "  ")
 		if err != nil {
-			slog.Error("failed to serialize fields", "error", err)
+			slog.Error("failed to serialize fields", "error", err.Error())
 		}
 	}
 

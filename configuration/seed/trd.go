@@ -150,7 +150,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 				oldConfig := trd_seed.EmailPluginConfigurationV1{}
 				err := plugin.Decode(&oldConfig)
 				if err != nil {
-					slog.Warn("we are not able to migrate email plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate email plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				configuration := notifications.EmailNotificatorConfiguration{
@@ -167,7 +167,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 				}
 				result, err := json.Marshal(configuration)
 				if err != nil {
-					slog.Warn("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				notificationConfigurations = append(notificationConfigurations, result)
@@ -177,7 +177,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 				err := plugin.Decode(&configuration)
 				if err != nil {
 					// log and skip
-					slog.Warn("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				result, err := json.Marshal(map[string]any{
@@ -186,7 +186,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					"token": configuration.Token,
 				})
 				if err != nil {
-					slog.Warn("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate webhook plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				notificationConfigurations = append(notificationConfigurations, result)
@@ -195,7 +195,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 				err := plugin.Decode(&configuration)
 				if err != nil {
 					// log and skip
-					slog.Warn("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				if len(configuration.AdminChatsIds) > 0 {
@@ -209,7 +209,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					if err == nil {
 						notificationConfigurations = append(notificationConfigurations, config)
 					} else {
-						slog.Warn("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+						slog.Warn("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					}
 				}
 				if len(configuration.ChatIds) > 0 {
@@ -226,7 +226,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 					if err == nil {
 						notificationConfigurations = append(notificationConfigurations, config)
 					} else {
-						slog.Warn("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+						slog.Warn("we are not able to migrate telegram plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					}
 				}
 			case "twitter":
@@ -234,13 +234,13 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 				err := plugin.Decode(&configuration)
 				if err != nil {
 					// log and skip
-					slog.Warn("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				configuration.Type = "twitter"
 				result, err := json.Marshal(configuration)
 				if err != nil {
-					slog.Warn("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate twitter plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				notificationConfigurations = append(notificationConfigurations, result)
@@ -249,13 +249,13 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 				err := plugin.Decode(&configuration)
 				if err != nil {
 					// log and skip
-					slog.Warn("we are not able to migrate discord plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate discord plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				configuration.Type = "discord"
 				result, err := json.Marshal(configuration)
 				if err != nil {
-					slog.Warn("we are not able to migrate discord plugin configuration right now, please check your configuration file and migrate it manually", "error", err)
+					slog.Warn("we are not able to migrate discord plugin configuration right now, please check your configuration file and migrate it manually", "error", err.Error())
 					continue
 				}
 				notificationConfigurations = append(notificationConfigurations, result)
@@ -283,8 +283,9 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 			Ignore:       ignores,
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
-			RpcUrl:                 constants.DEFAULT_TZKT_URL,
+			RpcUrl:                 constants.DEFAULT_RPC_URL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
+			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			DoNotPaySmartContracts: false,
 		},
 		Overdelegation: tezpay_configuration.OverdelegationConfigurationV0{
@@ -297,6 +298,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 			IgnoreEmptyAccounts:     !configuration.ReactivateZero,
 			WalletMode:              enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
 			PayoutMode:              enums.EPayoutMode(configuration.RewardsType),
+			BalanceCheckMode:        enums.PROTOCOL_BALANCE_CHECK_MODE,
 			MinimumAmount:           configuration.MinPayment,
 		},
 		NotificationConfigurations: notificationConfigurations,

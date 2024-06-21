@@ -89,7 +89,10 @@ func InitDefaultTransactor(config *configuration.RuntimeConfiguration) (*Default
 		return nil, err
 	}
 
-	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, client)
+	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, config.Network.ProtocolRewardsUrl, &tzkt.TzktClientOptions{
+		HttpClient:       client,
+		BalanceCheckMode: config.PayoutConfiguration.BalanceCheckMode,
+	})
 	if err != nil {
 		return nil, err
 	}

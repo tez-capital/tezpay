@@ -106,17 +106,19 @@ func MigrateBcv0ToTPv0(sourceBytes []byte) ([]byte, error) {
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 configuration.Network.RpcUrl,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
+			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			DoNotPaySmartContracts: configuration.Network.DoNotPaySmartContracts,
 		},
 		Overdelegation: tezpay_configuration.OverdelegationConfigurationV0{
 			IsProtectionEnabled: configuration.Overdelegation.IsProtectionEnabled,
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
-			Fee:           configuration.Fee / 100,
-			IsPayingTxFee: configuration.PaymentRequirements.IsPayingTxFee,
-			WalletMode:    enums.EWalletMode(configuration.WalletMode),
-			PayoutMode:    enums.PAYOUT_MODE_ACTUAL,
-			MinimumAmount: configuration.PaymentRequirements.MinimumAmount,
+			Fee:              configuration.Fee / 100,
+			IsPayingTxFee:    configuration.PaymentRequirements.IsPayingTxFee,
+			WalletMode:       enums.EWalletMode(configuration.WalletMode),
+			PayoutMode:       enums.PAYOUT_MODE_ACTUAL,
+			BalanceCheckMode: enums.PROTOCOL_BALANCE_CHECK_MODE,
+			MinimumAmount:    configuration.PaymentRequirements.MinimumAmount,
 		},
 		NotificationConfigurations: configuration.NotificationConfigurations,
 	}

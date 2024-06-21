@@ -79,7 +79,7 @@ Copyright © %d alis.is
 			if singerFlagData != "" {
 				slog.Debug("trying to load signer override")
 				if loadedSigner, err := signer_engines.Load(singerFlagData); err != nil {
-					slog.Warn("failed to load signer from parameters", "error", err)
+					slog.Warn("failed to load signer from parameters", "error", err.Error())
 				} else {
 					signerOverride = loadedSigner
 				}
@@ -97,7 +97,7 @@ Copyright © %d alis.is
 				PayOnlyAddressPrefix:  payOnlyAddressPrefix,
 			}
 			if err := state.Init(workingDirectory, stateOptions); err != nil {
-				slog.Error("Failed to initialize state", "error", err)
+				slog.Error("Failed to initialize state", "error", err.Error())
 				os.Exit(EXIT_STATE_LOAD_FAILURE)
 			}
 

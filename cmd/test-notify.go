@@ -22,13 +22,13 @@ var notificationTestCmd = &cobra.Command{
 			slog.Info("sending notification", "notificator", notificatorConfiguration.Type)
 			notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 			if err != nil {
-				slog.Warn("failed to send notification", "error", err)
+				slog.Warn("failed to send notification", "error", err.Error())
 				continue
 			}
 
 			err = notificator.TestNotify()
 			if err != nil {
-				slog.Warn("failed to send notification", "error", err)
+				slog.Warn("failed to send notification", "error", err.Error())
 				continue
 			}
 		}

@@ -62,7 +62,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	// refresh engine params - for protoocol upgrades
 	if err := errors.Join(transactor.RefreshParams(), collector.RefreshParams()); err != nil {
-		slog.Error("failed to check for protocol changes", "error", err)
+		slog.Error("failed to check for protocol changes", "error", err.Error())
 		return retry()
 	}
 
@@ -72,7 +72,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	slog.Info("acquiring lock", "cycle", cycleToProcess)
 	unlock, err := lockCyclesWithTimeout(time.Minute*10, cycleToProcess)
 	if err != nil {
-		slog.Error("failed to acquire lock", "error", err)
+		slog.Error("failed to acquire lock", "error", err.Error())
 		return retry()
 	}
 	defer unlock()
@@ -87,7 +87,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 			slog.Info("no data available for cycle, skipping", "cycle", cycleToProcess)
 			return
 		}
-		slog.Error("failed to generate payouts", "error", err)
+		slog.Error("failed to generate payouts", "error", err.Error())
 		return retry()
 	}
 
@@ -211,7 +211,7 @@ var continualCmd = &cobra.Command{
 						slog.Info("cycle monitoring canceled")
 						notifyAdmin(config, "Cycle monitoring canceled.")
 					} else {
-						slog.Error("failed to wait for next completed cycle", "error", err)
+						slog.Error("failed to wait for next completed cycle", "error", err.Error())
 						notifyAdmin(config, "Failed to wait for next completed cycle.")
 					}
 					return

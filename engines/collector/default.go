@@ -27,15 +27,18 @@ var (
 )
 
 func InitDefaultRpcAndTzktColletor(config *configuration.RuntimeConfiguration) (*DefaultRpcAndTzktColletor, error) {
-	client := http.Client{
+	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	rpcClient, err := rpc.NewClient(config.Network.RpcUrl, &client)
+	rpcClient, err := rpc.NewClient(config.Network.RpcUrl, client)
 	if err != nil {
 		return nil, err
 	}
 
-	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, &client)
+	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, config.Network.ProtocolRewardsUrl, &tzkt.TzktClientOptions{
+		HttpClient:       client,
+		BalanceCheckMode: config.PayoutConfiguration.BalanceCheckMode,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +117,7 @@ func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.K
 
 		rcpt, err = engine.rpc.Simulate(context.Background(), o, nil)
 		if err != nil && rcpt == nil { // we do not retry on receipt errors
-			slog.Debug("Internal simulate error - likely networking, retrying", "error", err)
+			slog.Debug("Internal simulate error - likely networking, retrying", "error", err.Error())
 			// sleep 5s * i
 			time.Sleep(time.Duration(i*5) * time.Second)
 			continue

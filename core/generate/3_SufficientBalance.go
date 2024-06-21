@@ -85,7 +85,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, logger *slog.Logger, check fu
 
 		if err := check(data); err != nil {
 			if options.WaitForSufficientBalance {
-				logger.Error("failed to check balance, retrying in 5 minutes", "error", err)
+				logger.Error("failed to check balance, retrying in 5 minutes", "error", err.Error())
 				time.Sleep(time.Minute * 5)
 				continue
 			}

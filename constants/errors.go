@@ -31,10 +31,11 @@ var (
 	// collector engines
 
 	// baker did not have any rewards in cycle
-	ErrNoCycleDataAvailable       = errors.New("no cycle data available")
-	ErrCycleDataFetchFailed       = errors.New("failed to fetch cycle data")
-	ErrCycleDataUnmarshalFailed   = errors.New("failed to unmarshal cycle data")
-	ErrOperationStatusCheckFailed = errors.New("failed to check operation status")
+	ErrNoCycleDataAvailable                = errors.New("no cycle data available")
+	ErrCycleDataFetchFailed                = errors.New("failed to fetch cycle data")
+	ErrCycleDataProtocolRewardsFetchFailed = errors.New("failed to fetch protocol-rewards cycle data")
+	ErrCycleDataUnmarshalFailed            = errors.New("failed to unmarshal cycle data")
+	ErrOperationStatusCheckFailed          = errors.New("failed to check operation status")
 
 	// cycle monitor
 

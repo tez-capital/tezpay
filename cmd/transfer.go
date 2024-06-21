@@ -37,13 +37,13 @@ var transferCmd = &cobra.Command{
 		for i := 0; i < len(args); i += 2 {
 			destination, err := tezos.ParseAddress(args[i])
 			if err != nil {
-				slog.Error("invalid destination address", "address", args[i], "error", err)
+				slog.Error("invalid destination address", "address", args[i], "error", err.Error())
 				os.Exit(EXIT_IVNALID_ARGS)
 			}
 
 			amount, err := strconv.ParseFloat(args[i+1], 64)
 			if err != nil {
-				slog.Error("invalid amount", "amount", args[i+1], "error", err)
+				slog.Error("invalid amount", "amount", args[i+1], "error", err.Error())
 				os.Exit(EXIT_IVNALID_ARGS)
 			}
 			if !mutez {
@@ -66,7 +66,7 @@ var transferCmd = &cobra.Command{
 
 		rcpt, err := transactor.Send(op, &opts)
 		if err != nil {
-			slog.Error("failed to confirm tx", "error", err)
+			slog.Error("failed to confirm tx", "error", err.Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if !rcpt.IsSuccess() {

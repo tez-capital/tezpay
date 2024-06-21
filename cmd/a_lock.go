@@ -18,7 +18,7 @@ func lockCycle(cycle int64, unlockStore *func() error, resultChan chan<- error) 
 	lockFileDir := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle))
 	err := os.MkdirAll(lockFileDir, 0700)
 	if err != nil {
-		slog.Debug("failed to create lock file directory", "error", err)
+		slog.Debug("failed to create lock file directory", "error", err.Error())
 		resultChan <- err
 		return
 	}
@@ -27,7 +27,7 @@ func lockCycle(cycle int64, unlockStore *func() error, resultChan chan<- error) 
 
 	f, err := lock.Open()
 	if err != nil {
-		slog.Debug("failed to lock file", "error", err)
+		slog.Debug("failed to lock file", "error", err.Error())
 		resultChan <- err
 		return
 	}

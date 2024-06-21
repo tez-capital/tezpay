@@ -119,7 +119,7 @@ type versionInfo struct {
 func GetProtocolWithRetry(collector common.CollectorEngine) tezos.ProtocolHash {
 	protocol, err := collector.GetCurrentProtocol()
 	for err != nil {
-		slog.Warn("failed to get protocol", "error", err)
+		slog.Warn("failed to get protocol", "error", err.Error())
 		slog.Info("retrying in 10 seconds")
 		time.Sleep(time.Second * 10)
 		protocol, err = collector.GetCurrentProtocol()

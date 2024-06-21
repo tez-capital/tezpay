@@ -132,7 +132,7 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 			slog.Debug("checking with collector whether operation applied", "collector", collector.GetId(), "op_hash", report.OpHash.String())
 			paid, err := collector.WasOperationApplied(report.OpHash)
 			if err != nil {
-				slog.Warn("collector check failed", "op_hash", report.OpHash.String(), "error", err)
+				slog.Warn("collector check failed", "op_hash", report.OpHash.String(), "error", err.Error())
 			}
 			if paid == common.OPERATION_STATUS_APPLIED {
 				paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report

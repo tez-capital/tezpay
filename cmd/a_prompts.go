@@ -37,13 +37,13 @@ func checkForNewVersionAvailable() (bool, string) {
 	// https://api.github.com/repos/tez-capital/tezpay/releases/latest
 	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", constants.TEZPAY_REPOSITORY))
 	if err != nil {
-		slog.Debug("⚠️ failed to check latest version", "error", err)
+		slog.Debug("⚠️ failed to check latest version", "error", err.Error())
 		return false, ""
 	}
 	var info versionInfo
 	err = json.NewDecoder(resp.Body).Decode(&info)
 	if err != nil {
-		slog.Debug("⚠️ failed to check latest version", "error", err)
+		slog.Debug("⚠️ failed to check latest version", "error", err.Error())
 		return false, ""
 	}
 	latestVersion := info.Version
@@ -54,12 +54,12 @@ func checkForNewVersionAvailable() (bool, string) {
 
 	lv, err := version.NewVersion(latestVersion)
 	if err != nil {
-		slog.Debug("⚠️ failed to check latest version", "error", err)
+		slog.Debug("⚠️ failed to check latest version", "error", err.Error())
 		return false, ""
 	}
 	cv, err := version.NewVersion(constants.VERSION)
 	if err != nil {
-		slog.Debug("⚠️ failed to check latest version", "error", err)
+		slog.Debug("⚠️ failed to check latest version", "error", err.Error())
 		return false, ""
 	}
 

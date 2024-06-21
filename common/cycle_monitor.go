@@ -65,7 +65,7 @@ func (monitor *cycleMonitor) CreateBlockHeaderMonitor() error {
 		for ctx.Err() == nil {
 			metadata, err := monitor.rpc.GetBlockMetadata(ctx, rpc.Head)
 			if err != nil {
-				slog.Error("failed to fetch head metadata", "error", err)
+				slog.Error("failed to fetch head metadata", "error", err.Error())
 				time.Sleep(time.Second * 10)
 				continue
 			}

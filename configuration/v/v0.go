@@ -45,6 +45,7 @@ type TezosNetworkConfigurationV0 struct {
 	// RpcUrl represents the URL to the RPC node.
 	RpcUrl                 string `json:"rpc_url,omitempty" comment:"Url to rpc endpoint"`
 	TzktUrl                string `json:"tzkt_url,omitempty" comment:"Url to tzkt endpoint"`
+	ProtocolRewardsUrl     string `json:"protocol_rewards_url,omitempty" comment:"Url to protocol rewards endpoint"`
 	Explorer               string `json:"explorer,omitempty" comment:"Url to block explorer"`
 	DoNotPaySmartContracts bool   `json:"ignore_kt,omitempty" comment:"if true, smart contracts will not be paid out (used for testing)"`
 	IgnoreProtocolChanges  bool   `json:"ignore_protocol_changes,omitempty" comment:"if true, protocol changes will be ignored, otherwise the payout will be stopped if the protocol changes"`
@@ -55,20 +56,21 @@ type OverdelegationConfigurationV0 struct {
 }
 
 type PayoutConfigurationV0 struct {
-	WalletMode                 enums.EWalletMode `json:"wallet_mode" comment:"wallet mode to use for signing transactions, can be 'local-private-key' or 'remote-signer'"`
-	PayoutMode                 enums.EPayoutMode `json:"payout_mode" comment:"payout mode to use, can be 'actual' or 'ideal'"`
-	Fee                        float64           `json:"fee,omitempty" comment:"fee to charge delegators for the payout (portion of the reward as decimal, e.g. 0.075 for 7.5%)" validate:"required,min=0,max=1"`
-	IsPayingTxFee              bool              `json:"baker_pays_transaction_fee,omitempty" comment:"if true, baker pays the transaction fee"`
-	IsPayingAllocationTxFee    bool              `json:"baker_pays_allocation_fee,omitempty" comment:"if true, baker pays the allocation transaction fee"`
-	MinimumAmount              float64           `json:"minimum_payout_amount,omitempty" comment:"minimum amount to pay out to delegators, if the amount is less, the payout will be ignored"`
-	IgnoreEmptyAccounts        bool              `json:"ignore_empty_accounts,omitempty" comment:"if true, empty accounts will be ignored"`
-	TxGasLimitBuffer           *int64            `json:"transaction_gas_limit_buffer,omitempty" comment:"buffer for transaction gas limit"`
-	TxDeserializationGasBuffer *int64            `json:"transaction_deserialization_gas_buffer,omitempty" comment:"buffer for transaction deserialization gas"`
-	TxFeeBuffer                *int64            `json:"transaction_fee_buffer,omitempty" comment:"buffer for transaction fee"`
-	KtTxFeeBuffer              *int64            `json:"kt_transaction_fee_buffer,omitempty" comment:"buffer for KT transaction fee"`
-	MinimumDelayBlocks         *int64            `json:"minimum_delay_blocks,omitempty" comment:"minimum delay in blocks before the payout is executed"`
-	MaximumDelayBlocks         *int64            `json:"maximum_delay_blocks,omitempty" comment:"maximum delay in blocks before the payout is executed"`
-	SimulationBatchSize        *int              `json:"simulation_batch_size,omitempty" comment:"size of the batch for simulation (number of transactions, higher usually means faster simulation but in case of failure, more transactions will be lost and need to be simulated again)"`
+	WalletMode                 enums.EWalletMode       `json:"wallet_mode" comment:"wallet mode to use for signing transactions, can be 'local-private-key' or 'remote-signer'"`
+	PayoutMode                 enums.EPayoutMode       `json:"payout_mode" comment:"payout mode to use, can be 'actual' or 'ideal'"`
+	BalanceCheckMode           enums.EBalanceCheckMode `json:"balance_check_mode" comment:"balance check mode to use, can be 'protocol' or 'tzkt'"`
+	Fee                        float64                 `json:"fee,omitempty" comment:"fee to charge delegators for the payout (portion of the reward as decimal, e.g. 0.075 for 7.5%)" validate:"required,min=0,max=1"`
+	IsPayingTxFee              bool                    `json:"baker_pays_transaction_fee,omitempty" comment:"if true, baker pays the transaction fee"`
+	IsPayingAllocationTxFee    bool                    `json:"baker_pays_allocation_fee,omitempty" comment:"if true, baker pays the allocation transaction fee"`
+	MinimumAmount              float64                 `json:"minimum_payout_amount,omitempty" comment:"minimum amount to pay out to delegators, if the amount is less, the payout will be ignored"`
+	IgnoreEmptyAccounts        bool                    `json:"ignore_empty_accounts,omitempty" comment:"if true, empty accounts will be ignored"`
+	TxGasLimitBuffer           *int64                  `json:"transaction_gas_limit_buffer,omitempty" comment:"buffer for transaction gas limit"`
+	TxDeserializationGasBuffer *int64                  `json:"transaction_deserialization_gas_buffer,omitempty" comment:"buffer for transaction deserialization gas"`
+	TxFeeBuffer                *int64                  `json:"transaction_fee_buffer,omitempty" comment:"buffer for transaction fee"`
+	KtTxFeeBuffer              *int64                  `json:"kt_transaction_fee_buffer,omitempty" comment:"buffer for KT transaction fee"`
+	MinimumDelayBlocks         *int64                  `json:"minimum_delay_blocks,omitempty" comment:"minimum delay in blocks before the payout is executed"`
+	MaximumDelayBlocks         *int64                  `json:"maximum_delay_blocks,omitempty" comment:"maximum delay in blocks before the payout is executed"`
+	SimulationBatchSize        *int                    `json:"simulation_batch_size,omitempty" comment:"size of the batch for simulation (number of transactions, higher usually means faster simulation but in case of failure, more transactions will be lost and need to be simulated again)"`
 }
 
 type ExtensionConfigurationV0 = common.ExtensionDefinition
@@ -115,6 +117,7 @@ func GetDefaultV0() ConfigurationV0 {
 		Network: TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_RPC_URL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
+			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			Explorer:               constants.DEFAULT_EXPLORER_URL,
 			DoNotPaySmartContracts: false,
 			IgnoreProtocolChanges:  false,
@@ -125,6 +128,7 @@ func GetDefaultV0() ConfigurationV0 {
 		PayoutConfiguration: PayoutConfigurationV0{
 			WalletMode:                 enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
 			PayoutMode:                 enums.PAYOUT_MODE_ACTUAL,
+			BalanceCheckMode:           enums.PROTOCOL_BALANCE_CHECK_MODE,
 			Fee:                        constants.DEFAULT_BAKER_FEE,
 			IsPayingTxFee:              false,
 			IsPayingAllocationTxFee:    false,

@@ -109,3 +109,10 @@ var (
 		REWARD_DESTINATION_EVERYONE,
 	}
 )
+
+type EBalanceCheckMode string
+
+var (
+	PROTOCOL_BALANCE_CHECK_MODE = EBalanceCheckMode("protocol")
+	TZKT_BALANCE_CHECK_MODE     = EBalanceCheckMode("tzkt")
+)

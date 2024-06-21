@@ -87,6 +87,11 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	if payoutMode == "" {
 		payoutMode = enums.PAYOUT_MODE_ACTUAL
 	}
+	balanceCheckMode := configuration.PayoutConfiguration.BalanceCheckMode
+	if balanceCheckMode == "" {
+		balanceCheckMode = enums.PROTOCOL_BALANCE_CHECK_MODE
+	}
+
 	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
 	if configuration.PayoutConfiguration.TxGasLimitBuffer != nil {
 		gasLimitBuffer = *configuration.PayoutConfiguration.TxGasLimitBuffer
@@ -147,6 +152,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		PayoutConfiguration: RuntimePayoutConfiguration{
 			WalletMode:                 walletMode,
 			PayoutMode:                 payoutMode,
+			BalanceCheckMode:           balanceCheckMode,
 			Fee:                        configuration.PayoutConfiguration.Fee,
 			IsPayingTxFee:              configuration.PayoutConfiguration.IsPayingTxFee,
 			IsPayingAllocationTxFee:    configuration.PayoutConfiguration.IsPayingAllocationTxFee,
@@ -182,7 +188,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			var isValid bool
 			var notificatorConfigurationBase tezpay_configuration.NotificatorConfigurationBase
 			if err := json.Unmarshal(item, &notificatorConfigurationBase); err != nil {
-				slog.Warn("invalid notificator configuration", "error", err)
+				slog.Warn("invalid notificator configuration", "error", err.Error())
 			}
 
 			return RuntimeNotificatorConfiguration{

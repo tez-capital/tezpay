@@ -30,7 +30,7 @@ var statisticsCmd = &cobra.Command{
 			cycle := lastCycle - int64(i)
 			summary, err := fsReporter.GetExistingCycleSummary(cycle)
 			if err != nil {
-				slog.Warn("failed to read report", "cycle", cycle, "error", err)
+				slog.Warn("failed to read report", "cycle", cycle, "error", err.Error())
 				continue
 			}
 			total = *total.CombineNumericData(summary)

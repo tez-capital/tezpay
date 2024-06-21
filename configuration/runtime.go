@@ -40,20 +40,21 @@ type RuntimeNotificatorConfiguration struct {
 }
 
 type RuntimePayoutConfiguration struct {
-	WalletMode                 enums.EWalletMode `json:"wallet_mode,omitempty"`
-	PayoutMode                 enums.EPayoutMode `json:"payout_mode,omitempty"`
-	Fee                        float64           `json:"fee,omitempty"`
-	IsPayingTxFee              bool              `json:"baker_pays_transaction_fee,omitempty"`
-	IsPayingAllocationTxFee    bool              `json:"baker_pays_allocation_fee,omitempty"`
-	MinimumAmount              tezos.Z           `json:"minimum_payout_amount,omitempty"`
-	IgnoreEmptyAccounts        bool              `json:"ignore_empty_accounts,omitempty"`
-	TxGasLimitBuffer           int64             `json:"transaction_gas_limit_buffer,omitempty"`
-	TxDeserializationGasBuffer int64             `json:"transaction_deserialization_gas_buffer,omitempty"`
-	TxFeeBuffer                int64             `json:"transaction_fee_buffer,omitempty"`
-	KtTxFeeBuffer              int64             `json:"kt_transaction_fee_buffer,omitempty"`
-	MinimumDelayBlocks         int64             `json:"minimum_delay_blocks,omitempty"`
-	MaximumDelayBlocks         int64             `json:"maximum_delay_blocks,omitempty"`
-	SimulationBatchSize        int               `json:"simulation_batch_size,omitempty"`
+	WalletMode                 enums.EWalletMode       `json:"wallet_mode,omitempty"`
+	PayoutMode                 enums.EPayoutMode       `json:"payout_mode,omitempty"`
+	BalanceCheckMode           enums.EBalanceCheckMode `json:"balance_check_mode,omitempty"`
+	Fee                        float64                 `json:"fee,omitempty"`
+	IsPayingTxFee              bool                    `json:"baker_pays_transaction_fee,omitempty"`
+	IsPayingAllocationTxFee    bool                    `json:"baker_pays_allocation_fee,omitempty"`
+	MinimumAmount              tezos.Z                 `json:"minimum_payout_amount,omitempty"`
+	IgnoreEmptyAccounts        bool                    `json:"ignore_empty_accounts,omitempty"`
+	TxGasLimitBuffer           int64                   `json:"transaction_gas_limit_buffer,omitempty"`
+	TxDeserializationGasBuffer int64                   `json:"transaction_deserialization_gas_buffer,omitempty"`
+	TxFeeBuffer                int64                   `json:"transaction_fee_buffer,omitempty"`
+	KtTxFeeBuffer              int64                   `json:"kt_transaction_fee_buffer,omitempty"`
+	MinimumDelayBlocks         int64                   `json:"minimum_delay_blocks,omitempty"`
+	MaximumDelayBlocks         int64                   `json:"maximum_delay_blocks,omitempty"`
+	SimulationBatchSize        int                     `json:"simulation_batch_size,omitempty"`
 }
 
 type RuntimeIncomeRecipients struct {
@@ -83,6 +84,7 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 		PayoutConfiguration: RuntimePayoutConfiguration{
 			WalletMode:                 enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
 			PayoutMode:                 enums.PAYOUT_MODE_ACTUAL,
+			BalanceCheckMode:           enums.PROTOCOL_BALANCE_CHECK_MODE,
 			Fee:                        constants.DEFAULT_BAKER_FEE,
 			IsPayingTxFee:              false,
 			IsPayingAllocationTxFee:    false,
@@ -108,6 +110,7 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
 			RpcUrl:                 constants.DEFAULT_RPC_URL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
+			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			Explorer:               constants.DEFAULT_EXPLORER_URL,
 			DoNotPaySmartContracts: false,
 			IgnoreProtocolChanges:  false,

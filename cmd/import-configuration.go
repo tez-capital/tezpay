@@ -61,7 +61,7 @@ var generateConfigurationCmd = &cobra.Command{
 
 		seededBytes, err := seed.Generate(sourceBytes, enums.EConfigurationSeedKind(args[0]))
 		if err != nil {
-			slog.Error("failed to generate configuration", "error", err)
+			slog.Error("failed to generate configuration", "error", err.Error())
 			os.Exit(EXIT_CONFIGURATION_GENERATE_FAILURE)
 		}
 		assertRunWithErrorMessage(func() error {

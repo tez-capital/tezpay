@@ -50,7 +50,7 @@ var payCmd = &cobra.Command{
 		slog.Info("acquiring lock", "cycle", cycle)
 		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycle)
 		if err != nil {
-			slog.Error("failed to acquire lock", "error", err)
+			slog.Error("failed to acquire lock", "error", err.Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		defer unlock()
@@ -79,7 +79,7 @@ var payCmd = &cobra.Command{
 				return
 			}
 			if err != nil {
-				slog.Error("failed to generate payouts", "error", err)
+				slog.Error("failed to generate payouts", "error", err.Error())
 				time.Sleep(time.Minute * 5)
 				os.Exit(EXIT_OPERTION_FAILED)
 			}

@@ -8,7 +8,7 @@ import (
 func assertRunWithErrorMessage(toExecute func() error, exitCode int, msg string, args ...any) {
 	err := toExecute()
 	if err != nil {
-		args = append(args, "error", err)
+		args = append(args, "error", err.Error())
 		slog.Error(msg, args...)
 		os.Exit(exitCode)
 	}
@@ -26,7 +26,7 @@ func assertRunWithParamAndErrorMessage[T any](toExecute func(T) error, param T, 
 func assertRunWithResultAndErrorMessage[T any](toExecute func() (T, error), exitCode int, msg string, args ...any) T {
 	result, err := toExecute()
 	if err != nil {
-		args = append(args, "error", err)
+		args = append(args, "error", err.Error())
 		slog.Error(msg, args...)
 		os.Exit(exitCode)
 	}

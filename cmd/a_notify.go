@@ -16,7 +16,7 @@ func collectAdditionalData(_ *common.CyclePayoutSummary) map[string]string {
 
 	err := extension.ExecuteHook(enums.EXTENSION_HOOK_COLLECT_ADDITIONAL_NOTIFICATION_DATA, "0.1", &data)
 	if err != nil {
-		slog.Warn("failed to execute hook", "error", err)
+		slog.Warn("failed to execute hook", "error", err.Error())
 	}
 	result := make(map[string]string)
 	for key, value := range data {
@@ -39,14 +39,14 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 		slog.Info("sending notification", "notificator", notificatorConfiguration.Type)
 		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
-			slog.Warn("failed to send notification", "error", err)
+			slog.Warn("failed to send notification", "error", err.Error())
 			continue
 		}
 
 		additionalData := collectAdditionalData(summary)
 		err = notificator.PayoutSummaryNotify(summary, additionalData)
 		if err != nil {
-			slog.Warn("failed to send notification", "error", err)
+			slog.Warn("failed to send notification", "error", err.Error())
 			continue
 		}
 	}
@@ -65,13 +65,13 @@ func notifyAdmin(configuration *configuration.RuntimeConfiguration, msg string) 
 		slog.Debug("sending admin notification", "notificator", notificatorConfiguration.Type)
 		notificator, err := notifications.LoadNotificatior(notificatorConfiguration.Type, notificatorConfiguration.Configuration)
 		if err != nil {
-			slog.Warn("failed to send notification", "error", err)
+			slog.Warn("failed to send notification", "error", err.Error())
 			continue
 		}
 
 		err = notificator.AdminNotify(msg)
 		if err != nil {
-			slog.Warn("failed to send notification", "error", err)
+			slog.Warn("failed to send notification", "error", err.Error())
 			continue
 		}
 	}

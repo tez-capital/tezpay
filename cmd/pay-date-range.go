@@ -43,7 +43,7 @@ var payDateRangeCmd = &cobra.Command{
 
 		startDate, endDate, err := parseDateFlags(cmd)
 		if err != nil {
-			slog.Error("failed to parse date flags", "error", err)
+			slog.Error("failed to parse date flags", "error", err.Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
@@ -56,14 +56,14 @@ var payDateRangeCmd = &cobra.Command{
 
 		cycles, err := collector.GetCyclesInDateRange(startDate, endDate)
 		if err != nil {
-			slog.Error("failed to get cycles in date selected range", "error", err)
+			slog.Error("failed to get cycles in date selected range", "error", err.Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
 		slog.Info("acquiring lock", "cycles", cycles)
 		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycles...)
 		if err != nil {
-			slog.Error("failed to acquire lock", "error", err)
+			slog.Error("failed to acquire lock", "error", err.Error())
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		defer unlock()
@@ -87,7 +87,7 @@ var payDateRangeCmd = &cobra.Command{
 					return
 				}
 				if err != nil {
-					slog.Error("failed to generate payouts", "error", err)
+					slog.Error("failed to generate payouts", "error", err.Error())
 					os.Exit(EXIT_OPERTION_FAILED)
 				}
 				ch <- generationResult
