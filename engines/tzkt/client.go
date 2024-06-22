@@ -327,14 +327,31 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		}
 
 		// TODO: remove this when we confirm all works as expected
+		var bakingPower tezos.Z
 		delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
-		if cycle > 750 { // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
+		switch {
+		case cycle > 750: // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
 			delegatedPower = delegatedPower.Div64(2)
-		}
 
-		bakingPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).
-			Add64(tzktBakerCycleData.ExternalStakedBalance).
-			Add(delegatedPower)
+			stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add64(tzktBakerCycleData.ExternalStakedBalance)
+			maximumStakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(5)
+			maximumDelegatedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(10)
+			if maximumStakedPower.IsLess(stakedPower) {
+				stakedPower = maximumStakedPower
+			}
+			if maximumDelegatedPower.IsLess(delegatedPower) {
+				delegatedPower = maximumDelegatedPower
+			}
+			bakingPower = stakedPower.Add(delegatedPower)
+		default:
+			bakingPower = tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).
+				Add64(tzktBakerCycleData.ExternalStakedBalance).
+				Add(delegatedPower)
+			maximumBakingPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(10)
+			if maximumBakingPower.IsLess(bakingPower) {
+				bakingPower = maximumBakingPower
+			}
+		}
 
 		if utils.Abs(bakingPower.Int64()-tzktBakerCycleData.BakingPower) > 20 { // 20 mutes tolerance, we would be ok with 1 but since 751 when new model kicks in there is few more mutez difference, likely because of halved delegation power
 			slog.Error("bakingPower mismatch", "bakingPower", bakingPower, "tzktBakerCycleData.BakingPower", tzktBakerCycleData.BakingPower)
