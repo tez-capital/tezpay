@@ -358,17 +358,21 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 			return nil, errors.Join(constants.ErrCycleDataProtocolRewardsMismatch, fmt.Errorf("bakingPower: %d, tzktBakerCycleData.BakingPower: %d, diff: %d", bakingPower.Int64(), tzktBakerCycleData.BakingPower, bakingPower.Int64()-tzktBakerCycleData.BakingPower))
 		}
 		// TODO: end remove this when we confirm all works as expected
-
 		collectedDelegators = lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) splitDelegator {
 			if protocolRewardsDelegator, ok := delegatorsMap[delegator.Address]; ok {
 				delegator.DelegatedBalance = protocolRewardsDelegator.DelegatedBalance
 				delegator.StakedBalance = protocolRewardsDelegator.StakedBalance
+				delete(delegatorsMap, delegator.Address) // remove from map to be able to check if there are any left
 			} else {
 				delegator.DelegatedBalance = 0
 				delegator.StakedBalance = 0
 			}
 			return delegator
 		})
+
+		for _, delegator := range delegatorsMap {
+			collectedDelegators = append(collectedDelegators, delegator)
+		}
 	}
 
 	return &common.BakersCycleData{
