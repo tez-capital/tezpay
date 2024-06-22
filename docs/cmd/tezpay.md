@@ -4,7 +4,7 @@ TEZPAY
 
 ### Synopsis
 
-TEZPAY 0.15.2-beta - the tezos reward distributor
+TEZPAY 0.15.3-beta - the tezos reward distributor
 Copyright © 2024 alis.is
 
 
