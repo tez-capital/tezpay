@@ -43,3 +43,10 @@ func Max[T NumberConstraint](v1 T, v2 T) T {
 	}
 	return v2
 }
+
+func Abs[T NumberConstraint](v T) T {
+	if v < 0 {
+		return -v
+	}
+	return v
+}

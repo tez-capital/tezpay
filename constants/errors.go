@@ -34,6 +34,7 @@ var (
 	ErrNoCycleDataAvailable                = errors.New("no cycle data available")
 	ErrCycleDataFetchFailed                = errors.New("failed to fetch cycle data")
 	ErrCycleDataProtocolRewardsFetchFailed = errors.New("failed to fetch protocol-rewards cycle data")
+	ErrCycleDataProtocolRewardsMismatch    = errors.New("protocol-rewards cycle data mismatch")
 	ErrCycleDataUnmarshalFailed            = errors.New("failed to unmarshal cycle data")
 	ErrOperationStatusCheckFailed          = errors.New("failed to check operation status")
 

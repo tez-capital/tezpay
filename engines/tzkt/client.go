@@ -16,6 +16,7 @@ import (
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/samber/lo"
@@ -324,6 +325,18 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		for _, delegator := range protocolRewardsCycleData.Delegators {
 			delegatorsMap[delegator.Address] = delegator
 		}
+
+		// TODO: remove this when we confirm all works as expected
+		bakingPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).
+			Add64(tzktBakerCycleData.ExternalDelegatedBalance).
+			Add64(tzktBakerCycleData.OwnStakedBalance).
+			Add64(tzktBakerCycleData.ExternalStakedBalance)
+
+		if utils.Abs(bakingPower.Int64()-tzktBakerCycleData.BakingPower) > 1 {
+			slog.Error("bakingPower mismatch", "bakingPower", bakingPower, "tzktBakerCycleData.BakingPower", tzktBakerCycleData.BakingPower)
+			return nil, errors.Join(constants.ErrCycleDataProtocolRewardsMismatch, fmt.Errorf("bakingPower: %d, tzktBakerCycleData.BakingPower: %d, diff: %d", bakingPower.Int64(), tzktBakerCycleData.BakingPower, bakingPower.Int64()-tzktBakerCycleData.BakingPower))
+		}
+		// TODO: end remove this when we confirm all works as expected
 
 		collectedDelegators = lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) splitDelegator {
 			if protocolRewardsDelegator, ok := delegatorsMap[delegator.Address]; ok {
