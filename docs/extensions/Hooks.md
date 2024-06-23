@@ -195,7 +195,7 @@ This hook is capable of mutating data *currently*.
     {
       "id": "fd8d0230c9d70458",
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2024-06-22T18:15:42.81644123Z",
+      "timestamp": "2024-06-23T08:14:11.853800811Z",
       "cycle": 1,
       "kind": "invalid",
       "tx_kind": "fa1",
