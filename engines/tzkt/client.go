@@ -386,8 +386,8 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		BlockDelegatedFees:               blockDelegatedFees,
 
 		StakersCount:                  tzktBakerCycleData.StakersCount,
-		OwnStakingBalance:             tezos.NewZ(tzktBakerCycleData.OwnStakedBalance),
-		ExternalStakingBalance:        tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance),
+		OwnStakedBalance:              tezos.NewZ(tzktBakerCycleData.OwnStakedBalance),
+		ExternalStakedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance),
 		BlockStakingRewardsEdge:       tezos.NewZ(tzktBakerCycleData.BlockRewardsStakedEdge),
 		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.EndorsementRewardsStakedEdge),
 		BlockStakingFees:              blockStakingFees,

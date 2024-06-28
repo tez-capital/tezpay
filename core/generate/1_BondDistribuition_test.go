@@ -17,7 +17,7 @@ func TestGetBakerBondsAmount(t *testing.T) {
 	configWithOverdelegationProtectionDisabled.Overdelegation.IsProtectionEnabled = false
 
 	cycleData := common.BakersCycleData{
-		OwnStakingBalance:           tezos.NewZ(500_000),
+		OwnStakedBalance:            tezos.NewZ(500_000),
 		OwnDelegatedBalance:         tezos.NewZ(500_000),
 		ExternalDelegatedBalance:    tezos.NewZ(19_000_000),
 		BlockDelegatedRewards:       tezos.NewZ(1000),
@@ -25,19 +25,19 @@ func TestGetBakerBondsAmount(t *testing.T) {
 	}
 
 	bakerBondsAmount := getBakerBondsAmount(&cycleData, tezos.NewZ(19_000_000), &configWithOverdelegationProtectionEnabled)
-	assert.Equal(bakerBondsAmount, tezos.NewZ(1100))
+	assert.Equal(bakerBondsAmount.Int64(), tezos.NewZ(1222).Int64())
 
 	bakerBondsAmount = getBakerBondsAmount(&cycleData, tezos.NewZ(19_000_000), &configWithOverdelegationProtectionDisabled)
-	assert.Equal(bakerBondsAmount, tezos.NewZ(550))
+	assert.Equal(bakerBondsAmount.Int64(), tezos.NewZ(282).Int64())
 
 	bakerBondsAmount = getBakerBondsAmount(&cycleData, tezos.NewZ(9_000_000), &configWithOverdelegationProtectionEnabled)
-	assert.Equal(bakerBondsAmount, tezos.NewZ(1100))
+	assert.Equal(bakerBondsAmount.Int64(), tezos.NewZ(1222).Int64())
 
 	bakerBondsAmount = getBakerBondsAmount(&cycleData, tezos.NewZ(9_000_000), &configWithOverdelegationProtectionDisabled)
-	assert.Equal(bakerBondsAmount, tezos.NewZ(1100))
+	assert.Equal(bakerBondsAmount.Int64(), tezos.NewZ(578).Int64())
 
 	cycleData = common.BakersCycleData{
-		OwnStakingBalance:           tezos.NewZ(600_000),
+		OwnStakedBalance:            tezos.NewZ(600_000),
 		OwnDelegatedBalance:         tezos.NewZ(400_000),
 		ExternalDelegatedBalance:    tezos.NewZ(9_000_000),
 		BlockDelegatedRewards:       tezos.NewZ(1000),
@@ -45,8 +45,8 @@ func TestGetBakerBondsAmount(t *testing.T) {
 	}
 
 	bakerBondsAmount = getBakerBondsAmount(&cycleData, tezos.NewZ(9_000_000), &configWithOverdelegationProtectionEnabled)
-	assert.Equal(bakerBondsAmount, tezos.NewZ(1100))
+	assert.Equal(bakerBondsAmount.Int64(), tezos.NewZ(814).Int64())
 
 	bakerBondsAmount = getBakerBondsAmount(&cycleData, tezos.NewZ(9_000_000), &configWithOverdelegationProtectionDisabled)
-	assert.Equal(bakerBondsAmount, tezos.NewZ(1100))
+	assert.Equal(bakerBondsAmount.Int64(), tezos.NewZ(468).Int64())
 }

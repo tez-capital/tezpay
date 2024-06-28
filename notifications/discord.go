@@ -124,7 +124,8 @@ func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSum
 				},
 				Timestamp: time.Now().Format(time.RFC3339),
 				Fields: []*discordgo.MessageEmbedField{
-					{Name: "Staking Balance", Value: common.MutezToTezS(summary.OwnStakingBalance.Int64())},
+					{Name: "Staked Balance", Value: common.MutezToTezS(summary.GetTotalStakedBalance().Int64())},
+					{Name: "Delegated Balance", Value: common.MutezToTezS(summary.GetTotalDelegatedBalance().Int64())},
 					{Name: "Distributed", Value: common.MutezToTezS(summary.DistributedRewards.Int64())},
 					{Name: "Delegators", Value: fmt.Sprintf("%d", summary.Delegators)},
 					{Name: "Donated", Value: common.MutezToTezS(summary.DonatedTotal.Int64())},

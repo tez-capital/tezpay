@@ -22,8 +22,8 @@ type BakersCycleData struct {
 	BlockDelegatedFees               tezos.Z
 	DelegatorsCount                  int32
 
-	OwnStakingBalance             tezos.Z
-	ExternalStakingBalance        tezos.Z
+	OwnStakedBalance              tezos.Z
+	ExternalStakedBalance         tezos.Z
 	BlockStakingRewardsEdge       tezos.Z
 	EndorsementStakingRewardsEdge tezos.Z
 	BlockStakingFees              tezos.Z
@@ -38,26 +38,30 @@ type ShareInfo struct {
 	Delegators map[string]tezos.Z
 }
 
-func (cycleData *BakersCycleData) getTotalRewards() tezos.Z {
+func (cycleData *BakersCycleData) getActualDelegatedRewards() tezos.Z {
 	return cycleData.BlockDelegatedFees.Add(cycleData.BlockDelegatedRewards).Add(cycleData.EndorsementDelegatedRewards)
 }
 
-func (cycleData *BakersCycleData) getIdealRewards() tezos.Z {
+func (cycleData *BakersCycleData) getIdealDelegatedRewards() tezos.Z {
 	return cycleData.IdealBlockDelegatedRewards.Add(cycleData.IdealEndorsementDelegatedRewards).Add(cycleData.BlockDelegatedFees)
 }
 
-// GetTotalRewards returns the total rewards for the cycle based on payout mode
-func (cycleData *BakersCycleData) GetTotalRewards(payoutMode enums.EPayoutMode) tezos.Z {
+// GetTotalDelegatedRewards returns the total rewards for the cycle based on payout mode
+func (cycleData *BakersCycleData) GetTotalDelegatedRewards(payoutMode enums.EPayoutMode) tezos.Z {
 	switch payoutMode {
 	case enums.PAYOUT_MODE_IDEAL:
-		return cycleData.getIdealRewards()
+		return cycleData.getIdealDelegatedRewards()
 	default:
-		return cycleData.getTotalRewards()
+		return cycleData.getActualDelegatedRewards()
 	}
 }
 
 func (cycleData *BakersCycleData) GetBakerDelegatedBalance() tezos.Z {
 	return cycleData.OwnDelegatedBalance
+}
+
+func (cycleData *BakersCycleData) GetBakerStakedBalance() tezos.Z {
+	return cycleData.OwnStakedBalance
 }
 
 type OperationLimits struct {

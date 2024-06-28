@@ -70,7 +70,7 @@ func (engine *SimpleColletor) GetLastCompletedCycle() (int64, error) {
 
 func (engine *SimpleColletor) GetCycleStakingData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
 	return &common.BakersCycleData{
-		OwnStakingBalance:           tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
+		OwnStakedBalance:            tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
 		OwnDelegatedBalance:         tezos.NewZ(50_000).Mul64(constants.MUTEZ_FACTOR),
 		ExternalDelegatedBalance:    tezos.NewZ(1_000_000).Mul64(constants.MUTEZ_FACTOR),
 		BlockDelegatedRewards:       tezos.NewZ(100).Mul64(constants.MUTEZ_FACTOR),

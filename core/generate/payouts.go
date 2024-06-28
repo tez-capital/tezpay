@@ -11,7 +11,7 @@ type PayoutCandidate struct {
 	Source                       tezos.Address              `json:"source,omitempty"`
 	Recipient                    tezos.Address              `json:"recipient,omitempty"`
 	FeeRate                      float64                    `json:"fee_rate,omitempty"`
-	StakingBalance               tezos.Z                    `json:"balance,omitempty"`
+	StakedBalance                tezos.Z                    `json:"staked_balance,omitempty"`
 	DelegatedBalance             tezos.Z                    `json:"delegated_balance,omitempty"`
 	IsInvalid                    bool                       `json:"is_invalid,omitempty"`
 	IsEmptied                    bool                       `json:"is_emptied,omitempty"`
@@ -24,8 +24,8 @@ type PayoutCandidate struct {
 	AllocationFeeCollected bool `json:"allocation_fee_collected,omitempty"`
 }
 
-func (candidate *PayoutCandidate) GetEffectiveBalance() tezos.Z {
-	return candidate.StakingBalance.Add(candidate.DelegatedBalance)
+func (candidate *PayoutCandidate) GetDelegatedBalance() tezos.Z {
+	return candidate.DelegatedBalance
 }
 
 func (candidate *PayoutCandidate) ToValidationContext(ctx *PayoutGenerationContext) PayoutValidationContext {
@@ -119,7 +119,7 @@ func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycl
 		Delegator:              payout.Source,
 		Recipient:              payout.Recipient,
 		DelegatedBalance:       payout.DelegatedBalance,
-		StakingBalance:         payout.StakingBalance,
+		StakedBalance:          payout.StakedBalance,
 		FATokenId:              payout.FATokenId,
 		FAContract:             payout.FAContract,
 		Amount:                 payout.BondsAmount,
@@ -164,7 +164,7 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 		Recipient:                    payoutRecipient,
 		FeeRate:                      payoutFeeRate,
 		DelegatedBalance:             delegator.DelegatedBalance,
-		StakingBalance:               delegator.StakedBalance,
+		StakedBalance:                delegator.StakedBalance,
 		IsEmptied:                    delegator.Emptied,
 		IsBakerPayingTxFee:           isBakerPayingTxFee,
 		IsBakerPayingAllocationTxFee: IsBakerPayingAllocationTxFee,

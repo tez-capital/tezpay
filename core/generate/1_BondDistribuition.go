@@ -21,21 +21,19 @@ func ExecuteAfterBondsDistributed(data *AfterBondsDistributedHookData) error {
 	return extension.ExecuteHook(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED, "0.2", data)
 }
 
-func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {
-	bakerBalance := cycleData.GetBakerDelegatedBalance()
-	totalRewards := cycleData.GetTotalRewards(configuration.PayoutConfiguration.PayoutMode)
+func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsDelegatedBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {
+	bakerDelegatedBalance := cycleData.GetBakerDelegatedBalance()
+	totalRewards := cycleData.GetTotalDelegatedRewards(configuration.PayoutConfiguration.PayoutMode)
 
-	overdelegationLimit := cycleData.FrozenDepositLimit
-	if overdelegationLimit.IsZero() {
-		overdelegationLimit = bakerBalance
-	}
-	bakerAmount := totalRewards.Div64(constants.DELEGATION_CAPACITY_FACTOR)
-	stakingBalance := effectiveDelegatorsStakingBalance.Add(bakerBalance)
+	totalDelegatedBalance := effectiveDelegatorsDelegatedBalance.Add(bakerDelegatedBalance)
 
-	if !overdelegationLimit.Mul64(constants.DELEGATION_CAPACITY_FACTOR).Sub(stakingBalance).IsNeg() || !configuration.Overdelegation.IsProtectionEnabled { // not overdelegated
-		bakerAmount = totalRewards.Mul(bakerBalance).Div(stakingBalance)
+	maximumDelegated := cycleData.GetBakerStakedBalance().Mul64(constants.DELEGATION_CAPACITY_FACTOR)
+	if maximumDelegated.Sub(totalDelegatedBalance).IsNeg() && configuration.Overdelegation.IsProtectionEnabled { // overdelegated and protection enabled
+		totalDelegatedBalance = maximumDelegated // this will bracket the totalDelegatedBalance to maximumDelegated and baker takes his full share from delegated balance, the rest is dilluted
 	}
-	return bakerAmount
+	bakerDelegatedBondsAmount := totalRewards.Mul(bakerDelegatedBalance).Div(totalDelegatedBalance)
+
+	return bakerDelegatedBondsAmount
 }
 
 func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
@@ -45,7 +43,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	logger.Debug("distributing bonds")
 
 	candidates := ctx.StageData.PayoutCandidates
-	effectiveStakingBalance := lo.Reduce(candidates, func(total tezos.Z, candidate PayoutCandidate, _ int) tezos.Z {
+	totalDelegatorsDelegatedBalance := lo.Reduce(candidates, func(total tezos.Z, candidate PayoutCandidate, _ int) tezos.Z {
 		// of all delegators, including invalids, except ignored and possibly excluding bellow minimum balance
 		if candidate.IsInvalid {
 			if candidate.InvalidBecause == enums.INVALID_DELEGATOR_IGNORED {
@@ -55,11 +53,11 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 				return total
 			}
 		}
-		return total.Add(candidate.GetEffectiveBalance())
+		return total.Add(candidate.GetDelegatedBalance())
 	}, tezos.NewZ(0))
 
-	bakerBonds := getBakerBondsAmount(ctx.StageData.CycleData, effectiveStakingBalance, configuration)
-	availableRewards := ctx.StageData.CycleData.GetTotalRewards(configuration.PayoutConfiguration.PayoutMode).Sub(bakerBonds)
+	bakerBonds := getBakerBondsAmount(ctx.StageData.CycleData, totalDelegatorsDelegatedBalance, configuration)
+	availableRewards := ctx.StageData.CycleData.GetTotalDelegatedRewards(configuration.PayoutConfiguration.PayoutMode).Sub(bakerBonds)
 
 	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(candidates, func(candidate PayoutCandidate, _ int) PayoutCandidateWithBondAmount {
 		if candidate.IsInvalid {
@@ -70,7 +68,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		}
 		return PayoutCandidateWithBondAmount{
 			PayoutCandidate: candidate,
-			BondsAmount:     availableRewards.Mul(candidate.GetEffectiveBalance()).Div(effectiveStakingBalance),
+			BondsAmount:     availableRewards.Mul(candidate.GetDelegatedBalance()).Div(totalDelegatorsDelegatedBalance),
 			TxKind:          enums.PAYOUT_TX_KIND_TEZ,
 		}
 	})

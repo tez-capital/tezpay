@@ -37,19 +37,19 @@ func TestDelegatorToPayoutCandidate(t *testing.T) {
 
 	delegator := delegators[0]
 	candidate := DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.GetEffectiveBalance().Equal(tezos.MinZ(delegator.DelegatedBalance, maximumBalance)))
+	assert.True(candidate.GetDelegatedBalance().Equal(tezos.MinZ(delegator.DelegatedBalance, maximumBalance)))
 
 	delegator = delegators[1]
 	candidate = DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.GetEffectiveBalance().Equal(tezos.MinZ(delegator.DelegatedBalance, maximumBalance)))
+	assert.True(candidate.GetDelegatedBalance().Equal(tezos.MinZ(delegator.DelegatedBalance, maximumBalance)))
 
 	config.Delegators.Overrides = map[string]configuration.RuntimeDelegatorOverride{}
 
 	delegator = delegators[0]
 	candidate = DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.GetEffectiveBalance().Equal(delegator.DelegatedBalance))
+	assert.True(candidate.GetDelegatedBalance().Equal(delegator.DelegatedBalance))
 
 	delegator = delegators[1]
 	candidate = DelegatorToPayoutCandidate(delegator, &config)
-	assert.True(candidate.GetEffectiveBalance().Equal(delegator.DelegatedBalance))
+	assert.True(candidate.GetDelegatedBalance().Equal(delegator.DelegatedBalance))
 }
