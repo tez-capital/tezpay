@@ -14,6 +14,7 @@ import (
 )
 
 type AfterPayoutsPreapered struct {
+	Recipes                       []common.PayoutRecipe `json:"recipes"`
 	ValidPayouts                  []common.PayoutRecipe `json:"payouts"`
 	InvalidPayouts                []common.PayoutRecipe `json:"invalid_payouts"`
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport `json:"reports_of_past_succesful_payouts"`
@@ -51,6 +52,9 @@ func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOpt
 	}
 
 	hookData := &AfterPayoutsPreapered{
+		Recipes: lo.Reduce(ctx.PayoutBlueprints, func(agg []common.PayoutRecipe, blueprint *common.CyclePayoutBlueprint, _ int) []common.PayoutRecipe {
+			return append(agg, blueprint.Payouts...)
+		}, make([]common.PayoutRecipe, 0)),
 		ValidPayouts:                  utils.OnlyValidPayouts(payouts),
 		InvalidPayouts:                utils.OnlyInvalidPayouts(payouts),
 		ReportsOfPastSuccesfulPayouts: reportsOfPastSuccesfulPayouts,

@@ -31,6 +31,21 @@ jobs:
       - name: Build macos-amd64
         run: env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-macos-amd64
 
+      - name: Build payout-fixer win-arm64
+        run: env CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-win-arm64.exe extension/official/payout-fixer/main.go
+      - name: Build payout-fixer win-amd64
+        run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-win-amd64.exe extension/official/payout-fixer/main.go
+      - name: Build payout-fixer linux-arm64
+        run: env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-linux-arm64 extension/official/payout-fixer/main.go
+      - name: Build payout-fixer linux-riscv64
+        run: env CGO_ENABLED=0 GOOS=linux GOARCH=riscv64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-linux-riscv64 extension/official/payout-fixer/main.go
+      - name: Build payout-fixer linux-amd64
+        run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-linux-amd64 extension/official/payout-fixer/main.go
+      - name: Build payout-fixer macos-arm64
+        run: env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-macos-arm64 extension/official/payout-fixer/main.go
+      - name: Build payout-fixer macos-amd64
+        run: env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-payout-fixer-macos-amd64 extension/official/payout-fixer/main.go
+
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.4.0
         with:
