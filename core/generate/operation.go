@@ -1,24 +1,11 @@
 package generate
 
 import (
-	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/trilitech/tzgo/codec"
 	"github.com/trilitech/tzgo/tezos"
 )
-
-func splitIntoBatches[T any](candidates []T, capacity int) [][]T {
-	batches := make([][]T, 0)
-	if capacity == 0 {
-		capacity = constants.DEFAULT_SIMULATION_TX_BATCH_SIZE
-	}
-	for offset := 0; offset < len(candidates); offset += capacity {
-		batches = append(batches, lo.Slice(candidates, offset, offset+capacity))
-	}
-
-	return batches
-}
 
 func buildOpForEstimation[T common.TransferArgs](ctx *PayoutGenerationContext, batch []T, injectBurnTransactions bool) (*codec.Op, error) {
 	var err error
