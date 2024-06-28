@@ -22,7 +22,7 @@ func ExecuteAfterBondsDistributed(data *AfterBondsDistributedHookData) error {
 }
 
 func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsStakingBalance tezos.Z, configuration *configuration.RuntimeConfiguration) tezos.Z {
-	bakerBalance := cycleData.GetBakerBalance()
+	bakerBalance := cycleData.GetBakerDelegatedBalance()
 	totalRewards := cycleData.GetTotalRewards(configuration.PayoutConfiguration.PayoutMode)
 
 	overdelegationLimit := cycleData.FrozenDepositLimit

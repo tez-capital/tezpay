@@ -56,8 +56,8 @@ func (cycleData *BakersCycleData) GetTotalRewards(payoutMode enums.EPayoutMode) 
 	}
 }
 
-func (cycleData *BakersCycleData) GetBakerBalance() tezos.Z {
-	return cycleData.OwnStakingBalance.Add(cycleData.OwnDelegatedBalance)
+func (cycleData *BakersCycleData) GetBakerDelegatedBalance() tezos.Z {
+	return cycleData.OwnDelegatedBalance
 }
 
 type OperationLimits struct {
