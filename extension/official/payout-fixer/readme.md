@@ -28,3 +28,4 @@ Compares the payouts reports with the payouts based on config and inject compens
 - Does not affect generation result. Actual changes are visible before the payout when you are prompted to confirm the payouts. (hint: you can use --dry-run)
 - We do not recommend to run it in continual mode, use only when paying out manually.
 - Creates log file `tezpay-fixer.log` where it lists all the changes made.
+- Can be used to fix any kind of payout issue - e.g. missing payouts, wrong payouts after incorrect config, etc.
