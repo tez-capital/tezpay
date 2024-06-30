@@ -37,8 +37,8 @@ func (h *ExtensionHook) UnmarshalJSON(b []byte) error {
 		default:
 			return err
 		}
-		raw.Id = enums.EExtensionHook(split[0])
-		raw.Mode = enums.EExtensionHookMode(split[1])
+		raw.Id = enums.EExtensionHook(strings.Trim(split[0], " "))
+		raw.Mode = enums.EExtensionHookMode(strings.Trim(split[1], " "))
 	}
 	// we could validate here but validation during unmarshalling does not
 	// provide that good user experience as validation during configuration validation
