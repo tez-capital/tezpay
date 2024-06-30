@@ -109,10 +109,11 @@ func FilterReportsByCycle(payouts []common.PayoutReport, cycle int64) []common.P
 }
 
 type payoutId struct {
-	kind      enums.EPayoutKind
-	txKind    enums.EPayoutTransactionKind
-	delegator string
-	recipient string
+	kind     enums.EPayoutKind
+	txKind   enums.EPayoutTransactionKind
+	contract string
+	token    string
+	address  string
 }
 
 func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.PayoutReport, collector common.CollectorEngine) ([]common.PayoutRecipe, []common.PayoutReport) {
@@ -123,9 +124,14 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 	}
 
 	for _, report := range reports {
+		addr := report.Delegator.String()
+		if report.Delegator.Equal(tezos.ZeroAddress) {
+			addr = report.Recipient.String()
+		}
+		payoutId := payoutId{report.Kind, report.TxKind, report.FAContract.String(), report.FATokenId.String(), addr}
 		if collector != nil && !report.OpHash.Equal(tezos.ZeroOpHash) {
 			if _, ok := validOpHashes[report.OpHash.String()]; ok {
-				paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
+				paidOut[payoutId] = report
 				continue
 			}
 
@@ -135,7 +141,7 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 				slog.Warn("collector check failed", "op_hash", report.OpHash.String(), "error", err.Error())
 			}
 			if paid == common.OPERATION_STATUS_APPLIED {
-				paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
+				paidOut[payoutId] = report
 				validOpHashes[report.OpHash.String()] = true
 			}
 			// NOTE: in case we would like to rely only on collector status we could continue here
@@ -144,17 +150,18 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 		}
 
 		if report.IsSuccess {
-			paidOut[payoutId{report.Kind, report.TxKind, report.Delegator.String(), report.Recipient.String()}] = report
+			paidOut[payoutId] = report
 			validOpHashes[report.OpHash.String()] = true
 		}
 	}
 
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		k := payout.Delegator
-		if k.Equal(tezos.ZeroAddress) {
-			k = payout.Recipient
+		addr := payout.Delegator.String()
+		if payout.Delegator.Equal(tezos.ZeroAddress) {
+			addr = payout.Recipient.String()
 		}
-		_, ok := paidOut[payoutId{payout.Kind, payout.TxKind, k.String(), payout.Recipient.String()}]
+		payoutId := payoutId{payout.Kind, payout.TxKind, payout.FAContract.String(), payout.FATokenId.String(), addr}
+		_, ok := paidOut[payoutId]
 		return !ok
 	}), lo.Values(paidOut)
 }
