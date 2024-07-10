@@ -160,7 +160,7 @@ var payDateRangeCmd = &cobra.Command{
 		}
 		switch {
 		case state.Global.GetWantsOutputJson():
-			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults)
+			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults, "phase", "result")
 		default:
 			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}

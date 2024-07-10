@@ -42,19 +42,6 @@ var payCmd = &cobra.Command{
 			assertRequireConfirmation("⚠️  With your current configuration you are not going to donate to tez.capital.😔 Do you want to proceed?")
 		}
 
-		if cycle <= 0 {
-			lastCompletedCycle := assertRunWithResultAndErrorMessage(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
-			cycle = lastCompletedCycle + cycle
-		}
-
-		slog.Info("acquiring lock", "cycle", cycle)
-		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycle)
-		if err != nil {
-			slog.Error("failed to acquire lock", "error", err.Error())
-			os.Exit(EXIT_OPERTION_FAILED)
-		}
-		defer unlock()
-
 		var generationResult *common.CyclePayoutBlueprint
 		fromFile, _ := cmd.Flags().GetString(FROM_FILE_FLAG)
 		fromStdin, _ := cmd.Flags().GetBool(FROM_STDIN_FLAG)
@@ -68,6 +55,11 @@ var payCmd = &cobra.Command{
 				return loadGeneratedPayoutsFromFile(fromFile)
 			}, EXIT_PAYOUTS_READ_FAILURE)
 		default:
+			if cycle <= 0 {
+				lastCompletedCycle := assertRunWithResultAndErrorMessage(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
+				cycle = lastCompletedCycle + cycle
+			}
+
 			var err error
 			generationResult, err = core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 				&common.GeneratePayoutsOptions{
@@ -85,12 +77,26 @@ var payCmd = &cobra.Command{
 			}
 		}
 
+		cycles := lo.Reduce(generationResult.Payouts, func(acc []int64, cp common.PayoutRecipe, _ int) []int64 {
+			if lo.Contains(acc, cp.Cycle) {
+				return acc
+			}
+			return append(acc, cp.Cycle)
+		}, []int64{})
+
+		slog.Info("acquiring lock", "cycles", cycles)
+		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycles...)
+		if err != nil {
+			slog.Error("failed to acquire lock", "error", err.Error())
+			os.Exit(EXIT_OPERTION_FAILED)
+		}
+		defer unlock()
+
 		slog.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 		}, EXIT_OPERTION_FAILED)
 
-		cycles := []int64{generationResult.Cycle}
 		switch {
 		case state.Global.GetWantsOutputJson():
 			slog.Info(constants.LOG_MESSAGE_PREPAYOUT_SUMMARY,
@@ -143,7 +149,7 @@ var payCmd = &cobra.Command{
 		}
 		switch {
 		case state.Global.GetWantsOutputJson():
-			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults)
+			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults, "phase", "result")
 		default:
 			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}

@@ -61,7 +61,7 @@ var generatePayoutsCmd = &cobra.Command{
 
 		switch {
 		case state.Global.GetWantsOutputJson():
-			slog.Info(constants.LOG_MESSAGE_PAYOUTS_GENERATED, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_PAYOUTS, generationResult.Payouts)
+			slog.Info(constants.LOG_MESSAGE_PAYOUTS_GENERATED, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_PAYOUTS, generationResult.Payouts, constants.LOG_FIELD_SUMMARY, generationResult.Summary, "phase", "result")
 		default:
 			utils.PrintPayouts(utils.OnlyInvalidPayouts(generationResult.Payouts), utils.FormatCycleNumbers(cycles...), false)
 			utils.PrintPayouts(utils.OnlyValidPayouts(generationResult.Payouts), utils.FormatCycleNumbers(cycles...), true)

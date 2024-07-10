@@ -9,6 +9,7 @@ const (
 
 	LOG_FIELD_PAYOUTS                 = "payouts"
 	LOG_FIELD_CYCLES                  = "cycles"
+	LOG_FIELD_SUMMARY                 = "summary"
 	LOG_FIELD_REPORTS_OF_PAST_PAYOUTS = "reports_of_past_payouts"
 	LOG_FIELD_ACCUMULATED_PAYOUTS     = "accumulated_payouts"
 	LOG_FIELD_VALID_PAYOUTS           = "valid_payouts"
