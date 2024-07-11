@@ -37,7 +37,7 @@ func executePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchI
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationBroadcastFailed, err))
 	}
 
-	logger.Info("waiting for confirmation of batch", "id", batchId, "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer))
+	logger.Info("waiting for confirmation", "id", batchId, "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer), "op_hash", opExecCtx.GetOpHash())
 	ctx.protectedSection.Pause() // pause protected section to allow confirmation canceling
 	err = opExecCtx.WaitForApply()
 	ctx.protectedSection.Resume() // resume protected section
