@@ -361,7 +361,14 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 			}
 		}
 
-		if utils.Abs(bakingPower.Int64()-tzktBakerCycleData.BakingPower) > 20 { // 20 mutes tolerance, we would be ok with 1 but since 751 when new model kicks in there is few more mutez difference, likely because of halved delegation power
+		numberOfStakers := lo.Reduce(protocolRewardsCycleData.Delegators, func(agg int64, delegator splitDelegator, _ int) int64 {
+			if delegator.StakedBalance > 0 {
+				return agg + 1
+			}
+			return agg
+		}, 0)
+
+		if utils.Abs(bakingPower.Int64()-tzktBakerCycleData.BakingPower) > numberOfStakers { // up to numberOfStakers difference in mutez is allowed - rounding deviations from staking_numerator/staking_denominator
 			slog.Error("bakingPower mismatch", "bakingPower", bakingPower, "tzktBakerCycleData.BakingPower", tzktBakerCycleData.BakingPower)
 			return nil, errors.Join(constants.ErrCycleDataProtocolRewardsMismatch, fmt.Errorf("bakingPower: %d, tzktBakerCycleData.BakingPower: %d, diff: %d", bakingPower.Int64(), tzktBakerCycleData.BakingPower, bakingPower.Int64()-tzktBakerCycleData.BakingPower))
 		}
