@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/common"
 	reporter_engines "github.com/tez-capital/tezpay/engines/reporter"
+	"github.com/tez-capital/tezpay/state"
 	"github.com/tez-capital/tezpay/utils"
 )
 
@@ -26,6 +27,7 @@ var statisticsCmd = &cobra.Command{
 
 		var total common.CyclePayoutSummary
 		ok := 0
+		collectedCycles := make([]int64, 0, n)
 		for i := 0; i < n; i++ {
 			cycle := lastCycle - int64(i)
 			summary, err := fsReporter.GetExistingCycleSummary(cycle)
@@ -34,6 +36,7 @@ var statisticsCmd = &cobra.Command{
 				continue
 			}
 			total = *total.CombineNumericData(summary)
+			collectedCycles = append(collectedCycles, cycle)
 			ok++
 		}
 
@@ -41,6 +44,11 @@ var statisticsCmd = &cobra.Command{
 		header := fmt.Sprintf("Statistics #%d - #%d", firstCycle, lastCycle)
 		if firstCycle == lastCycle {
 			header = fmt.Sprintf("Statistics #%d", lastCycle)
+		}
+
+		if state.Global.GetWantsOutputJson() {
+			slog.Info("statistics generated", "result", total, "cycles", collectedCycles, "phase", "result")
+			return
 		}
 		utils.PrintCycleSummary(total, header)
 	},
