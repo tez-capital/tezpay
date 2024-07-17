@@ -23,12 +23,7 @@ var (
 	onchainCompletedCycle int64
 	lastProcessedCycle    int64
 	cycleToProcess        int64
-
-	// TODO: remove after AI
-	startedAtCompletedCycle int64
-	// TODO: end remove after AI
-
-	endCycle int64
+	endCycle              int64
 )
 
 func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool) (processed bool) {
@@ -66,16 +61,16 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		return retry()
 	}
 
-	slog.Info("===================== PROCESSING START =====================")
-	slog.Info("processing cycle", "cycle", cycleToProcess)
-
-	slog.Info("acquiring lock", "cycle", cycleToProcess)
+	slog.Info("acquiring lock", "cycle", cycleToProcess, "phase", "acquiring_lock")
 	unlock, err := lockCyclesWithTimeout(time.Minute*10, cycleToProcess)
 	if err != nil {
 		slog.Error("failed to acquire lock", "error", err.Error())
 		return retry()
 	}
 	defer unlock()
+
+	slog.Info("===================== PROCESSING START =====================")
+	slog.Info("processing cycle", "cycle", cycleToProcess)
 
 	generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
 		&common.GeneratePayoutsOptions{
@@ -119,10 +114,14 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	// notify
 	failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
-	if len(executionResult.BatchResults) > 0 && failedCount > 0 {
-		slog.Error("failed operations detected", "failed", failedCount, "total", len(executionResult.BatchResults))
-		notifyAdmin(config, fmt.Sprintf("Failed operations detected: %d/%d in cycle %d", failedCount, len(executionResult.BatchResults), cycleToProcess))
-		return
+	if len(executionResult.BatchResults) > 0 {
+		if failedCount > 0 {
+			slog.Error("failed operations detected", "failed", failedCount, "total", len(executionResult.BatchResults), "cycle", cycleToProcess, "phase", "cycle_processing_failed")
+			notifyAdmin(config, fmt.Sprintf("Failed operations detected: %d/%d in cycle %d", failedCount, len(executionResult.BatchResults), cycleToProcess))
+			return
+		} else {
+			slog.Info("all operations succeeded", "total", len(executionResult.BatchResults), "cycle", cycleToProcess, "phase", "cycle_processing_success")
+		}
 	}
 	if !silent {
 		notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
@@ -178,9 +177,6 @@ var continualCmd = &cobra.Command{
 		onchainCompletedCycle = assertRunWithResultAndErrorMessage(func() (int64, error) {
 			return collector.GetLastCompletedCycle()
 		}, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
-		// TODO: remove after AI
-		startedAtCompletedCycle = onchainCompletedCycle
-		// TODO: end remove after AI
 
 		lastProcessedCycle = onchainCompletedCycle
 		if initialCycle != 0 {
@@ -203,15 +199,15 @@ var continualCmd = &cobra.Command{
 		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s, protocol %s)", lastProcessedCycle+1, constants.VERSION, startupProtocol))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
-				slog.Info("waiting for next cycle to complete")
+				slog.Info("waiting for next cycle to complete", "phase", "waiting_for_next_cycle")
 				var err error
 				onchainCompletedCycle, err = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 				if err != nil {
 					if errors.Is(err, constants.ErrMonitoringCanceled) {
-						slog.Info("cycle monitoring canceled")
+						slog.Info("cycle monitoring canceled", "phase", "cycle monitoring canceled")
 						notifyAdmin(config, "Cycle monitoring canceled.")
 					} else {
-						slog.Error("failed to wait for next completed cycle", "error", err.Error())
+						slog.Error("failed to wait for next completed cycle", "error", err.Error(), "phase", "failed_to_wait_for_next_completed_cycle")
 						notifyAdmin(config, "Failed to wait for next completed cycle.")
 					}
 					return
@@ -223,18 +219,10 @@ var continualCmd = &cobra.Command{
 				currentProtocol := GetProtocolWithRetry(collector)
 				if currentProtocol != startupProtocol {
 					/// we can not exit here. Users may configure recover mechanism in case of crashes/exits so we really want to wait for the operator to take action
-					slog.Warn("protocol changed, operator action required", "old_protocol", startupProtocol, "new_protocol", currentProtocol)
+					slog.Warn("protocol changed, operator action required", "old_protocol", startupProtocol, "new_protocol", currentProtocol, "phase", "waiting for operator action")
 					notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
 					continue
 				}
-				// TODO: remove after AI
-				if startedAtCompletedCycle < constants.FIRST_PARIS_AI_ACTIVATED_CYCLE /* if started before AI activation */ &&
-					lastProcessedCycle+1 >= constants.FIRST_PARIS_AI_ACTIVATED_CYCLE /* and if we are going to process AI activated cycle */ {
-					slog.Warn("AI activation cycle reached, stopping payouts until operator takes action")
-					notifyAdmin(config, "AI activation cycle reached, stopping payouts until operator takes action")
-					continue
-				}
-				// TODO: end remove after AI
 			}
 
 			cycleToProcess = lastProcessedCycle + 1

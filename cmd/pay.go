@@ -84,7 +84,7 @@ var payCmd = &cobra.Command{
 			return append(acc, cp.Cycle)
 		}, []int64{})
 
-		slog.Info("acquiring lock", "cycles", cycles)
+		slog.Info("acquiring lock", "cycles", cycles, "phase", "acquiring_lock")
 		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycles...)
 		if err != nil {
 			slog.Error("failed to acquire lock", "error", err.Error())

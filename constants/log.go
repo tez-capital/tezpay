@@ -7,6 +7,8 @@ const (
 	LOG_MESSAGE_PREPAYOUT_SUMMARY = "pre-payout summary"
 	LOG_MESSAGE_PAYOUT_SUMMARY    = "payout summary"
 
+	LOG_SERVER_CACHE_CAPACITY = 50
+
 	LOG_FIELD_PAYOUTS                 = "payouts"
 	LOG_FIELD_CYCLES                  = "cycles"
 	LOG_FIELD_CYCLE_PAYOUT_BLUEPRINT  = "cycle_payout_blueprint"

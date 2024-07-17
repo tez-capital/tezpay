@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 
 const (
 	LOG_LEVEL_FLAG               = "log-level"
+	LOG_SERVER_FLAG              = "log-server"
 	PATH_FLAG                    = "path"
 	VERSION_FLAG                 = "version"
 	DISABLE_DONATION_PROMPT_FLAG = "disable-donation-prompt"
@@ -35,9 +37,18 @@ var (
 	}
 )
 
-func setupJsonLogger(level slog.Level) {
-	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+func setupJsonLogger(level slog.Level, logServerAddress string) {
+	var target io.Writer
+	if logServerAddress != "" {
+		target = utils.NewMultiWriter(os.Stdout, utils.NewLogServer(logServerAddress))
+	} else {
+		target = os.Stdout
+	}
+	handler := slog.NewJSONHandler(target, &slog.HandlerOptions{Level: level})
 	slog.SetDefault(slog.New(handler))
+	if logServerAddress != "" {
+		slog.Info("log server started", "address", logServerAddress)
+	}
 }
 
 func setupTextLogger(level slog.Level) {
@@ -58,15 +69,16 @@ Copyright © %d alis.is
 			format, _ := cmd.Flags().GetString(OUTPUT_FORMAT_FLAG)
 			disableDonationPrompt, _ := cmd.Flags().GetBool(DISABLE_DONATION_PROMPT_FLAG)
 			level, _ := cmd.Flags().GetString(LOG_LEVEL_FLAG)
+			logServer, _ := cmd.Flags().GetString(LOG_SERVER_FLAG)
 
 			switch format {
 			case "json":
-				setupJsonLogger(LOG_LEVEL_MAP[level])
+				setupJsonLogger(LOG_LEVEL_MAP[level], logServer)
 			case "text":
 				setupTextLogger(LOG_LEVEL_MAP[level])
 			default:
 				if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
-					setupJsonLogger(LOG_LEVEL_MAP[level])
+					setupJsonLogger(LOG_LEVEL_MAP[level], logServer)
 				} else {
 					setupTextLogger(LOG_LEVEL_MAP[level])
 				}
@@ -127,6 +139,7 @@ func init() {
 	RootCmd.PersistentFlags().StringP(PATH_FLAG, "p", ".", "path to working directory")
 	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets output log format (json/text/auto)")
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
+	RootCmd.PersistentFlags().String(LOG_SERVER_FLAG, "", "launches log server at specified address")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
 	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
 	RootCmd.PersistentFlags().Bool(DISABLE_DONATION_PROMPT_FLAG, false, "Disable donation prompt")
