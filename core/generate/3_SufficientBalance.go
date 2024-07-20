@@ -85,7 +85,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, logger *slog.Logger, check fu
 
 		if err := check(data); err != nil {
 			if options.WaitForSufficientBalance {
-				logger.Error("failed to check balance, retrying in 5 minutes", "error", err.Error())
+				logger.Error("failed to check balance, retrying in 5 minutes", "error", err.Error(), "phase", "wait_for_sufficient_balance")
 				time.Sleep(time.Minute * 5)
 				continue
 			}
@@ -94,7 +94,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, logger *slog.Logger, check fu
 
 		if !data.IsSufficient {
 			if options.WaitForSufficientBalance {
-				logger.Warn("insufficient balance, retrying in 5 minutes...", "message", data.Message)
+				logger.Warn("insufficient balance, retrying in 5 minutes...", "message", data.Message, "phase", "wait_for_sufficient_balance")
 				if notificatorTrigger%12 == 0 { // every hour
 					ctx.AdminNotify(fmt.Sprintf("insufficient balance - %s", data.Message))
 				}
