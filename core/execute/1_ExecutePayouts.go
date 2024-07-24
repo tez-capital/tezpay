@@ -4,59 +4,76 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/state"
 	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 )
 
 func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchId string, batch common.RecipeBatch) *common.BatchResult {
 	logger.Info("dry running batch", "id", batchId, "tx_count", len(batch))
+	if state.Global.GetWantsOutputJson() {
+		logger.Info("creating batch", "recipes", batch, "phase", "executing_batch")
+	} else {
+		logger.Info("creating batch", "tx_count", len(batch), "phase", "executing_batch")
+	}
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
 	if err != nil {
-		logger.Warn("failed to create operation execution context", "id", batchId, "error", err.Error())
+		logger.Warn("failed to create operation execution context", "id", batchId, "error", err.Error(), "phase", "batch_execution_finished")
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
 	}
+	logger.Info("broadcasting batch")
+	time.Sleep(2 * time.Second)
+	logger.Info("waiting for confirmation", "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer), "op_hash", opExecCtx.GetOpHash(), "phase", "batch_waiting_for_confirmation")
+	time.Sleep(4 * time.Second)
+	logger.Info("batch successful", "phase", "batch_execution_finished")
 	return common.NewSuccessBatchResult(batch, tezos.ZeroOpHash)
 }
 
 func executePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchId string, batch common.RecipeBatch) *common.BatchResult {
-	logger.Info("creating batch", "id", batchId, "tx_count", len(batch))
+	logger = logger.With("batch_id", batchId)
+	if state.Global.GetWantsOutputJson() {
+		logger.Info("creating batch", "recipes", batch, "phase", "executing_batch")
+	} else {
+		logger.Info("creating batch", "tx_count", len(batch), "phase", "executing_batch")
+	}
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
 	if err != nil {
-		logger.Warn("failed to create operation execution context", "id", batchId, "error", err.Error())
+		logger.Warn("failed to create operation execution context", "error", err.Error(), "phase", "batch_execution_finished")
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
 	}
 
-	logger.Info("broadcasting batch", "id", batchId)
+	logger.Info("broadcasting batch")
 	err = opExecCtx.Dispatch(nil)
 	if err != nil {
-		logger.Warn("failed to broadcast batch", "id", batchId, "error", err.Error())
+		logger.Warn("failed to broadcast batch", "error", err.Error(), "phase", "batch_execution_finished")
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationBroadcastFailed, err))
 	}
 
-	logger.Info("waiting for confirmation", "id", batchId, "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer), "op_hash", opExecCtx.GetOpHash())
+	logger.Info("waiting for confirmation", "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer), "op_hash", opExecCtx.GetOpHash(), "phase", "batch_waiting_for_confirmation")
 	ctx.protectedSection.Pause() // pause protected section to allow confirmation canceling
 	err = opExecCtx.WaitForApply()
 	ctx.protectedSection.Resume() // resume protected section
 	if err != nil {
-		logger.Warn("failed to apply batch", "id", batchId, "error", err.Error())
+		logger.Warn("failed to apply batch", "error", err.Error(), "phase", "batch_execution_finished")
 		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationConfirmationFailed, err))
 	}
 
-	logger.Info("batch successful", "id", batchId)
+	logger.Info("batch successful", "phase", "batch_execution_finished")
 	return common.NewSuccessBatchResult(batch, opExecCtx.GetOpHash())
 }
 
 func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsOptions) *PayoutExecutionContext {
-	logger := ctx.logger.With("phase", "execute_payouts")
+	logger := ctx.logger
 	batchCount := len(ctx.StageData.Batches)
 	batchesResults := make(common.BatchResults, 0)
 
 	ctx.protectedSection.Start()
-	logger.Info("paying out", "batches_count", batchCount)
+	logger.Info("paying out", "batches_count", batchCount, "phase", "batch_execution_start")
 	reporter := ctx.GetReporter()
 	for i, batch := range ctx.StageData.Batches {
 		if err := reporter.ReportPayouts(batchesResults.ToReports()); err != nil {

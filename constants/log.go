@@ -5,7 +5,7 @@ import "slices"
 const (
 	LOG_MESSAGE_PAYOUTS_GENERATED = "payouts generated"
 	LOG_MESSAGE_PREPAYOUT_SUMMARY = "pre-payout summary"
-	LOG_MESSAGE_PAYOUT_SUMMARY    = "payout summary"
+	LOG_MESSAGE_PAYOUTS_EXECUTED  = "payouts executed"
 
 	LOG_SERVER_CACHE_CAPACITY = 50
 

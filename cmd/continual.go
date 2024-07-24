@@ -204,7 +204,7 @@ var continualCmd = &cobra.Command{
 				onchainCompletedCycle, err = monitor.WaitForNextCompletedCycle(lastProcessedCycle)
 				if err != nil {
 					if errors.Is(err, constants.ErrMonitoringCanceled) {
-						slog.Info("cycle monitoring canceled", "phase", "cycle monitoring canceled")
+						slog.Info("cycle monitoring canceled", "phase", "cycle_monitoring_canceled")
 						notifyAdmin(config, "Cycle monitoring canceled.")
 					} else {
 						slog.Error("failed to wait for next completed cycle", "error", err.Error(), "phase", "failed_to_wait_for_next_completed_cycle")
@@ -219,7 +219,7 @@ var continualCmd = &cobra.Command{
 				currentProtocol := GetProtocolWithRetry(collector)
 				if currentProtocol != startupProtocol {
 					/// we can not exit here. Users may configure recover mechanism in case of crashes/exits so we really want to wait for the operator to take action
-					slog.Warn("protocol changed, operator action required", "old_protocol", startupProtocol, "new_protocol", currentProtocol, "phase", "waiting for operator action")
+					slog.Warn("protocol changed, operator action required", "old_protocol", startupProtocol, "new_protocol", currentProtocol, "phase", "waiting_for_operator_action")
 					notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
 					continue
 				}

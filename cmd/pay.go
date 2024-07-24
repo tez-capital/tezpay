@@ -111,7 +111,7 @@ var payCmd = &cobra.Command{
 		}
 
 		if len(preparationResult.ValidPayouts) == 0 {
-			slog.Info("nothing to pay out")
+			slog.Info("nothing to pay out", "phase", "result")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
 				notifyPayoutsProcessed(config, &generationResult.Summary, notificator)
@@ -123,7 +123,7 @@ var payCmd = &cobra.Command{
 			assertRequireConfirmation("Do you want to pay out above VALID payouts?")
 		}
 
-		slog.Info("executing payout")
+		slog.Info("executing payouts")
 		executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 			var reporter common.ReporterEngine
 			reporter = fsReporter
@@ -149,7 +149,7 @@ var payCmd = &cobra.Command{
 		}
 		switch {
 		case state.Global.GetWantsOutputJson():
-			slog.Info(constants.LOG_MESSAGE_PAYOUT_SUMMARY, constants.LOG_FIELD_CYCLES, cycles, constants.LOG_FIELD_BATCHES, executionResult.BatchResults, "phase", "result")
+			slog.Info(constants.LOG_MESSAGE_PAYOUTS_EXECUTED, constants.LOG_FIELD_CYCLES, cycles, "phase", "result")
 		default:
 			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}

@@ -43,7 +43,7 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 			ExternalStakedBalance:    stageData.CycleData.ExternalStakedBalance,
 			ExternalDelegatedBalance: stageData.CycleData.ExternalDelegatedBalance,
 			EarnedFees:               stageData.CycleData.BlockDelegatedFees,
-			EarnedRewards:            stageData.CycleData.BlockDelegatedRewards.Add(stageData.CycleData.EndorsementDelegatedRewards),
+			EarnedRewards:            stageData.CycleData.GetTotalDelegatedRewards(ctx.configuration.PayoutConfiguration.PayoutMode),
 			DistributedRewards:       sumValidPayoutsAmount(stageData.Payouts),
 			BondIncome:               stageData.BakerBondsAmount,
 			FeeIncome:                stageData.BakerFeesAmount,
