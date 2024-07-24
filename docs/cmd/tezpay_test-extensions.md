@@ -1,21 +1,19 @@
-docs/cmd/tezpay_transfer.md## tezpay transfer
+docs/cmd/tezpay_test-extensions.md## tezpay test-extensions
 
-transfers tez to specified address
+extensions test
 
 ### Synopsis
 
-transfers tez to specified address from payout wallet
+initializes and executes test hook agains extensions
 
 ```
-tezpay transfer <destination> <amount tez> [flags]
+tezpay test-extensions [flags]
 ```
 
 ### Options
 
 ```
-      --confirm   automatically confirms transfer
-  -h, --help      help for transfer
-      --mutez     amount in mutez
+  -h, --help   help for test-extensions
 ```
 
 ### Options inherited from parent commands
