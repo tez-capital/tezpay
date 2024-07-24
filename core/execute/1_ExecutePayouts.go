@@ -15,7 +15,7 @@ import (
 )
 
 func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchId string, batch common.RecipeBatch) *common.BatchResult {
-	logger.Info("dry running batch", "id", batchId, "tx_count", len(batch))
+	logger = logger.With("batch_id", batchId)
 	if state.Global.GetWantsOutputJson() {
 		logger.Info("creating batch", "recipes", batch, "phase", "executing_batch")
 	} else {
