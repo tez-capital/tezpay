@@ -16,4 +16,5 @@ const (
 ]]
 
 file = file:gsub('VERSION%s*=%s*"dev"', 'VERSION = "' .. version .. '"')
+print(file)
 fs.write_file(VERSION_FILE, file)

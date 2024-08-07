@@ -21,7 +21,7 @@ jobs:
         uses: alis-is/setup-eli@v1
       - name: inject version
         run: |
-          eli .github/inject-version.lua ${{ github.ref }}
+          eli .github/inject-version.lua ${{ github.ref_name }}
           
       - name: Build win-arm64
         run: env CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-win-arm64.exe
