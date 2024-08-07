@@ -16,6 +16,13 @@ jobs:
           go-version: '>=1.22.0'
       - name: Test
         run: go test -v ./...
+
+      - name: setup eli
+        uses: alis-is/setup-eli@v1
+      - name: inject version
+        run: |
+          eli .github/inject-version.lua ${{ github.ref }}
+          
       - name: Build win-arm64
         run: env CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o bin/tezpay-win-arm64.exe
       - name: Build win-amd64
