@@ -76,7 +76,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 	logger.Info("paying out", "batches_count", batchCount, "phase", "batch_execution_start")
 	reporter := ctx.GetReporter()
 	for i, batch := range ctx.StageData.Batches {
-		if err := reporter.ReportPayouts(batchesResults.ToReports()); err != nil {
+		if err := reporter.ReportPayouts(append(batchesResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)); err != nil {
 			logger.Warn("failed to write partial report of payouts", "error", err.Error())
 		}
 
