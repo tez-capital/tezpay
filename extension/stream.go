@@ -112,11 +112,17 @@ func (e *TcpExtension) Load() error {
 			return err
 		}
 		time.Sleep(time.Duration(e.definition.WaitForStart) * time.Second)
+		go func() {
+			if err := cmd.Wait(); err != nil {
+				slog.Default().Error("extension process exited", "extension", e.GetDefinition().Name, "err", err)
+			}
+		}() // reaping
 	}
 	conn, err := net.Dial("tcp", e.GetDefinition().Url)
 	if err != nil {
 		return err
 	}
+
 	objStream := NewPlainObjectStream(conn)
 	streamEndpoint := NewStreamEndpoint(e.ctx, objStream)
 	streamEndpoint.UseLogger(slog.Default().With("extension", e.GetDefinition().Name))
