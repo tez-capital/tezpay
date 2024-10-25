@@ -34,5 +34,9 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.ValidateSimulatedPayouts,
 		generate.FinalizePayouts,
 		generate.CreateBlueprint).Unwrap()
-	return ctx.StageData.PayoutBlueprint, err
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx.StageData.PayoutBlueprint, nil
 }

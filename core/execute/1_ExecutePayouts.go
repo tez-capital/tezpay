@@ -44,7 +44,11 @@ func executePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchI
 	opExecCtx, err := batch.ToOpExecutionContext(ctx.GetSigner(), ctx.GetTransactor())
 	if err != nil {
 		logger.Warn("failed to create operation execution context", "error", err.Error(), "phase", "batch_execution_finished")
-		return common.NewFailedBatchResultWithOpHash(batch, opExecCtx.GetOpHash(), errors.Join(constants.ErrOperationContextCreationFailed, err))
+		opHash := tezos.ZeroOpHash
+		if opExecCtx != nil {
+			opHash = opExecCtx.GetOpHash()
+		}
+		return common.NewFailedBatchResultWithOpHash(batch, opHash, errors.Join(constants.ErrOperationContextCreationFailed, err))
 	}
 
 	logger.Info("broadcasting batch")

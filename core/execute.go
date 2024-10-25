@@ -20,8 +20,12 @@ func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *conf
 	ctx, err = WrapContext[*execute.PayoutExecutionContext, *common.ExecutePayoutsOptions](ctx).ExecuteStages(options,
 		execute.SplitIntoBatches,
 		execute.ExecutePayouts).Unwrap()
+	if err != nil {
+		return nil, err
+	}
+
 	return &common.ExecutePayoutsResult{
 		BatchResults:   ctx.StageData.BatchResults,
 		PaidDelegators: ctx.StageData.PaidDelegators,
-	}, err
+	}, nil
 }
