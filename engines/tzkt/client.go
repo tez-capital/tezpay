@@ -331,25 +331,23 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
 		switch {
 		case cycle > 750: // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
-			maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
-			if maximumDelegated.IsLess(delegatedPower) {
-				delegatedPower = maximumDelegated
-			}
-
 			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
 			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(5)
+
 			if maximumExternalStaked.IsLess(externalStakedBalance) {
 				diff := externalStakedBalance.Sub(maximumExternalStaked)
 				externalStakedBalance = maximumExternalStaked
 				delegatedPower = delegatedPower.Add(diff)
 			}
 
+			maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
+			if maximumDelegated.IsLess(delegatedPower) {
+				delegatedPower = maximumDelegated
+			}
 			// halve delegation power
 			delegatedPower = delegatedPower.Div64(2)
 
 			stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add(externalStakedBalance)
-
-			// we do not check maximum staking power, because overstake is automatically moved to delegation by protocol-rewards
 			bakingPower = stakedPower.Add(delegatedPower)
 		default:
 			bakingPower = tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).
