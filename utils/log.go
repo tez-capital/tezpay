@@ -30,6 +30,11 @@ type PrettyTextLogHandler struct {
 	groups []string
 }
 
+func isHiddenAttr(attr slog.Attr) bool {
+	_, found := slices.BinarySearch(constants.LOG_TOP_LEVEL_HIDDEN_FIELDS, attr.Key)
+	return found
+}
+
 func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error {
 	level := r.Level.String() + ":"
 	switch r.Level {
@@ -48,7 +53,8 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 	for groupId, group := range h.attrs {
 		for _, attr := range group {
 			if groupId == "" {
-				if _, found := slices.BinarySearch(constants.LOG_TOP_LEVEL_HIDDEN_FIELDS, attr.Key); found {
+				if isHiddenAttr(attr) {
+					delete(fields, attr.Key)
 					continue
 				}
 				fields[attr.Key] = attr.Value.Any()
@@ -65,7 +71,9 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 	}
 
 	r.Attrs(func(a slog.Attr) bool {
-		fields[a.Key] = a.Value.Any()
+		if !isHiddenAttr(a) {
+			fields[a.Key] = a.Value.Any()
+		}
 		return true
 	})
 
