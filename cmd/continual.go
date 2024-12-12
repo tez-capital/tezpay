@@ -100,7 +100,11 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	if forceConfirmationPrompt && utils.IsTty() {
 		PrintPreparationResults(preparationResult, generationResult.Cycle)
-		assertRequireConfirmation("Do you want to pay out above VALID payouts?")
+		msg := "Do you want to pay out above VALID payouts?"
+		if isDryRun {
+			msg = msg + " (dry-run)"
+		}
+		assertRequireConfirmation(msg)
 	}
 
 	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
@@ -123,9 +127,10 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 			slog.Info("all operations succeeded", "total", len(executionResult.BatchResults), "cycle", cycleToProcess, "phase", "cycle_processing_success")
 		}
 	}
-	if !silent {
+	if !silent && !isDryRun {
 		notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
 	}
+	PrintPayoutWalletRemainingBalance(collector, signer)
 	return
 }
 

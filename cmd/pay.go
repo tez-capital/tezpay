@@ -120,7 +120,11 @@ var payCmd = &cobra.Command{
 		}
 
 		if !confirmed {
-			assertRequireConfirmation("Do you want to pay out above VALID payouts?")
+			msg := "Do you want to pay out above VALID payouts?"
+			if isDryRun {
+				msg = msg + " (dry-run)"
+			}
+			assertRequireConfirmation(msg)
 		}
 
 		slog.Info("executing payouts")
@@ -144,7 +148,7 @@ var payCmd = &cobra.Command{
 			time.Sleep(time.Minute * 5)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
-		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
+		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent && !isDryRun {
 			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
 		}
 		switch {
@@ -153,6 +157,7 @@ var payCmd = &cobra.Command{
 		default:
 			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}
+		PrintPayoutWalletRemainingBalance(collector, signer)
 	},
 }
 

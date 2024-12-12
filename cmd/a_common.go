@@ -12,6 +12,7 @@ import (
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/constants/enums"
 	collector_engines "github.com/tez-capital/tezpay/engines/collector"
 	signer_engines "github.com/tez-capital/tezpay/engines/signer"
 	transactor_engines "github.com/tez-capital/tezpay/engines/transactor"
@@ -134,4 +135,15 @@ func PrintPreparationResults(preparationResult *common.PreparePayoutsResult, cyc
 	utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false)
 	utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true)
 	utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", title), true)
+}
+
+func PrintPayoutWalletRemainingBalance(collector common.CollectorEngine, signer common.SignerEngine) {
+	addr := signer.GetPKH()
+	balance, err := collector.GetBalance(addr)
+	if err != nil {
+		slog.Error("failed to get balance", "error", err.Error())
+		return
+	}
+
+	slog.Info("the payout wallet remaining balance", "wallet", addr.String(), "balance", common.FormatAmount(enums.PAYOUT_TX_KIND_TEZ, balance.Int64()), "phase", "payout_wallet_remaining_balance")
 }

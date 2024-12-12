@@ -130,7 +130,11 @@ var payDateRangeCmd = &cobra.Command{
 		}
 
 		if !confirmed {
-			assertRequireConfirmation("Do you want to pay out above VALID payouts?")
+			msg := "Do you want to pay out above VALID payouts?"
+			if isDryRun {
+				msg = msg + " (dry-run)"
+			}
+			assertRequireConfirmation(msg)
 		}
 
 		slog.Info("executing payout")
@@ -153,7 +157,7 @@ var payDateRangeCmd = &cobra.Command{
 			slog.Error("failed operations detected", "failed_count", failedCount, "total_count", len(executionResult.BatchResults))
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
-		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent {
+		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent && !isDryRun {
 			summary := generationResults.GetSummary()
 			summary.PaidDelegators = executionResult.PaidDelegators
 			notifyPayoutsProcessedThroughAllNotificators(config, summary)
@@ -164,6 +168,7 @@ var payDateRangeCmd = &cobra.Command{
 		default:
 			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}
+		PrintPayoutWalletRemainingBalance(collector, signer)
 	},
 }
 
