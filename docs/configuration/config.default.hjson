@@ -19,7 +19,10 @@
   }
   income_recipients: {}
   network: {
-    rpc_url: https://eu.rpc.tez.capital/
+    rpc_pool: [
+      https://eu.rpc.tez.capital/
+      https://us.rpc.tez.capital/
+    ]
     tzkt_url: https://api.tzkt.io/
     protocol_rewards_url: https://protocol-rewards.tez.capital/
     explorer: https://tzkt.io/

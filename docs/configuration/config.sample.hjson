@@ -136,7 +136,10 @@
   # tezos network configuration
   network: {
     # Url to rpc endpoint
-    rpc_url: https://eu.rpc.tez.capital/
+    rpc_pool: [
+      https://eu.rpc.tez.capital/
+      https://us.rpc.tez.capital/
+    ]
 
     # Url to tzkt endpoint
     tzkt_url: https://api.tzkt.io/
