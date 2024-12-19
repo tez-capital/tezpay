@@ -71,7 +71,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			Prefilter: []tezos.Address{tezos.MustParseAddress("tz1P6WKJu2rcbxKiKRZHKQKmKrpC9TfW1AwM"), tezos.MustParseAddress("tz1hZvgjekGo7DmQjWh7XnY5eLQD8wNYPczE")},
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
-			RpcUrl:                 constants.DEFAULT_RPC_URL,
+			RpcPool:                constants.DEFAULT_RPC_POOL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			Explorer:               "https://tzstats.com/",

@@ -10,7 +10,6 @@ const (
 	DEFAULT_BAKER_FEE                     = float64(.05)
 	DEFAULT_DELEGATOR_MINIMUM_BALANCE     = float64(0)
 	DEFAULT_PAYOUT_MINIMUM_AMOUNT         = float64(0)
-	DEFAULT_RPC_URL                       = "https://eu.rpc.tez.capital/"
 	DEFAULT_TZKT_URL                      = "https://api.tzkt.io/"
 	DEFAULT_PROTOCOL_REWARDS_URL          = "https://protocol-rewards.tez.capital/"
 	DEFAULT_EXPLORER_URL                  = "https://tzkt.io/"
@@ -41,4 +40,11 @@ const (
 	DEFAULT_DONATION_PERCENTAGE = 0.05
 
 	FIRST_PARIS_AI_ACTIVATED_CYCLE = int64(748)
+)
+
+var (
+	DEFAULT_RPC_POOL = []string{
+		"https://eu.rpc.tez.capital/",
+		"https://us.rpc.tez.capital/",
+	}
 )

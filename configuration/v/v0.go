@@ -43,12 +43,13 @@ type DelegatorsConfigurationV0 struct {
 
 type TezosNetworkConfigurationV0 struct {
 	// RpcUrl represents the URL to the RPC node.
-	RpcUrl                 string `json:"rpc_url,omitempty" comment:"Url to rpc endpoint"`
-	TzktUrl                string `json:"tzkt_url,omitempty" comment:"Url to tzkt endpoint"`
-	ProtocolRewardsUrl     string `json:"protocol_rewards_url,omitempty" comment:"Url to protocol rewards endpoint"`
-	Explorer               string `json:"explorer,omitempty" comment:"Url to block explorer"`
-	DoNotPaySmartContracts bool   `json:"ignore_kt,omitempty" comment:"if true, smart contracts will not be paid out (used for testing)"`
-	IgnoreProtocolChanges  bool   `json:"ignore_protocol_changes,omitempty" comment:"if true, protocol changes will be ignored, otherwise the payout will be stopped if the protocol changes"`
+	RpcUrl                 string   `json:"rpc_url,omitempty" comment:"Url to rpc endpoint"`
+	RpcPool                []string `json:"rpc_pool,omitempty" comment:"Url to rpc endpoint"`
+	TzktUrl                string   `json:"tzkt_url,omitempty" comment:"Url to tzkt endpoint"`
+	ProtocolRewardsUrl     string   `json:"protocol_rewards_url,omitempty" comment:"Url to protocol rewards endpoint"`
+	Explorer               string   `json:"explorer,omitempty" comment:"Url to block explorer"`
+	DoNotPaySmartContracts bool     `json:"ignore_kt,omitempty" comment:"if true, smart contracts will not be paid out (used for testing)"`
+	IgnoreProtocolChanges  bool     `json:"ignore_protocol_changes,omitempty" comment:"if true, protocol changes will be ignored, otherwise the payout will be stopped if the protocol changes"`
 }
 
 type OverdelegationConfigurationV0 struct {
@@ -115,7 +116,7 @@ func GetDefaultV0() ConfigurationV0 {
 			Ignore:    make([]tezos.Address, 0),
 		},
 		Network: TezosNetworkConfigurationV0{
-			RpcUrl:                 constants.DEFAULT_RPC_URL,
+			RpcPool:                constants.DEFAULT_RPC_POOL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			Explorer:               constants.DEFAULT_EXPLORER_URL,

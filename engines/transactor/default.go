@@ -2,6 +2,7 @@ package transactor_engines
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -18,15 +19,14 @@ import (
 
 type DefaultRpcTransactor struct {
 	rpcUrl string
-	rpc    *rpc.Client
+	rpcs   []*rpc.Client
 	tzkt   *tzkt.Client
 }
 
 type DefaultRpcTransactorOpResult struct {
-	opHash tezos.OpHash
-	result *rpc.Result
-	rpc    *rpc.Client
-	tzkt   *tzkt.Client
+	opHash     tezos.OpHash
+	result     *rpc.Result
+	transactor *DefaultRpcTransactor
 }
 
 func (result *DefaultRpcTransactorOpResult) GetOpHash() tezos.OpHash {
@@ -46,7 +46,7 @@ func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 			slog.Debug(`failed to confirm with live monitoring, falling back to polling`)
 		}
 		for ctx.Err() != context.Canceled {
-			applied, _ := result.tzkt.WasOperationApplied(ctx, result.opHash)
+			applied, _ := result.transactor.tzkt.WasOperationApplied(ctx, result.opHash)
 			slog.Debug("operation status checked", "op_hash", result.opHash, "applied", applied)
 			if applied == common.OPERATION_STATUS_APPLIED || applied == common.OPERATION_STATUS_FAILED {
 				cancel()
@@ -80,17 +80,27 @@ func (result *DefaultRpcTransactorOpResult) WaitForApply() error {
 }
 
 func InitDefaultTransactor(config *configuration.RuntimeConfiguration) (*DefaultRpcTransactor, error) {
-	client := &http.Client{
+	http_client := &http.Client{
 		Timeout: 10 * 60 * time.Second,
 	}
 
-	rpcClient, err := rpc.NewClient(config.Network.RpcUrl, client)
-	if err != nil {
-		return nil, err
+	rpc_clients := make([]*rpc.Client, 0, len(config.Network.RpcPool))
+	failures := 0
+	for _, rpcUrl := range config.Network.RpcPool {
+		rpc_client, err := rpc.NewClient(rpcUrl, http_client)
+		if err != nil {
+			slog.Warn("failed to create rpc client", "url", rpcUrl, "error", err.Error())
+			failures++
+			continue
+		}
+		rpc_clients = append(rpc_clients, rpc_client)
+	}
+	if len(rpc_clients) == 0 {
+		return nil, fmt.Errorf("failed to create rpc clients, all %d failed", failures)
 	}
 
 	tzktClient, err := tzkt.InitClient(config.Network.TzktUrl, config.Network.ProtocolRewardsUrl, &tzkt.TzktClientOptions{
-		HttpClient:       client,
+		HttpClient:       http_client,
 		BalanceCheckMode: config.PayoutConfiguration.BalanceCheckMode,
 	})
 	if err != nil {
@@ -98,9 +108,8 @@ func InitDefaultTransactor(config *configuration.RuntimeConfiguration) (*Default
 	}
 
 	result := &DefaultRpcTransactor{
-		rpcUrl: config.Network.RpcUrl,
-		rpc:    rpcClient,
-		tzkt:   tzktClient,
+		rpcs: rpc_clients,
+		tzkt: tzktClient,
 	}
 	return result, result.RefreshParams()
 }
@@ -110,7 +119,19 @@ func (transactor *DefaultRpcTransactor) GetId() string {
 }
 
 func (transactor *DefaultRpcTransactor) RefreshParams() error {
-	return transactor.rpc.Init(context.Background())
+	failures := 0
+	for _, rpc := range transactor.rpcs {
+		err := rpc.Init(context.Background())
+		if err != nil {
+			slog.Warn("failed to refresh rpc params", "error", err.Error())
+			failures++
+		}
+	}
+	if failures == len(transactor.rpcs) {
+		return fmt.Errorf("failed to refresh rpc params for all clients, all %d failed", failures)
+	}
+
+	return nil
 }
 
 func (transactor *DefaultRpcTransactor) GetNewRpcClient() (*rpc.Client, error) {
@@ -124,7 +145,9 @@ func (transactor *DefaultRpcTransactor) GetNewRpcClient() (*rpc.Client, error) {
 }
 
 func (transactor *DefaultRpcTransactor) GetLimits() (*common.OperationLimits, error) {
-	params, err := transactor.rpc.GetParams(context.Background(), rpc.NewBlockOffset(rpc.Head, 0))
+	params, err := utils.AttemptWithRpcClients(context.Background(), transactor.rpcs, func(client *rpc.Client) (*tezos.Params, error) {
+		return client.GetParams(context.Background(), rpc.Head)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +180,16 @@ func (transactor *DefaultRpcTransactor) initOpResult(opHash tezos.OpHash, opts *
 	res := rpc.NewResult(opHash).WithTTL(opts.TTL).WithConfirmations(opts.Confirmations)
 	res.Listen(rpcClient.BlockObserver)
 	return &DefaultRpcTransactorOpResult{
-		opHash: opHash,
-		result: res,
-		rpc:    rpcClient,
-		tzkt:   transactor.tzkt,
+		opHash:     opHash,
+		result:     res,
+		transactor: transactor,
 	}, nil
 }
 
 func (transactor *DefaultRpcTransactor) Broadcast(op *codec.Op) (tezos.OpHash, error) {
-	return transactor.rpc.Broadcast(context.Background(), op)
+	return utils.AttemptWithRpcClients(context.Background(), transactor.rpcs, func(client *rpc.Client) (tezos.OpHash, error) {
+		return client.Broadcast(context.Background(), op)
+	})
 }
 
 func (transactor *DefaultRpcTransactor) Dispatch(op *codec.Op, opts *rpc.CallOptions) (common.OpResult, error) {
