@@ -283,7 +283,7 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 			Ignore:       ignores,
 		},
 		Network: tezpay_configuration.TezosNetworkConfigurationV0{
-			RpcUrl:                 constants.DEFAULT_RPC_URL,
+			RpcPool:                constants.DEFAULT_RPC_POOL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			DoNotPaySmartContracts: false,

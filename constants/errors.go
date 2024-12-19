@@ -51,6 +51,7 @@ var (
 	ErrMissingTransactorEngine = errors.New("undefined transactor engine")
 	ErrMissingConfiguration    = errors.New("undefined configuration")
 	ErrMissingPayoutBlueprint  = errors.New("undefined payout blueprint")
+	ErrMixedRpcs               = errors.New("defined rpcs from different networks")
 
 	// generate payouts
 

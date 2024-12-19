@@ -65,12 +65,21 @@ type RuntimeIncomeRecipients struct {
 	Donations   map[string]float64 `json:"donations,omitempty"`
 }
 
+type RuntimeNetworkConfiguration struct {
+	RpcPool                []string `json:"rpc_pool,omitempty" comment:"Url to rpc endpoint"`
+	TzktUrl                string   `json:"tzkt_url,omitempty" comment:"Url to tzkt endpoint"`
+	ProtocolRewardsUrl     string   `json:"protocol_rewards_url,omitempty" comment:"Url to protocol rewards endpoint"`
+	Explorer               string   `json:"explorer,omitempty" comment:"Url to block explorer"`
+	DoNotPaySmartContracts bool     `json:"ignore_kt,omitempty" comment:"if true, smart contracts will not be paid out (used for testing)"`
+	IgnoreProtocolChanges  bool     `json:"ignore_protocol_changes,omitempty" comment:"if true, protocol changes will be ignored, otherwise the payout will be stopped if the protocol changes"`
+}
+
 type RuntimeConfiguration struct {
 	BakerPKH                   tezos.Address
 	PayoutConfiguration        RuntimePayoutConfiguration
 	Delegators                 RuntimeDelegatorsConfiguration
 	IncomeRecipients           RuntimeIncomeRecipients
-	Network                    tezpay_configuration.TezosNetworkConfigurationV0
+	Network                    RuntimeNetworkConfiguration
 	Overdelegation             tezpay_configuration.OverdelegationConfigurationV0
 	NotificationConfigurations []RuntimeNotificatorConfiguration
 	Extensions                 []tezpay_configuration.ExtensionConfigurationV0
@@ -107,8 +116,8 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			Ignore:    make([]tezos.Address, 0),
 			Prefilter: make([]tezos.Address, 0),
 		},
-		Network: tezpay_configuration.TezosNetworkConfigurationV0{
-			RpcUrl:                 constants.DEFAULT_RPC_URL,
+		Network: RuntimeNetworkConfiguration{
+			RpcPool:                constants.DEFAULT_RPC_POOL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
 			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			Explorer:               constants.DEFAULT_EXPLORER_URL,

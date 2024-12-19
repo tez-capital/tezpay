@@ -56,7 +56,6 @@ type TransactorEngine interface {
 	Broadcast(op *codec.Op) (tezos.OpHash, error)
 	Send(op *codec.Op, opts *rpc.CallOptions) (*rpc.Receipt, error)
 	GetLimits() (*OperationLimits, error)
-	WaitOpConfirmation(opHash tezos.OpHash, ttl int64, confirmations int64) (*rpc.Receipt, error)
 }
 
 type NotificatorEngine interface {

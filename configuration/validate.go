@@ -92,5 +92,6 @@ func (configuration *RuntimeConfiguration) Validate() (err error) {
 		_assert(err == nil, fmt.Sprintf("configuration.notifications.%s has invalid configuration - %s", v.Type, err.Error()))
 	}
 
+	_assert(len(configuration.Network.RpcPool) > 0, "no rpc specified")
 	return
 }

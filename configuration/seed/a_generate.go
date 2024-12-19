@@ -21,18 +21,6 @@ func getSerializeHjsonOptions() hjson.EncoderOptions {
 func Generate(sourceBytes []byte, kind enums.EConfigurationSeedKind) ([]byte, error) {
 	var versionInfo common.ConfigurationVersionInfo
 	switch kind {
-	case enums.BC_CONFIGURATION_SEED:
-		err := hjson.Unmarshal(sourceBytes, &versionInfo)
-		if err != nil {
-			return nil, errors.Join(constants.ErrInvalidSourceVersionInfo, err)
-		}
-		if versionInfo.TPVersion == nil && versionInfo.Version == nil {
-			return MigrateBcv0ToTPv0(sourceBytes)
-		}
-
-		/*future bc generators*/
-
-		return nil, errors.Join(constants.ErrUnsupportedBCVersion, fmt.Errorf("version: %v/%v", versionInfo.TPVersion, versionInfo.Version))
 	case enums.TRD_CONFIGURATION_SEED:
 		err := yaml.Unmarshal(sourceBytes, &versionInfo)
 		if err != nil {

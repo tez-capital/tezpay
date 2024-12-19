@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"math"
 	"os"
+	"slices"
 	"strconv"
 
 	"github.com/trilitech/tzgo/tezos"
@@ -147,6 +148,16 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		simulationBatchSize = *configuration.PayoutConfiguration.SimulationBatchSize
 	}
 
+	rpcPool := make([]string, 0, len(configuration.Network.RpcPool)+1)
+	if configuration.Network.RpcUrl != "" {
+		rpcPool = append(rpcPool, configuration.Network.RpcUrl)
+	}
+	for _, rpc := range configuration.Network.RpcPool {
+		if !slices.Contains(rpcPool, rpc) {
+			rpcPool = append(rpcPool, rpc)
+		}
+	}
+
 	return &RuntimeConfiguration{
 		BakerPKH: configuration.BakerPKH,
 		PayoutConfiguration: RuntimePayoutConfiguration{
@@ -182,7 +193,14 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			DonateFees:  donateFees,
 			DonateBonds: donateBonds,
 		},
-		Network:        configuration.Network,
+		Network: RuntimeNetworkConfiguration{
+			RpcPool:                rpcPool,
+			TzktUrl:                configuration.Network.TzktUrl,
+			ProtocolRewardsUrl:     configuration.Network.ProtocolRewardsUrl,
+			Explorer:               configuration.Network.Explorer,
+			DoNotPaySmartContracts: configuration.Network.DoNotPaySmartContracts,
+			IgnoreProtocolChanges:  configuration.Network.IgnoreProtocolChanges,
+		},
 		Overdelegation: configuration.Overdelegation,
 		NotificationConfigurations: lo.Map(configuration.NotificationConfigurations, func(item json.RawMessage, index int) RuntimeNotificatorConfiguration {
 			var isValid bool
