@@ -31,19 +31,9 @@ func InitDefaultRpcAndTzktColletor(config *configuration.RuntimeConfiguration) (
 		Timeout: 10 * time.Second,
 	}
 
-	rpc_clients := make([]*rpc.Client, 0, len(config.Network.RpcPool))
-	failures := 0
-	for _, rpcUrl := range config.Network.RpcPool {
-		rpc_client, err := rpc.NewClient(rpcUrl, http_client)
-		if err != nil {
-			slog.Warn("failed to create rpc client", "url", rpcUrl, "error", err.Error())
-			failures++
-			continue
-		}
-		rpc_clients = append(rpc_clients, rpc_client)
-	}
-	if len(rpc_clients) == 0 {
-		return nil, fmt.Errorf("failed to create rpc clients, all %d failed", failures)
+	rpc_clients, err := utils.InitializeRpcClients(context.Background(), config.Network.RpcPool, http_client)
+	if err != nil {
+		return nil, err
 	}
 
 	tzkt_client, err := tzkt.InitClient(config.Network.TzktUrl, config.Network.ProtocolRewardsUrl, &tzkt.TzktClientOptions{
@@ -144,19 +134,24 @@ func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.K
 
 	o = o.WithParams(params)
 	for i := 0; i < 5; i++ {
-		err = engine.rpc.Complete(context.Background(), o, publicKey)
-		if err != nil {
-			continue
-		}
+		_, err = utils.AttemptWithRpcClients(defaultCtx, engine.rpcs, func(client *rpc.Client) (bool, error) {
+			err := client.Complete(context.Background(), o, publicKey)
+			if err != nil {
+				return false, err
+			}
 
-		rcpt, err = engine.rpc.Simulate(context.Background(), o, nil)
-		if err != nil && rcpt == nil { // we do not retry on receipt errors
-			slog.Debug("Internal simulate error - likely networking, retrying", "error", err.Error())
-			// sleep 5s * i
-			time.Sleep(time.Duration(i*5) * time.Second)
-			continue
+			rcpt, err = client.Simulate(context.Background(), o, nil)
+			if err != nil && rcpt == nil { // we do not retry on receipt errors
+				slog.Debug("Internal simulate error - likely networking, retrying", "error", err.Error())
+				// sleep 5s * i
+				time.Sleep(time.Duration(i*5) * time.Second)
+				return false, err
+			}
+			return true, nil
+		})
+		if err == nil {
+			break
 		}
-		break
 	}
 	return rcpt, err
 }
