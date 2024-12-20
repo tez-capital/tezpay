@@ -136,6 +136,9 @@
   # tezos network configuration
   network: {
     # Url to rpc endpoint
+    rpc_url: https://rpc.tzkt.io/mainnet
+
+    # List of RPC nodes to use. Order is important, the first one is the primary node, unless rpc_url is set.
     rpc_pool: [
       https://eu.rpc.tez.capital/
       https://us.rpc.tez.capital/
