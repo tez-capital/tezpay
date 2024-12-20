@@ -44,7 +44,7 @@ type DelegatorsConfigurationV0 struct {
 type TezosNetworkConfigurationV0 struct {
 	// RpcUrl represents the URL to the RPC node.
 	RpcUrl                 string   `json:"rpc_url,omitempty" comment:"Url to rpc endpoint"`
-	RpcPool                []string `json:"rpc_pool,omitempty" comment:"Url to rpc endpoint"`
+	RpcPool                []string `json:"rpc_pool,omitempty" comment:"List of RPC nodes to use. Order is important, the first one is the primary node, unless rpc_url is set."`
 	TzktUrl                string   `json:"tzkt_url,omitempty" comment:"Url to tzkt endpoint"`
 	ProtocolRewardsUrl     string   `json:"protocol_rewards_url,omitempty" comment:"Url to protocol rewards endpoint"`
 	Explorer               string   `json:"explorer,omitempty" comment:"Url to block explorer"`

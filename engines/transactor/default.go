@@ -99,8 +99,9 @@ func InitDefaultTransactor(config *configuration.RuntimeConfiguration) (*Default
 	}
 
 	result := &DefaultRpcTransactor{
-		rpcs: rpc_clients,
-		tzkt: tzktClient,
+		rpc_urls: config.Network.RpcPool,
+		rpcs:     rpc_clients,
+		tzkt:     tzktClient,
 	}
 	return result, result.RefreshParams()
 }
@@ -177,7 +178,7 @@ func (transactor *DefaultRpcTransactor) initOpResult(opHash tezos.OpHash, opts *
 	}, nil
 }
 
-func (transactor *DefaultRpcTransactor) Broadcast(op *codec.Op) (tezos.OpHash, error) {
+func (transactor *DefaultRpcTransactor) broadcast(op *codec.Op) (tezos.OpHash, error) {
 	return utils.AttemptWithRpcClients(context.Background(), transactor.rpcs, func(client *rpc.Client) (tezos.OpHash, error) {
 		return client.Broadcast(context.Background(), op)
 	})
@@ -187,7 +188,7 @@ func (transactor *DefaultRpcTransactor) Dispatch(op *codec.Op, opts *rpc.CallOpt
 	if opts == nil {
 		opts = &rpc.DefaultOptions
 	}
-	opHash, err := transactor.Broadcast(op)
+	opHash, err := transactor.broadcast(op)
 	if err != nil {
 		return nil, err
 	}

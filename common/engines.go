@@ -53,7 +53,6 @@ type TransactorEngine interface {
 	RefreshParams() error
 	Complete(op *codec.Op, key tezos.Key) error
 	Dispatch(op *codec.Op, opts *rpc.CallOptions) (OpResult, error)
-	Broadcast(op *codec.Op) (tezos.OpHash, error)
 	Send(op *codec.Op, opts *rpc.CallOptions) (*rpc.Receipt, error)
 	GetLimits() (*OperationLimits, error)
 }

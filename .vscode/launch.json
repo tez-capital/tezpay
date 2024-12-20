@@ -26,9 +26,8 @@
 				"--log-level=trace",
 				"--pay-only-address-prefix=KT",
 				"pay",
-				"--cycle=623",
 				"--confirm",
-				"--dry-run"
+				// "--dry-run"
 			],
 		},
 		{
