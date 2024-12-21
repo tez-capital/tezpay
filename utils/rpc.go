@@ -18,10 +18,10 @@ func isClientSynced(ctx context.Context, client *rpc.Client) bool {
 }
 
 func InitializeSingleRpcFromRpcPool(ctx context.Context, rpc_urls []string, http_client *http.Client) (*rpc.Client, error) {
-	for _, rpcUrl := range rpc_urls {
+	for i, rpcUrl := range rpc_urls {
 		rpc_client, err := rpc.NewClient(rpcUrl, http_client)
 		if err != nil {
-			slog.Warn("failed to create rpc client", "url", rpcUrl, "error", err.Error())
+			slog.Warn("failed to create rpc client", "rpc_url", rpcUrl, "error", err.Error())
 			continue
 		}
 		err = rpc_client.Init(ctx)
@@ -29,9 +29,13 @@ func InitializeSingleRpcFromRpcPool(ctx context.Context, rpc_urls []string, http
 			continue
 		}
 
+		if i > 0 {
+			slog.Info("initialized rpc client, you can ignore above warnings", "rpc_url", rpcUrl)
+		} else {
+			slog.Info("initialized rpc client", "rpc_url", rpcUrl)
+		}
 		return rpc_client, nil
 	}
-
 	return nil, fmt.Errorf("failed to create rpc client, all %d failed", len(rpc_urls))
 }
 
@@ -42,7 +46,7 @@ func InitializeRpcClients(ctx context.Context, rpc_urls []string, http_client *h
 	for _, rpcUrl := range rpc_urls {
 		rpc_client, err := rpc.NewClient(rpcUrl, http_client)
 		if err != nil {
-			slog.Warn("failed to create rpc client", "url", rpcUrl, "error", err.Error())
+			slog.Warn("failed to create rpc client", "rpc_url", rpcUrl, "error", err.Error())
 			continue
 		}
 		rpc_clients = append(rpc_clients, rpc_client)
@@ -57,6 +61,8 @@ func InitializeRpcClients(ctx context.Context, rpc_urls []string, http_client *h
 	}
 	if len(rpc_clients) == 0 {
 		return nil, fmt.Errorf("failed to create rpc clients, all %d failed", len(rpc_clients))
+	} else if len(rpc_clients) < len(rpc_urls) {
+		slog.Info(">>> at least one RPC client was successfully initialized - you can ignore above warnings <<<")
 	}
 	return rpc_clients, nil
 }
