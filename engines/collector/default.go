@@ -110,8 +110,20 @@ func (engine *DefaultRpcAndTzktColletor) GetLastCompletedCycle() (int64, error) 
 	return cycle - 1, err
 }
 
+func (engine *DefaultRpcAndTzktColletor) GetChainId() (tezos.ChainIdHash, error) {
+	chainId, err := utils.AttemptWithRpcClients(defaultCtx, engine.rpcs, func(client *rpc.Client) (tezos.ChainIdHash, error) {
+		return client.GetChainId(defaultCtx)
+	})
+	return chainId, err
+}
+
 func (engine *DefaultRpcAndTzktColletor) GetCycleStakingData(baker tezos.Address, cycle int64) (*common.BakersCycleData, error) {
-	return engine.tzkt.GetCycleData(context.Background(), baker, cycle)
+	chainId, err := engine.GetChainId()
+	if err != nil {
+		return nil, err
+	}
+
+	return engine.tzkt.GetCycleData(context.Background(), chainId, baker, cycle)
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetCyclesInDateRange(startDate time.Time, endDate time.Time) ([]int64, error) {

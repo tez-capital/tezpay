@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/tez-capital/tezpay/common"
@@ -257,7 +256,7 @@ func (client *Client) GetCyclesInDateRange(ctx context.Context, startDate time.T
 }
 
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=0
-func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cycle int64) (bakersCycleData *common.BakersCycleData, err error) {
+func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHash, baker tezos.Address, cycle int64) (bakersCycleData *common.BakersCycleData, err error) {
 
 	bakerAddr, _ := baker.MarshalText()
 
@@ -295,7 +294,7 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
 	firstAiActivatedCycle := constants.FIRST_PARIS_AI_ACTIVATED_CYCLE
-	if cycle >= firstAiActivatedCycle || strings.Contains(client.rootUrl.Host, "ghostnet") {
+	if cycle >= firstAiActivatedCycle || chainId == tezos.Ghostnet {
 		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
 		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
 		delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakedBalance - tzktBakerCycleData.ExternalStakedBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
@@ -330,6 +329,27 @@ func (client *Client) GetCycleData(ctx context.Context, baker tezos.Address, cyc
 		var bakingPower tezos.Z
 		delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
 		switch {
+		case chainId == tezos.Ghostnet && cycle > 1342: // first Q cycle on ghostnet
+			fallthrough
+		case chainId == tezos.Mainnet && cycle > 822: // first Q cycle on mainnet
+			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
+			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
+
+			if maximumExternalStaked.IsLess(externalStakedBalance) {
+				diff := externalStakedBalance.Sub(maximumExternalStaked)
+				externalStakedBalance = maximumExternalStaked
+				delegatedPower = delegatedPower.Add(diff)
+			}
+
+			maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
+			if maximumDelegated.IsLess(delegatedPower) {
+				delegatedPower = maximumDelegated
+			}
+			// delegation power / 3
+			delegatedPower = delegatedPower.Div64(3)
+
+			stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add(externalStakedBalance)
+			bakingPower = stakedPower.Add(delegatedPower)
 		case cycle > 750: // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
 			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
 			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(5)
