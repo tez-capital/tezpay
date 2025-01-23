@@ -27,6 +27,7 @@ const (
 	EMAIL_NOTIFICATOR    NotificatorKind = "email"
 	EXTERNAL_NOTIFICATOR NotificatorKind = "external"
 	WEBHOOK_NOTIFICATOR  NotificatorKind = "webhook"
+	BLUESKY_NOTIFICATOR  NotificatorKind = "bluesky"
 )
 
 func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary, additionalData map[string]string) string {
