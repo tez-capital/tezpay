@@ -23,4 +23,5 @@ remote_signer.hjson
 reports/*
 archive/*
 bin/*
-!bin/.gitkeep
+!bin/.gitkeep.DS_Store
+.DS_Store
