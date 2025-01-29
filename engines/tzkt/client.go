@@ -329,9 +329,9 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		var bakingPower tezos.Z
 		delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
 		switch {
-		case chainId == tezos.Ghostnet && cycle > 1342+2: // first Q cycle on ghostnet
+		case chainId == tezos.Ghostnet && cycle > 1342+3: // first Q cycle on ghostnet
 			fallthrough
-		case chainId == tezos.Mainnet && cycle > 822+2: // first Q cycle on mainnet
+		case chainId == tezos.Mainnet && cycle > 822+3: // first Q cycle on mainnet
 			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
 			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
 
