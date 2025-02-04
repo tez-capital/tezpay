@@ -111,4 +111,5 @@ type ExtensionInitializationMessage struct {
 	BakerPKH   string              `json:"baker_pkh"`
 	PayoutPKH  string              `json:"payout_pkh"`
 	Definition ExtensionDefinition `json:"definition"`
+	RpcPool    []string            `json:"rpc_pool,omitempty"`
 }

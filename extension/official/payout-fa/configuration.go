@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 
+	"github.com/tez-capital/tezpay/common"
 	"github.com/trilitech/tzgo/tezos"
 )
 
@@ -63,17 +65,33 @@ type RuntimeContext struct {
 	ExchangeRateProvider Exchanger
 	TokenConfiguration   TokenConfiguration
 	RewardMode           RewardMode
+	Contract             Contract
 }
 
-func Initialize(data []byte) (*RuntimeContext, error) {
+func Initialize(ctx context.Context, params common.ExtensionInitializationMessage) (*RuntimeContext, error) {
 	var config Configuration
-	if err := json.Unmarshal(data, &config); err != nil {
+	if err := json.Unmarshal(*params.Definition.Configuration, &config); err != nil {
+		return nil, err
+	}
+
+	if len(params.RpcPool) == 0 {
+		return nil, errors.New("rpc pool is empty")
+	}
+
+	rpcs, err := InitializeRpcClients(ctx, params.RpcPool, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	contract, err := NewContract(ctx, rpcs, params.PayoutPKH, config.Token)
+	if err != nil {
 		return nil, err
 	}
 
 	result := &RuntimeContext{
 		ExchangeRateProvider: nil,
 		TokenConfiguration:   config.Token,
+		Contract:             contract,
 	}
 
 	switch config.ExchangeRateKind {

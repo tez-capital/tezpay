@@ -65,6 +65,7 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	extEnv := &extension.ExtensionStoreEnviromnent{
 		BakerPKH:  config.BakerPKH.String(),
 		PayoutPKH: signerEngine.GetPKH().String(),
+		RpcPool:   config.Network.RpcPool,
 	}
 	if err = extension.InitializeExtensionStore(context.Background(), config.Extensions, extEnv); err != nil {
 		return nil, errors.Join(constants.ErrExtensionStoreInitializationFailed, err)

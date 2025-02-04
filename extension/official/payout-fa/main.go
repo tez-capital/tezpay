@@ -27,33 +27,12 @@ func (rw rwCloser) Close() error {
 	return errors.Join(rw.WriteCloser.Close(), rw.ReadCloser.Close())
 }
 
-// func appendToFile(data []byte) error {
-// 	f, err := os.OpenFile("payouts-fa.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer f.Close()
-// 	if _, err := f.Write(data); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func main() {
-// 	apiKey := "2c080226-b70b-44e4-8b4c-f9efcd8b985a"
-// 	tokenSlug := "bitcoin"
-// 	exchangeFee := 0.02
-// 	exchange_rate, _ := get_cmc_exchange_rate(tokenSlug, exchangeFee, apiKey)
-// 	fmt.Printf("Exchange rate: %f\n", exchange_rate)
-// 	fmt.Println(120000 * exchange_rate)
-// }
-
 func main() {
 	endpoint := extension.NewStreamEndpoint(context.Background(), extension.NewPlainObjectStream(rwCloser{os.Stdin, os.Stdout}))
 
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_INIT_CALL), func(ctx context.Context, params common.ExtensionInitializationMessage) (common.ExtensionInitializationResult, *rpc.Error) {
 		var err error
-		if runtimeContext, err = Initialize(*params.Definition.Configuration); err != nil {
+		if runtimeContext, err = Initialize(ctx, params); err != nil {
 			return common.ExtensionInitializationResult{
 				Success: false,
 				Message: err.Error(),
@@ -115,7 +94,34 @@ func main() {
 	})
 
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_CHECK_BALANCE), func(ctx context.Context, params common.ExtensionHookData[generate.CheckBalanceHookData]) (*generate.CheckBalanceHookData, *rpc.Error) {
-		// TODO:
+		total := tezos.Zero
+
+		balance, err := runtimeContext.Contract.GetBalance(ctx)
+		if err != nil {
+			return nil, rpc.NewServerError(1000)
+		}
+
+		for _, candidate := range params.Data.Payouts {
+			if candidate.TxKind != enums.PAYOUT_TX_KIND_FA1_2 && candidate.TxKind != enums.PAYOUT_TX_KIND_FA2 {
+				continue
+			}
+
+			if !candidate.FAContract.Equal(tezos.MustParseAddress(runtimeContext.TokenConfiguration.Contract)) || !candidate.FATokenId.Equal(tezos.NewZ(runtimeContext.TokenConfiguration.Id)) {
+				continue
+			}
+
+			if candidate.BondsAmount.IsLessEqual(tezos.Zero) {
+				continue
+			}
+
+			total = total.Add(candidate.GetAmount())
+		}
+
+		if balance.IsLess(total) {
+			params.Data.IsSufficient = false
+			params.Data.Message = "Insufficient balance of FA tokens"
+		}
+
 		return params.Data, rpc.NewInternalError()
 	})
 
@@ -131,29 +137,6 @@ func main() {
 		data.Message = "Hello from FA extension!"
 		return data, nil
 	})
-
-	// extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_AFTER_PAYOUTS_PREPARED), func(ctx context.Context, params common.ExtensionHookData[prepare.AfterPayoutsPreapered]) (any, *rpc.Error) {
-	// 	data := params.Data
-	// 	newValidPayments := data.ValidPayouts
-	// 	for _, report := range data.ReportsOfPastSuccesfulPayouts {
-	// 		for _, recipe := range data.Recipes {
-	// 			if recipe.Kind == enums.PAYOUT_KIND_DONATION {
-	// 				continue
-	// 			}
-	// 			if report.Baker == recipe.Baker && report.Cycle == recipe.Cycle && report.FAContract == recipe.FAContract && report.FATokenId.Equal(recipe.FATokenId) && report.Delegator == recipe.Delegator && report.Kind == recipe.Kind && report.TxKind == recipe.TxKind {
-	// 				if report.Amount.IsLess(recipe.Amount) {
-	// 					appendToFile([]byte(fmt.Sprintf("injecting transaction fix for %s for extra %d\n", recipe.Delegator.String(), recipe.Amount.Sub(report.Amount).Int64())))
-	// 					recipe.Amount = recipe.Amount.Sub(report.Amount)
-	// 					recipe.Kind = recipe.Kind + " (fix)"
-	// 					newValidPayments = append(newValidPayments, recipe)
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-
-	// 	data.ValidPayouts = newValidPayments
-	// 	return data, nil
-	// })
 
 	closeChannel := make(chan struct{})
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_CLOSE_CALL), func(ctx context.Context, params any) (any, *rpc.Error) {
