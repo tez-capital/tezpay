@@ -63,7 +63,13 @@ type tzktBakersCycleData struct {
 }
 
 type bakerData struct {
-	FrozenDepositLimit int64 `json:"frozenDepositLimit"`
+	FrozenDepositLimit       int64 `json:"frozenDepositLimit"`
+	LimitOfStakingOverBaking int64 `json:"limitOfStakingOverBaking"`
+}
+
+type setDelegateParamtersOps []struct {
+	ActivationCycle          int64 `json:"activationCycle"`
+	LimitOfStakingOverBaking int64 `json:"limitOfStakingOverBaking"`
 }
 
 type Client struct {
@@ -163,7 +169,7 @@ func (client *Client) getDelegatorsCycleData(ctx context.Context, baker []byte, 
 	return data.Delegators, nil
 }
 
-func (client *Client) getBakerData(ctx context.Context, baker []byte) (*bakerData, error) {
+func (client *Client) getBakerData(ctx context.Context, baker []byte, cycle int64) (*bakerData, error) {
 	u := fmt.Sprintf("v1/delegates/%s", baker)
 	slog.Debug("getting baker data", "baker", baker, "url", u)
 	resp, err := client.Get(ctx, u)
@@ -175,6 +181,25 @@ func (client *Client) getBakerData(ctx context.Context, baker []byte) (*bakerDat
 	if err != nil {
 		return nil, err
 	}
+
+	u = fmt.Sprintf("v1/operations/set_delegate_parameters?sender=%s&status=applied&select=activationCycle%%2ClimitOfStakingOverBaking&sort.desc=id&limit=10000", baker)
+	slog.Debug("getting baker limit of staking over baking", "baker", baker, "url", u)
+	resp, err = client.Get(ctx, u)
+	if err != nil {
+		return nil, errors.Join(constants.ErrCycleDataFetchFailed, err)
+	}
+	var setDelegateParamtersOps setDelegateParamtersOps
+	err = unmarshallTzktResponse(resp, &setDelegateParamtersOps)
+	if err != nil {
+		return nil, err
+	}
+	for _, op := range setDelegateParamtersOps {
+		if op.ActivationCycle <= cycle {
+			data.LimitOfStakingOverBaking = op.LimitOfStakingOverBaking
+			break
+		}
+	}
+
 	return data, nil
 }
 
@@ -257,10 +282,9 @@ func (client *Client) GetCyclesInDateRange(ctx context.Context, startDate time.T
 
 // https://api.tzkt.io/v1/rewards/split/${baker}/${cycle}?limit=0
 func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHash, baker tezos.Address, cycle int64) (bakersCycleData *common.BakersCycleData, err error) {
-
 	bakerAddr, _ := baker.MarshalText()
 
-	tzktBakerData, err := client.getBakerData(ctx, bakerAddr)
+	tzktBakerData, err := client.getBakerData(ctx, bakerAddr, cycle-2 /* we check against cycle which was used to calculate rewards - c - 2 */)
 	if err != nil {
 		return nil, err
 	}
@@ -329,11 +353,11 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		var bakingPower tezos.Z
 		delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
 		switch {
-		case chainId == tezos.Ghostnet && cycle > 1342+3: // first Q cycle on ghostnet
+		case chainId == tezos.Ghostnet && cycle > 1343+2: // first Q rewards cycle on ghostnet
 			fallthrough
-		case chainId == tezos.Mainnet && cycle > 822+3: // first Q cycle on mainnet
+		case chainId == tezos.Mainnet && cycle > 823+2: // first Q rewards cycle on mainnet
 			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
-			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
+			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(tzktBakerData.LimitOfStakingOverBaking).Div64(constants.LIMIT_OF_STAKING_OVER_BAKING_PRECISION)
 
 			if maximumExternalStaked.IsLess(externalStakedBalance) {
 				diff := externalStakedBalance.Sub(maximumExternalStaked)
@@ -352,7 +376,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 			bakingPower = stakedPower.Add(delegatedPower)
 		case cycle > 750: // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
 			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
-			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(5)
+			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(tzktBakerData.LimitOfStakingOverBaking).Div64(constants.LIMIT_OF_STAKING_OVER_BAKING_PRECISION)
 
 			if maximumExternalStaked.IsLess(externalStakedBalance) {
 				diff := externalStakedBalance.Sub(maximumExternalStaked)
