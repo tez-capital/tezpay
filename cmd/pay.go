@@ -145,7 +145,6 @@ var payCmd = &cobra.Command{
 		failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
 		if len(executionResult.BatchResults) > 0 && failedCount > 0 {
 			slog.Error("failed operations detected", "failed", failedCount, "total", len(executionResult.BatchResults))
-			time.Sleep(time.Minute * 5)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent && !isDryRun {

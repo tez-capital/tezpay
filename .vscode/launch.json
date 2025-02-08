@@ -24,7 +24,6 @@
 			"program": "main.go",
 			"args": [
 				"--log-level=trace",
-				"--pay-only-address-prefix=KT",
 				"pay",
 				"--confirm",
 				// "--dry-run"

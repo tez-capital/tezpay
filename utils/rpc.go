@@ -83,7 +83,7 @@ func AttemptWithRpcClients[T any](ctx context.Context, clients []*rpc.Client, f 
 		return result, nil
 	}
 
-	return result, errors.New("all clients failed")
+	return result, errors.Join(errors.New("all clients failed"), err)
 }
 
 func GetFirstSyncedRpc(ctx context.Context, clients []*rpc.Client) (*rpc.Client, error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"os"
 
 	"github.com/alis-is/jsonrpc2/rpc"
@@ -46,9 +47,10 @@ func main() {
 
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED), func(ctx context.Context, params common.ExtensionHookData[generate.AfterBondsDistributedHookData]) (*generate.AfterBondsDistributedHookData, *rpc.Error) {
 		extra := make([]generate.PayoutCandidateWithBondAmount, 0, len(params.Data.Candidates))
-
+		slog.Info("calculating token rewards", "candidates", len(params.Data.Candidates))
 		err := runtimeContext.ExchangeRateProvider.RefreshExchangeRate()
 		if err != nil {
+			slog.Error("failed to refresh exchange rate", "error", err.Error())
 			return nil, rpc.NewServerError(1000)
 		}
 
@@ -58,6 +60,7 @@ func main() {
 			}
 
 			tokenAmount := runtimeContext.ExchangeRateProvider.ExchangeToToken(candidate.GetAmount().Int64())
+			slog.Debug("calculated token reward", "delegate", candidate.Source, "recipient", candidate.Recipient, "amount", tokenAmount)
 			if tokenAmount <= 0 {
 				continue
 			}
@@ -89,6 +92,7 @@ func main() {
 		}
 
 		rewards := append(params.Data.Candidates, extra...)
+		slog.Info("successfully calculated token rewards", "rewards_count", len(rewards))
 		params.Data.Candidates = rewards
 		return params.Data, nil
 	})
@@ -98,8 +102,10 @@ func main() {
 
 		balance, err := runtimeContext.Contract.GetBalance(ctx)
 		if err != nil {
+			slog.Error("failed to get balance", "error", err.Error())
 			return nil, rpc.NewServerError(1000)
 		}
+		slog.Info("successfully checked available token balance", "balance", balance)
 
 		for _, candidate := range params.Data.Payouts {
 			if candidate.TxKind != enums.PAYOUT_TX_KIND_FA1_2 && candidate.TxKind != enums.PAYOUT_TX_KIND_FA2 {
@@ -117,12 +123,14 @@ func main() {
 			total = total.Add(candidate.GetAmount())
 		}
 
+		slog.Info("total amount to be paid", "total", total, "is_sufficient", total.IsLess(balance))
 		if balance.IsLess(total) {
 			params.Data.IsSufficient = false
 			params.Data.Message = "Insufficient balance of FA tokens"
+			return params.Data, nil
 		}
 
-		return params.Data, rpc.NewInternalError()
+		return params.Data, nil
 	})
 
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_TEST_NOTIFY), func(ctx context.Context, params common.ExtensionHookData[any]) (any, *rpc.Error) {
@@ -144,5 +152,4 @@ func main() {
 		return nil, nil
 	})
 	<-closeChannel
-
 }

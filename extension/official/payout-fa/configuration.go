@@ -4,17 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	"log/slog"
 
 	"github.com/tez-capital/tezpay/common"
 	"github.com/trilitech/tzgo/tezos"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type ExchangeRateKind string
 
 const (
-	ExchangeRateFixed     ExchangeRateKind = "fixed"
-	ExchangeRateFixedRate ExchangeRateKind = "fixed-rate"
-	ExchangeRateDynamic   ExchangeRateKind = "dynamic"
+	ExchangeRateFixedAmount ExchangeRateKind = "fixed-amount"
+	ExchangeRateFixed       ExchangeRateKind = "fixed"
+	ExchangeRateDynamic     ExchangeRateKind = "dynamic"
 )
 
 type ExchangeRateProviderKind string
@@ -59,6 +62,7 @@ type Configuration struct {
 	ExchangeFee                       float64                  `json:"exchange_fee,omitempty"`
 	Token                             TokenConfiguration       `json:"token"`
 	RewardMode                        RewardMode               `json:"reward_mode,omitempty"`
+	LogFile                           string                   `json:"log_file,omitempty"`
 }
 
 type RuntimeContext struct {
@@ -74,17 +78,34 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 		return nil, err
 	}
 
+	if config.LogFile != "" {
+		logFile := &lumberjack.Logger{
+			Filename:   config.LogFile,
+			MaxSize:    10, // megabytes
+			MaxBackups: 3,
+			MaxAge:     28, // days
+			Compress:   true,
+		}
+		logger := slog.New(slog.NewJSONHandler(logFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		slog.SetDefault(logger)
+	} else {
+		slog.SetDefault(slog.New(slog.NewJSONHandler(io.Discard, nil)))
+	}
+
 	if len(params.RpcPool) == 0 {
+		slog.Error("rpc pool is empty")
 		return nil, errors.New("rpc pool is empty")
 	}
 
 	rpcs, err := InitializeRpcClients(ctx, params.RpcPool, nil)
 	if err != nil {
+		slog.Error("failed to initialize rpc clients", "error", err.Error())
 		return nil, err
 	}
 
 	contract, err := NewContract(ctx, rpcs, params.PayoutPKH, config.Token)
 	if err != nil {
+		slog.Error("failed to create contract", "error", err.Error())
 		return nil, err
 	}
 
@@ -95,13 +116,15 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 	}
 
 	switch config.ExchangeRateKind {
-	case ExchangeRateFixed:
+	case ExchangeRateFixedAmount:
 		if config.RewardAmount <= 0 {
+			slog.Error("invalid reward amount, must be greater than 0")
 			return nil, errors.New("invalid reward amount, must be greater than 0")
 		}
 		result.ExchangeRateProvider = FixedAmountExchanger{Amount: config.RewardAmount, Token: config.Token}
-	case ExchangeRateFixedRate:
+	case ExchangeRateFixed:
 		if config.ExchangeRate == 0 {
+			slog.Error("invalid exchange rate, must be greater than 0")
 			return nil, errors.New("invalid exchange rate, must be greater than 0")
 		}
 		result.ExchangeRateProvider = FixedRateExchanger{Rate: config.ExchangeRate, Token: config.Token, Fee: config.ExchangeFee}
@@ -110,16 +133,20 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 		case CMCExchangeRateProviderKind:
 			var providerConfig CMCExchangeRateProviderConfiguration
 			if err := json.Unmarshal(config.ExchangeRateProviderConfiguration, &providerConfig); err != nil {
+				slog.Error("invalid CMC configuration", "error", err.Error())
 				return nil, errors.Join(err, errors.New("invalid CMC configuration"))
 			}
 			if providerConfig.APIKey == "" {
+				slog.Error("invalid CMC API key")
 				return nil, errors.New("invalid CMC API key")
 			}
 			if providerConfig.Slug == "" || providerConfig.Slug == "tezos" {
+				slog.Error("invalid CMC token slug")
 				return nil, errors.New("invalid CMC token slug")
 			}
 			result.ExchangeRateProvider = NewCMCExchangeRateProvider(providerConfig.Slug, providerConfig.APIKey, config.ExchangeFee, config.Token)
 		default:
+			slog.Error("invalid exchange rate provider")
 			return nil, errors.New("invalid exchange rate provider")
 		}
 
@@ -128,18 +155,22 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 		}
 
 	default:
+		slog.Error("invalid exchange rate kind")
 		return nil, errors.New("invalid exchange rate kind")
 	}
 
 	if _, err := tezos.ParseAddress(config.Token.Contract); err != nil {
+		slog.Error("invalid token contract")
 		return nil, errors.New("invalid token contract")
 	}
 
 	if config.Token.Id < 0 {
+		slog.Error("invalid token id")
 		return nil, errors.New("invalid token id")
 	}
 
 	if config.Token.Decimals < 0 {
+		slog.Error("invalid token decimals")
 		return nil, errors.New("invalid token decimals")
 	}
 
@@ -149,6 +180,7 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 	case RewardModeReplace:
 		result.RewardMode = RewardModeReplace
 	default:
+		slog.Error("invalid reward mode")
 		return nil, errors.New("invalid reward mode")
 	}
 
@@ -158,8 +190,10 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 	case TokenKindFA2:
 		result.TokenConfiguration.Kind = TokenKindFA2
 	default:
+		slog.Error("invalid token kind")
 		return nil, errors.New("invalid token kind")
 	}
 
+	slog.Info("configuration loaded")
 	return result, nil
 }

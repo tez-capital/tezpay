@@ -116,7 +116,9 @@ func (p *CMCExchangeRateProvider) RefreshExchangeRate() error {
 func (p *CMCExchangeRateProvider) ExchangeToToken(amount int64) int64 {
 	token_amount := float64(amount) * p.rate * (1 - p.fee)
 
-	result := token_amount * float64(p.token.Decimals)
+	if p.token.Decimals == 0 {
+		return int64(token_amount)
+	}
 
-	return int64(result)
+	return int64(token_amount * float64(p.token.Decimals))
 }

@@ -125,7 +125,7 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 		result = append(result, &common.OpLimits{
 			GasLimit:                p.GasUsed + ctx.Configuration.PayoutConfiguration.TxGasLimitBuffer,
 			StorageLimit:            utils.CalculateStorageLimit(p),
-			TransactionFee:          utils.EstimateTransactionFee(op, []int64{totalTxGasUsed}, feeBuffer),
+			TransactionFee:          utils.EstimateTransactionFee(op, []int64{totalTxGasUsed}, feeBuffer) * 2,
 			DeserializationGasLimit: txSerializationGas + ctx.Configuration.PayoutConfiguration.TxDeserializationGasBuffer,
 			AllocationBurn:          p.AllocationBurn,
 			StorageBurn:             p.StorageBurn,

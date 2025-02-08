@@ -15,6 +15,9 @@ func (e FixedAmountExchanger) RefreshExchangeRate() error {
 }
 
 func (e FixedAmountExchanger) ExchangeToToken(_ int64) int64 {
+	if e.Token.Decimals == 0 {
+		return e.Amount
+	}
 	return e.Amount * e.Token.Decimals
 }
 
@@ -31,7 +34,9 @@ func (e FixedRateExchanger) RefreshExchangeRate() error {
 func (e FixedRateExchanger) ExchangeToToken(amount int64) int64 {
 	token_amount := float64(amount) * e.Rate * (1 - e.Fee)
 
-	result := token_amount * float64(e.Token.Decimals)
+	if e.Token.Decimals == 0 {
+		return int64(token_amount)
+	}
 
-	return int64(result)
+	return int64(token_amount * float64(e.Token.Decimals))
 }
