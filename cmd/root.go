@@ -15,11 +15,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/state"
 	"github.com/tez-capital/tezpay/utils"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
 	LOG_LEVEL_FLAG               = "log-level"
 	LOG_SERVER_FLAG              = "log-server"
+	LOG_FILE_FLAG                = "log-file"
 	PATH_FLAG                    = "path"
 	VERSION_FLAG                 = "version"
 	DISABLE_DONATION_PROMPT_FLAG = "disable-donation-prompt"
@@ -37,14 +39,28 @@ var (
 	}
 )
 
-func setupJsonLogger(level slog.Level, logServerAddress string) {
-	var target io.Writer
-	if logServerAddress != "" {
-		target = utils.NewMultiWriter(os.Stdout, utils.NewLogServer(logServerAddress))
-	} else {
-		target = os.Stdout
+func setupLumberjackLogger(logFile string) io.Writer {
+	return &lumberjack.Logger{
+		Filename:   logFile,
+		MaxSize:    10, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28, // days
+		Compress:   true,
 	}
-	handler := slog.NewJSONHandler(target, &slog.HandlerOptions{Level: level})
+}
+
+func setupJsonLogger(level slog.Level, logServerAddress string, logFile string) {
+	writers := make([]io.Writer, 0, 3)
+	writers = append(writers, os.Stdout)
+
+	if logServerAddress != "" {
+		writers = append(writers, utils.NewLogServer(logServerAddress))
+	}
+	if logFile != "" {
+		writers = append(writers, setupLumberjackLogger(logFile))
+	}
+
+	handler := slog.NewJSONHandler(utils.NewMultiWriter(writers...), &slog.HandlerOptions{Level: level})
 	slog.SetDefault(slog.New(handler))
 	if logServerAddress != "" {
 		slog.Info("log server started", "address", logServerAddress)
@@ -70,15 +86,16 @@ Copyright © %d alis.is
 			disableDonationPrompt, _ := cmd.Flags().GetBool(DISABLE_DONATION_PROMPT_FLAG)
 			level, _ := cmd.Flags().GetString(LOG_LEVEL_FLAG)
 			logServer, _ := cmd.Flags().GetString(LOG_SERVER_FLAG)
+			logFile, _ := cmd.Flags().GetString(LOG_FILE_FLAG)
 
 			switch format {
 			case "json":
-				setupJsonLogger(LOG_LEVEL_MAP[level], logServer)
+				setupJsonLogger(LOG_LEVEL_MAP[level], logServer, logFile)
 			case "text":
 				setupTextLogger(LOG_LEVEL_MAP[level])
 			default:
 				if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
-					setupJsonLogger(LOG_LEVEL_MAP[level], logServer)
+					setupJsonLogger(LOG_LEVEL_MAP[level], logServer, logFile)
 				} else {
 					setupTextLogger(LOG_LEVEL_MAP[level])
 				}
@@ -140,6 +157,7 @@ func init() {
 	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets output log format (json/text/auto)")
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
 	RootCmd.PersistentFlags().String(LOG_SERVER_FLAG, "", "launches log server at specified address")
+	RootCmd.PersistentFlags().String(LOG_FILE_FLAG, "", "Logs to file")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
 	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
 	RootCmd.PersistentFlags().Bool(DISABLE_DONATION_PROMPT_FLAG, false, "Disable donation prompt")
