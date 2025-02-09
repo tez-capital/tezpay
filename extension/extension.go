@@ -55,6 +55,7 @@ func LoadExtension(ext Extension) error {
 		Definition: ext.GetDefinition(),
 		BakerPKH:   extensionStore.environment.BakerPKH,
 		PayoutPKH:  extensionStore.environment.PayoutPKH,
+		RpcPool:    extensionStore.environment.RpcPool,
 	})
 	if err != nil {
 		return err

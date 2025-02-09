@@ -68,7 +68,7 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 		if i == 0 {
 			buffer = serializationGasLimit
 		}
-		InjectTransferContentsWithLimits(op, p.Recipient, &p, tezos.Limits{
+		InjectTransferContentsWithLimits(op, signer.GetPKH(), &p, tezos.Limits{
 			Fee:          p.OpLimits.TransactionFee,
 			GasLimit:     p.OpLimits.GasLimit + buffer,
 			StorageLimit: p.OpLimits.StorageLimit,

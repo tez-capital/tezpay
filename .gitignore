@@ -23,5 +23,8 @@ remote_signer.hjson
 reports/*
 archive/*
 bin/*
-!bin/.gitkeep.DS_Store
-.DS_Store
+!bin/.gitkeep
+log/*
+!log/.gitkeep
+go.work.sum
+extension/official/payout-fa/misc/*

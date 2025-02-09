@@ -238,7 +238,11 @@ func NewLogServer(address string) *LogServer {
 	})
 
 	go func() {
-		app.Listen(address)
+		slog.Info("starting log server", "address", address)
+		err := app.Listen(address)
+		if err != nil {
+			slog.Error("log server failed", "error", err.Error())
+		}
 	}()
 
 	return logServer
@@ -261,5 +265,51 @@ func (m *MultiWriter) Write(p []byte) (n int, err error) {
 func NewMultiWriter(writers ...io.Writer) *MultiWriter {
 	return &MultiWriter{
 		writers: writers,
+	}
+}
+
+type SlogMultiHandler struct {
+	handlers []slog.Handler
+}
+
+func NewSlogMultiHandler(handlers ...slog.Handler) *SlogMultiHandler {
+	return &SlogMultiHandler{
+		handlers: handlers,
+	}
+}
+
+func (h *SlogMultiHandler) Handle(ctx context.Context, r slog.Record) error {
+	for _, handler := range h.handlers {
+		if !handler.Enabled(ctx, r.Level) {
+			continue
+		}
+		if err := handler.Handle(ctx, r); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *SlogMultiHandler) Enabled(_ context.Context, level slog.Level) bool {
+	return true
+}
+
+func (h *SlogMultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	newHandlers := make([]slog.Handler, 0, len(h.handlers))
+	for _, handler := range h.handlers {
+		newHandlers = append(newHandlers, handler.WithAttrs(attrs))
+	}
+	return &SlogMultiHandler{
+		handlers: newHandlers,
+	}
+}
+
+func (h *SlogMultiHandler) WithGroup(name string) slog.Handler {
+	newHandlers := make([]slog.Handler, 0, len(h.handlers))
+	for _, handler := range h.handlers {
+		newHandlers = append(newHandlers, handler.WithGroup(name))
+	}
+	return &SlogMultiHandler{
+		handlers: newHandlers,
 	}
 }
