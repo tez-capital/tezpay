@@ -79,6 +79,7 @@ func main() {
 					TxKind:          txKind,
 					FATokenId:       tezos.NewZ(runtimeContext.TokenConfiguration.Id),
 					FAContract:      tezos.MustParseAddress(runtimeContext.TokenConfiguration.Contract),
+					FAAlias:         runtimeContext.TokenConfiguration.Alias,
 				}
 				bonusTx.BondsAmount = tezos.NewZ(tokenAmount)
 
@@ -88,6 +89,7 @@ func main() {
 				candidate.TxKind = txKind
 				candidate.FATokenId = tezos.NewZ(runtimeContext.TokenConfiguration.Id)
 				candidate.FAContract = tezos.MustParseAddress(runtimeContext.TokenConfiguration.Contract)
+				candidate.FAAlias = runtimeContext.TokenConfiguration.Alias
 			}
 		}
 

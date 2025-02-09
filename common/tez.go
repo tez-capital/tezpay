@@ -8,14 +8,20 @@ import (
 	"github.com/trilitech/tzgo/tezos"
 )
 
-func FormatAmount(kind enums.EPayoutTransactionKind, amount int64) string {
+func FormatAmount(kind enums.EPayoutTransactionKind, amount int64, alias string) string {
 	if amount == 0 {
 		return ""
 	}
 	switch kind {
 	case enums.PAYOUT_TX_KIND_FA1_2:
+		if alias != "" {
+			return fmt.Sprintf("%d %s", amount, alias)
+		}
 		return fmt.Sprintf("%d FA1", amount)
 	case enums.PAYOUT_TX_KIND_FA2:
+		if alias != "" {
+			return fmt.Sprintf("%d %s", amount, alias)
+		}
 		return fmt.Sprintf("%d FA2", amount)
 	default:
 		return MutezToTezS(amount)

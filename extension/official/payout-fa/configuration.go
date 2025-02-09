@@ -50,6 +50,7 @@ type TokenConfiguration struct {
 	Contract string    `json:"contract"`
 	Decimals int64     `json:"decimals"`
 	Kind     TokenKind `json:"kind"`
+	Alias    string    `json:"alias,omitempty"`
 }
 
 type Configuration struct {

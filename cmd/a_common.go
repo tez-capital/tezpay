@@ -146,5 +146,5 @@ func PrintPayoutWalletRemainingBalance(collector common.CollectorEngine, signer 
 		return
 	}
 
-	slog.Info("the payout wallet remaining balance", "wallet", addr.String(), "balance", common.FormatAmount(enums.PAYOUT_TX_KIND_TEZ, balance.Int64()), "phase", "payout_wallet_remaining_balance")
+	slog.Info("the payout wallet remaining balance", "wallet", addr.String(), "balance", common.FormatAmount(enums.PAYOUT_TX_KIND_TEZ, balance.Int64(), ""), "phase", "payout_wallet_remaining_balance")
 }

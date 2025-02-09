@@ -17,6 +17,7 @@ type PayoutReport struct {
 	TxKind           enums.EPayoutTransactionKind `json:"tx_kind,omitempty" csv:"op_kind"`
 	FAContract       tezos.Address                `json:"contract,omitempty" csv:"contract"`
 	FATokenId        tezos.Z                      `json:"token_id,omitempty" csv:"token_id"`
+	FAAlias          string                       `json:"fa_alias,omitempty" csv:"fa_alias"`
 	Delegator        tezos.Address                `json:"delegator,omitempty" csv:"delegator"`
 	DelegatedBalance tezos.Z                      `json:"delegator_balance,omitempty" csv:"delegator_balance"`
 	StakedBalance    tezos.Z                      `json:"-" csv:"-"` // enable when relevant
@@ -42,7 +43,7 @@ func (pr *PayoutReport) ToTableRowData() []string {
 		string(pr.Kind),
 		ShortenAddress(pr.FAContract),
 		ToStringEmptyIfZero(pr.FATokenId.Int64()),
-		FormatAmount(pr.TxKind, pr.Amount.Int64()),
+		FormatAmount(pr.TxKind, pr.Amount.Int64(), pr.FAAlias),
 		FloatToPercentage(pr.FeeRate),
 		MutezToTezS(pr.Fee.Int64()),
 		MutezToTezS(pr.GetTransactionFee()),
