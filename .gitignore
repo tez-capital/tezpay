@@ -24,3 +24,7 @@ reports/*
 archive/*
 bin/*
 !bin/.gitkeep
+log/*
+!log/.gitkeep
+go.work.sum
+extension/official/payout-fa/misc/*

@@ -48,6 +48,8 @@ type PayoutCandidateWithBondAmount struct {
 	TxKind      enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
 	FATokenId   tezos.Z                      `json:"fa_token_id,omitempty"` // required only if fa12 or fa2
 	FAContract  tezos.Address                `json:"fa_contract"`           // required only if fa12 or fa2
+	FAAlias     string                       `json:"fa_alias,omitempty"`
+	FADecimals  int                          `json:"fa_decimals,omitempty"`
 }
 
 func (candidate *PayoutCandidateWithBondAmount) GetDestination() tezos.Address {
@@ -122,6 +124,8 @@ func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycl
 		StakedBalance:          payout.StakedBalance,
 		FATokenId:              payout.FATokenId,
 		FAContract:             payout.FAContract,
+		FAAlias:                payout.FAAlias,
+		FADecimals:             payout.FADecimals,
 		Amount:                 payout.BondsAmount,
 		FeeRate:                payout.FeeRate,
 		Fee:                    payout.Fee,

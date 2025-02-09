@@ -12,7 +12,6 @@ import (
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
-	"github.com/tez-capital/tezpay/constants/enums"
 	collector_engines "github.com/tez-capital/tezpay/engines/collector"
 	signer_engines "github.com/tez-capital/tezpay/engines/signer"
 	transactor_engines "github.com/tez-capital/tezpay/engines/transactor"
@@ -65,6 +64,7 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	extEnv := &extension.ExtensionStoreEnviromnent{
 		BakerPKH:  config.BakerPKH.String(),
 		PayoutPKH: signerEngine.GetPKH().String(),
+		RpcPool:   config.Network.RpcPool,
 	}
 	if err = extension.InitializeExtensionStore(context.Background(), config.Extensions, extEnv); err != nil {
 		return nil, errors.Join(constants.ErrExtensionStoreInitializationFailed, err)
@@ -145,5 +145,5 @@ func PrintPayoutWalletRemainingBalance(collector common.CollectorEngine, signer 
 		return
 	}
 
-	slog.Info("the payout wallet remaining balance", "wallet", addr.String(), "balance", common.FormatAmount(enums.PAYOUT_TX_KIND_TEZ, balance.Int64()), "phase", "payout_wallet_remaining_balance")
+	slog.Info("the payout wallet remaining balance", "wallet", addr.String(), "balance", common.FormatTezAmount(balance.Int64()), "phase", "payout_wallet_remaining_balance")
 }

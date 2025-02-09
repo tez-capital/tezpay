@@ -15,8 +15,9 @@ import (
 )
 
 type ExtensionStoreEnviromnent struct {
-	BakerPKH  string `json:"baker_pkh"`
-	PayoutPKH string `json:"payout_pkh"`
+	BakerPKH  string   `json:"baker_pkh"`
+	PayoutPKH string   `json:"payout_pkh"`
+	RpcPool   []string `json:"rpc_pool"`
 }
 
 type ExtensionStore struct {
