@@ -13,6 +13,13 @@ Rewards are generated based on the exchange rate. The supported exchange rate ki
 - **fixed**: Pays out based on a specific exchange rate, ideal for share representation.
 - **provider**: Fetches the exchange rate from a third-party provider. The only supported provider right now is `cmc`.
 
+## Testing
+
+For testing, you can use test contracts on ghostnet:
+
+- [KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c](https://better-call.dev/ghostnet/KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c/interact/mint) - FA2
+- [KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW](https://better-call.dev/ghostnet/KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW/interact/mint) - FA1.2
+
 ## Installation
 
 1. Download the extension from the [releases page](https://github.com/tez-capital/tezpay/releases) based on your platform.
