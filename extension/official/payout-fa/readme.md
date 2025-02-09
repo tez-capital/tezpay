@@ -26,22 +26,22 @@ For testing, you can use test contracts on ghostnet:
 2. Place it into directory where you have tezpay installed.
 3. Add the extension to your tezpay configuration
 ```yaml
-...
-	extensions: [
-		{
-			name: payout-fa
-			command: "./tezpay_payout-fa" # or .exe based on your platform
-			kind: stdio
-			hooks: [
-				after_bonds_distributed:rw
-				check_balance:rw
-			]
-			configuration: {
-				# see examples below
-			}
-		}
-	]
-...
+# ...
+extensions: [
+    {
+        name: payout-fa
+        command: "./tezpay_payout-fa" # or .exe based on your platform
+        kind: stdio
+        hooks: [
+            after_bonds_distributed:rw
+            check_balance:rw
+        ]
+        configuration: {
+            # see examples below
+        }
+    }
+]
+# ...
 ```
 1. Run pay `tezpay pay --cycle <cycle>`
 
@@ -49,95 +49,95 @@ For testing, you can use test contracts on ghostnet:
 
 ### Loyalty token
 ```yaml
-		{
-			name: payout-loyalty
-			command: "./tezpay_payout-fa" # or .exe based on your platform
-			kind: stdio
-			hooks: [
-				after_bonds_distributed:rw
-				check_balance:rw
-			]
-			configuration: {
-				exchange_rate_kind: fixed-amount
-				reward_amount: 1
-				reward_mode: bonus
-				token: {
-					id: 1
-					contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
-					kind: fa2
-					alias: LOYALTY
-					# or for FA1.2
-					# contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
-					# kind: fa1.2
-				}
-				log_file: log/payout-fa.log
-			}
-		}
+{
+    name: payout-loyalty
+    command: "./tezpay_payout-fa" # or .exe based on your platform
+    kind: stdio
+    hooks: [
+        after_bonds_distributed:rw
+        check_balance:rwq
+    ]
+    configuration: {
+        exchange_rate_kind: fixed-amount
+        reward_amount: 1
+        reward_mode: bonus
+        token: {
+            id: 1
+            contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
+            kind: fa2
+            alias: LOYALTY
+            # or for FA1.2
+            # contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
+            # kind: fa1.2
+        }
+        log_file: log/payout-fa.log
+    }
+}
 ```
 
 ### Fixed Exchange Rate
 ```yaml
-		{
-			name: payout-shares
-			command: "./tezpay_payout-fa" # or .exe based on your platform
-			kind: stdio
-			hooks: [
-				after_bonds_distributed:rw
-				check_balance:rw
-			]
-			configuration: {
-				exchange_rate_kind: fixed
-				exchange_rate: 0.1
-				exchange_fee: 0.01
-				reward_mode: bonus
-				token: {
-					id: 1
-					contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
-					kind: fa2
-					alias: USDT
-					# or FA1.2
-					# contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
-					# kind: fa1.2
-				}
-				log_file: log/payout-fa.log
-			}
-		}
+{
+    name: payout-shares
+    command: "./tezpay_payout-fa" # or .exe based on your platform
+    kind: stdio
+    hooks: [
+        after_bonds_distributed:rw
+        check_balance:rw
+    ]
+    configuration: {
+        exchange_rate_kind: fixed
+        exchange_rate: 0.1
+        exchange_fee: 0.01
+        reward_mode: bonus
+        token: {
+            id: 1
+            contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
+            kind: fa2
+            alias: USDT
+            # or FA1.2
+            # contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
+            # kind: fa1.2
+        }
+        log_file: log/payout-fa.log
+    }
+}
 ```
 
 ### Extra Bonus with CMC exchange rate
 ```yaml
-		{
-			name: payout-bonus
-			command: "./tezpay_payout-fa" # or .exe based on your platform
-			kind: stdio
-			hooks: [
-				after_bonds_distributed:rw
-				check_balance:rw
-			]
-			configuration: {
-				exchange_rate_kind: provider
-				exchange_rate_provider: cmc
-				# 10% as as bonus, so fee 90%
-				exchange_fee: 0.9 
-				exchange_rate_provider_configuration: {
-					slug: bitcoin
-					api_key: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-				}
-				minimum_token_amount: 0.001 # 1000 satoshi
-				reward_mode: bonus
-				token: {
-					id: 1
-					contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
-					kind: fa2
-					alias: TzBTC
-					# or FA1.2
-					# contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
-					# kind: fa1.2
-					decimals: 6
-				}
-				log_file: log/payout-fa.log
-			}
-		}
+{
+    name: payout-bonus
+    command: "./tezpay_payout-fa" # or .exe based on your platform
+    kind: stdio
+    hooks: [
+        after_bonds_distributed:rw
+        check_balance:rw
+    ]
+    configuration: {
+        exchange_rate_kind: provider
+        exchange_rate_provider: cmc
+        # 10% as as bonus, so fee 90%
+        exchange_fee: 0.9 
+        exchange_rate_provider_configuration: {
+            slug: bitcoin
+            api_key: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+        }
+        minimum_token_amount: 0.001 # 1000 satoshi
+        reward_mode: bonus
+        token: {
+            id: 1
+            contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
+            kind: fa2
+            alias: TzBTC
+            # or FA1.2
+            # contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
+            # kind: fa1.2
+            decimals: 6
+        }
+        log_file: log/payout-fa.log
+    }
+}
 ```
 
 ### Token payout with CMC exchange rate
@@ -153,7 +153,7 @@ For testing, you can use test contracts on ghostnet:
     configuration: {
         exchange_rate_kind: provider
         exchange_rate_provider: cmc
-		# exchange fee baker charges
+        # exchange fee baker charges
         exchange_fee: 0.01 
         exchange_rate_provider_configuration: {
             slug: bitcoin
@@ -166,7 +166,7 @@ For testing, you can use test contracts on ghostnet:
             contract: KT1Uf1UqfiXVjWFmKB8CzEuoaiM2EiSRfa3c
             kind: fa2
             alias: TzBTC
-			# or FA1.2
+            # or FA1.2
             # contract: KT1XrNHYD98YWL6fzGSp6YiJJ8ohWySbqgXW
             # kind: fa1.2
             decimals: 6
