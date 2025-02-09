@@ -23,7 +23,7 @@ const (
 type ExchangeRateProviderKind string
 
 const (
-	CMCExchangeRateProviderKind ExchangeRateProviderKind = "cmd"
+	CMCExchangeRateProviderKind ExchangeRateProviderKind = "cmc"
 )
 
 type CMCExchangeRateProviderConfiguration struct {

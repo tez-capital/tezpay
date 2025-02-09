@@ -74,9 +74,13 @@ func (f *FaContract) GetFa2Balance(ctx context.Context) (tezos.Z, error) {
 }
 
 func (f *FaContract) GetBalance(ctx context.Context) (tezos.Z, error) {
+	return f.GetBalanceOf(ctx, f.payoutPKH)
+}
+
+func (f *FaContract) GetBalanceOf(ctx context.Context, addr string) (tezos.Z, error) {
 	switch f.token.Kind {
 	case TokenKindFA1_2:
-		balance, err := f.con.AsFA1().GetBalance(ctx, tezos.MustParseAddress(f.payoutPKH))
+		balance, err := f.con.AsFA1().GetBalance(ctx, tezos.MustParseAddress(addr))
 		if err != nil {
 			return tezos.Zero, errors.Join(errors.New("failed to get FA1_2 balance"), err)
 		}
