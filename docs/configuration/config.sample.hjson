@@ -190,12 +190,6 @@
       message_template: my awesome message
     }
     {
-      type: bluesky
-      handle: your.handle.bsky.social
-      app_password: your-app-password
-      message_template: my awesome message
-    }
-    {
       type: telegram
       api_token: your api token
       receivers: [
