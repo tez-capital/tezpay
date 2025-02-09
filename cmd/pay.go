@@ -72,7 +72,6 @@ var payCmd = &cobra.Command{
 			}
 			if err != nil {
 				slog.Error("failed to generate payouts", "error", err.Error())
-				time.Sleep(time.Minute * 5)
 				os.Exit(EXIT_OPERTION_FAILED)
 			}
 		}

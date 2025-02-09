@@ -6,9 +6,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type cmcResponse struct {
@@ -20,17 +24,13 @@ type cmcResponse struct {
 	} `json:"data"`
 }
 
-func get_cmc_exchange_rate(token_slug string, exchange_fee float64, apiKey string) (float64, error) {
+func get_cmc_exchange_rate(token_slug string, apiKey string) (tezos.Z, error) {
 	if token_slug == "" || token_slug == "tezos" {
-		return 0, errors.New("Invalid token slug")
+		return tezos.Zero, errors.New("Invalid token slug")
 	}
 
 	if apiKey == "" {
-		return 0, errors.New("Invalid API key")
-	}
-
-	if exchange_fee <= 0 {
-		exchange_fee = 0
+		return tezos.Zero, errors.New("Invalid API key")
 	}
 
 	client := &http.Client{}
@@ -58,11 +58,11 @@ func get_cmc_exchange_rate(token_slug string, exchange_fee float64, apiKey strin
 
 	var cmcResp cmcResponse
 	if err := json.Unmarshal(respBody, &cmcResp); err != nil {
-		return 0, err
+		return tezos.Zero, err
 	}
 
 	if cmcResp.Data == nil {
-		return 0, errors.New("Invalid response from CMC")
+		return tezos.Zero, errors.New("Invalid response from CMC")
 	}
 
 	var tezosPrice float64
@@ -79,46 +79,45 @@ func get_cmc_exchange_rate(token_slug string, exchange_fee float64, apiKey strin
 	}
 
 	if tezosPrice == 0 || tokenPrice == 0 {
-		return 0, errors.New("Invalid price data")
+		return tezos.Zero, errors.New("Invalid price data")
 	}
 
 	exchangeRate := tezosPrice / tokenPrice
-	return exchangeRate * (1 - exchange_fee), nil
+	return tezos.NewZ(int64(exchangeRate * float64(PRECISION))), nil
 }
 
 type CMCExchangeRateProvider struct {
 	slug    string
 	api_key string
-	fee     float64
+	fee     tezos.Z
 	token   TokenConfiguration
 
-	rate float64
+	rate tezos.Z
 }
 
 func NewCMCExchangeRateProvider(slug, api_key string, fee float64, token TokenConfiguration) *CMCExchangeRateProvider {
 	return &CMCExchangeRateProvider{
 		slug:    slug,
 		api_key: api_key,
-		fee:     fee,
+		fee:     tezos.NewZ(int64(fee * float64(PRECISION))),
 		token:   token,
 	}
 }
 
 func (p *CMCExchangeRateProvider) RefreshExchangeRate() error {
-	rate, err := get_cmc_exchange_rate(p.slug, p.fee, p.api_key)
+	rate, err := get_cmc_exchange_rate(p.slug, p.api_key)
 	if err != nil {
 		return err
 	}
+	slog.Info("Exchange rate updated", "rate", rate)
 	p.rate = rate
 	return nil
 }
 
-func (p *CMCExchangeRateProvider) ExchangeToToken(amount int64) int64 {
-	token_amount := float64(amount) * p.rate * (1 - p.fee)
+func (p *CMCExchangeRateProvider) ExchangeTezToToken(mutez tezos.Z) tezos.Z {
+	decimalsMultiplier := int64(math.Pow10(p.token.Decimals))
 
-	if p.token.Decimals == 0 {
-		return int64(token_amount)
-	}
-
-	return int64(token_amount * float64(p.token.Decimals))
+	token_amount := mutez.Mul(p.rate).Mul64(decimalsMultiplier).Div(tezos.NewZ(PRECISION).Sub(p.fee)).Div64(MUTEZ_FACTOR)
+	slog.Debug("Exchanging amount", "amount", mutez, "token_amount", token_amount, "rate", p.rate, "fee", p.fee)
+	return token_amount
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"math"
 
 	"github.com/tez-capital/tezpay/common"
 	"github.com/trilitech/tzgo/tezos"
@@ -17,7 +18,7 @@ type ExchangeRateKind string
 const (
 	ExchangeRateFixedAmount ExchangeRateKind = "fixed-amount"
 	ExchangeRateFixed       ExchangeRateKind = "fixed"
-	ExchangeRateDynamic     ExchangeRateKind = "dynamic"
+	ExchangeRateProvider    ExchangeRateKind = "provider"
 )
 
 type ExchangeRateProviderKind string
@@ -48,14 +49,15 @@ const (
 type TokenConfiguration struct {
 	Id       int64     `json:"id"`
 	Contract string    `json:"contract"`
-	Decimals int64     `json:"decimals"`
+	Decimals int       `json:"decimals"`
 	Kind     TokenKind `json:"kind"`
 	Alias    string    `json:"alias,omitempty"`
 }
 
 type Configuration struct {
 	ExchangeRateKind                  ExchangeRateKind         `json:"exchange_rate_kind,omitempty"`
-	RewardAmount                      int64                    `json:"reward_amount,omitempty"`
+	RewardAmount                      float64                  `json:"reward_amount,omitempty"`
+	MinimumTokenAmount                float64                  `json:"minimum_token_amount,omitempty"`
 	BalanceRequired                   int64                    `json:"balance_required,omitempty"`
 	ExchangeRate                      float64                  `json:"exchange_rate,omitempty"`
 	ExchangeRateProvider              ExchangeRateProviderKind `json:"exchange_rate_provider,omitempty"`
@@ -71,6 +73,7 @@ type RuntimeContext struct {
 	TokenConfiguration   TokenConfiguration
 	RewardMode           RewardMode
 	Contract             Contract
+	MinimumTokenAmount   tezos.Z
 }
 
 func Initialize(ctx context.Context, params common.ExtensionInitializationMessage) (*RuntimeContext, error) {
@@ -110,6 +113,11 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 		return nil, err
 	}
 
+	if config.ExchangeFee > 1 || config.ExchangeFee < 0 {
+		slog.Error("invalid exchange fee, must be between 0 and 1")
+		return nil, errors.New("invalid exchange fee, must be between 0 and 1")
+	}
+
 	result := &RuntimeContext{
 		ExchangeRateProvider: nil,
 		TokenConfiguration:   config.Token,
@@ -122,14 +130,14 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 			slog.Error("invalid reward amount, must be greater than 0")
 			return nil, errors.New("invalid reward amount, must be greater than 0")
 		}
-		result.ExchangeRateProvider = FixedAmountExchanger{Amount: config.RewardAmount, Token: config.Token}
+		result.ExchangeRateProvider = NewFixedAmountExchanger(config.RewardAmount, config.Token)
 	case ExchangeRateFixed:
 		if config.ExchangeRate == 0 {
 			slog.Error("invalid exchange rate, must be greater than 0")
 			return nil, errors.New("invalid exchange rate, must be greater than 0")
 		}
-		result.ExchangeRateProvider = FixedRateExchanger{Rate: config.ExchangeRate, Token: config.Token, Fee: config.ExchangeFee}
-	case ExchangeRateDynamic:
+		result.ExchangeRateProvider = NewFixedRateExchanger(config.ExchangeRate, config.ExchangeFee, config.Token)
+	case ExchangeRateProvider:
 		switch config.ExchangeRateProvider {
 		case CMCExchangeRateProviderKind:
 			var providerConfig CMCExchangeRateProviderConfiguration
@@ -145,6 +153,7 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 				slog.Error("invalid CMC token slug")
 				return nil, errors.New("invalid CMC token slug")
 			}
+			slog.Info("loading CMC exchange rate provider", "slug", providerConfig.Slug)
 			result.ExchangeRateProvider = NewCMCExchangeRateProvider(providerConfig.Slug, providerConfig.APIKey, config.ExchangeFee, config.Token)
 		default:
 			slog.Error("invalid exchange rate provider")
@@ -194,6 +203,11 @@ func Initialize(ctx context.Context, params common.ExtensionInitializationMessag
 		slog.Error("invalid token kind")
 		return nil, errors.New("invalid token kind")
 	}
+
+	if config.MinimumTokenAmount < 0 {
+		config.MinimumTokenAmount = 0
+	}
+	result.MinimumTokenAmount = tezos.NewZ(int64(config.MinimumTokenAmount * math.Pow10(config.Token.Decimals)))
 
 	slog.Info("configuration loaded")
 	return result, nil

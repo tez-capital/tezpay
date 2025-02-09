@@ -2,29 +2,39 @@ package common
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/trilitech/tzgo/tezos"
 )
 
-func FormatAmount(kind enums.EPayoutTransactionKind, amount int64, alias string) string {
+func FormatTezAmount(amount int64) string {
+	if amount == 0 {
+		return ""
+	}
+	return MutezToTezS(amount)
+}
+
+func FormatTokenAmount(kind enums.EPayoutTransactionKind, amount int64, alias string, decimals int) string {
 	if amount == 0 {
 		return ""
 	}
 	switch kind {
 	case enums.PAYOUT_TX_KIND_FA1_2:
+		amountFloat := float64(amount) / math.Pow10(decimals)
 		if alias != "" {
-			return fmt.Sprintf("%d %s", amount, alias)
+			return fmt.Sprintf("%.*f %s", decimals, amountFloat, alias)
 		}
-		return fmt.Sprintf("%d FA1", amount)
+		return fmt.Sprintf("%.*f FA1", decimals, amountFloat)
 	case enums.PAYOUT_TX_KIND_FA2:
+		amountFloat := float64(amount) / math.Pow10(decimals)
 		if alias != "" {
-			return fmt.Sprintf("%d %s", amount, alias)
+			return fmt.Sprintf("%.*f %s", decimals, amountFloat, alias)
 		}
-		return fmt.Sprintf("%d FA2", amount)
+		return fmt.Sprintf("%.*f FA2", decimals, amountFloat)
 	default:
-		return MutezToTezS(amount)
+		return FormatTezAmount(amount)
 	}
 }
 

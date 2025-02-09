@@ -46,7 +46,7 @@ func main() {
 	})
 
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_AFTER_BONDS_DISTRIBUTED), func(ctx context.Context, params common.ExtensionHookData[generate.AfterBondsDistributedHookData]) (*generate.AfterBondsDistributedHookData, *rpc.Error) {
-		extra := make([]generate.PayoutCandidateWithBondAmount, 0, len(params.Data.Candidates))
+		tokenTxs := make([]generate.PayoutCandidateWithBondAmount, 0, len(params.Data.Candidates))
 		slog.Info("calculating token rewards", "candidates", len(params.Data.Candidates))
 		err := runtimeContext.ExchangeRateProvider.RefreshExchangeRate()
 		if err != nil {
@@ -59,9 +59,9 @@ func main() {
 				continue
 			}
 
-			tokenAmount := runtimeContext.ExchangeRateProvider.ExchangeToToken(candidate.GetAmount().Int64())
+			tokenAmount := runtimeContext.ExchangeRateProvider.ExchangeTezToToken(candidate.GetAmount()) // we calculated with mutez so we need to divide by 1_000_000
 			slog.Debug("calculated token reward", "delegate", candidate.Source, "recipient", candidate.Recipient, "amount", tokenAmount)
-			if tokenAmount <= 0 {
+			if tokenAmount.IsLessEqual(tezos.Zero) || tokenAmount.IsLess(runtimeContext.MinimumTokenAmount) {
 				continue
 			}
 
@@ -71,29 +71,24 @@ func main() {
 				txKind = enums.PAYOUT_TX_KIND_FA1_2
 			}
 
-			switch runtimeContext.RewardMode {
-			case RewardModeBonus:
-				bonusTx := generate.PayoutCandidateWithBondAmount{
-					PayoutCandidate: candidate.PayoutCandidate,
-					BondsAmount:     tezos.Zero,
-					TxKind:          txKind,
-					FATokenId:       tezos.NewZ(runtimeContext.TokenConfiguration.Id),
-					FAContract:      tezos.MustParseAddress(runtimeContext.TokenConfiguration.Contract),
-					FAAlias:         runtimeContext.TokenConfiguration.Alias,
-				}
-				bonusTx.BondsAmount = tezos.NewZ(tokenAmount)
-
-				extra = append(extra, bonusTx)
-			case RewardModeReplace:
-				candidate.BondsAmount = tezos.NewZ(tokenAmount)
-				candidate.TxKind = txKind
-				candidate.FATokenId = tezos.NewZ(runtimeContext.TokenConfiguration.Id)
-				candidate.FAContract = tezos.MustParseAddress(runtimeContext.TokenConfiguration.Contract)
-				candidate.FAAlias = runtimeContext.TokenConfiguration.Alias
-			}
+			tokenTxs = append(tokenTxs, generate.PayoutCandidateWithBondAmount{
+				PayoutCandidate: candidate.PayoutCandidate,
+				BondsAmount:     tokenAmount,
+				TxKind:          txKind,
+				FATokenId:       tezos.NewZ(runtimeContext.TokenConfiguration.Id),
+				FAContract:      tezos.MustParseAddress(runtimeContext.TokenConfiguration.Contract),
+				FAAlias:         runtimeContext.TokenConfiguration.Alias,
+				FADecimals:      runtimeContext.TokenConfiguration.Decimals,
+			})
 		}
 
-		rewards := append(params.Data.Candidates, extra...)
+		rewards := params.Data.Candidates
+		switch runtimeContext.RewardMode {
+		case RewardModeBonus:
+			rewards = append(rewards, tokenTxs...)
+		case RewardModeReplace:
+			rewards = tokenTxs
+		}
 		slog.Info("successfully calculated token rewards", "rewards_count", len(rewards))
 		params.Data.Candidates = rewards
 		return params.Data, nil
