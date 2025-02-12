@@ -13,6 +13,8 @@ Rewards are generated based on the exchange rate. The supported exchange rate ki
 - **fixed**: Pays out based on a specific exchange rate, ideal for share representation.
 - **provider**: Fetches the exchange rate from a third-party provider. The only supported provider right now is `cmc`.
 
+> **Note**: Fees for token transactions are always paid by the baker. Adjust accordingly.
+
 ## Testing
 
 For testing, you can use test contracts on ghostnet:
