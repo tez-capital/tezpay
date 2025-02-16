@@ -194,7 +194,7 @@ func (client *Client) getBakerData(ctx context.Context, baker []byte, cycle int6
 		return nil, err
 	}
 	for _, op := range setDelegateParamtersOps {
-		if op.ActivationCycle <= cycle {
+		if op.ActivationCycle+1 <= cycle { // +1 because it activates after cycle is generated
 			data.LimitOfStakingOverBaking = op.LimitOfStakingOverBaking
 			break
 		}
