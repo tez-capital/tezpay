@@ -4,7 +4,8 @@ const (
 	// ops
 	EXIT_OPERTION_FAILED   = 1
 	EXIT_OPERTION_CANCELED = 2
-	EXIT_IVNALID_ARGS      = 3
+	EXIT_INVALID_ARGS      = 3
+	EXIT_INVALID_LOG_LEVEL = 4
 
 	// payouts io
 	EXIT_PAYOUT_WRITE_FAILURE                = 10

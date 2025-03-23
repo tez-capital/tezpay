@@ -67,6 +67,8 @@ var (
 
 	// execute payouts
 
+	ErrFailedToCompleteOperation    = errors.New("failed to complete operation")
+	ErrFailedToSignOperation        = errors.New("failed to sign operation")
 	ErrExecutePayoutsUserTerminated = errors.New("user terminated execution")
 	ErrGetChainLimitsFailed         = errors.New("failed to get chain limits")
 

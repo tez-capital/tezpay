@@ -163,7 +163,7 @@ var continualCmd = &cobra.Command{
 				time.Sleep(time.Second * 5)
 			} else {
 				slog.Error("force confirmation mode is not supported in non-interactive mode")
-				os.Exit(EXIT_IVNALID_ARGS)
+				os.Exit(EXIT_INVALID_ARGS)
 			}
 		}
 

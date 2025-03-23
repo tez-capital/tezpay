@@ -26,7 +26,7 @@ var transferCmd = &cobra.Command{
 
 		if len(args)%2 != 0 {
 			slog.Error("invalid number of arguments (expects pairs of destination and amount)")
-			os.Exit(EXIT_IVNALID_ARGS)
+			os.Exit(EXIT_INVALID_ARGS)
 		}
 		total := int64(0)
 
@@ -38,13 +38,13 @@ var transferCmd = &cobra.Command{
 			destination, err := tezos.ParseAddress(args[i])
 			if err != nil {
 				slog.Error("invalid destination address", "address", args[i], "error", err.Error())
-				os.Exit(EXIT_IVNALID_ARGS)
+				os.Exit(EXIT_INVALID_ARGS)
 			}
 
 			amount, err := strconv.ParseFloat(args[i+1], 64)
 			if err != nil {
 				slog.Error("invalid amount", "amount", args[i+1], "error", err.Error())
-				os.Exit(EXIT_IVNALID_ARGS)
+				os.Exit(EXIT_INVALID_ARGS)
 			}
 			if !mutez {
 				amount *= constants.MUTEZ_FACTOR

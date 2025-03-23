@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/samber/lo"
@@ -77,13 +78,13 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 
 	err := transactor.Complete(op, signer.GetKey())
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(constants.ErrFailedToCompleteOperation, err)
 	}
 
 	slog.Debug("new op context", "op", op.Bytes(), "op_hash", op.Hash())
 	err = signer.Sign(op)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(constants.ErrFailedToSignOperation, err)
 	}
 	return InitOpExecutionContext(op, transactor), nil
 }

@@ -97,12 +97,17 @@ Copyright © %d alis.is
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			format, _ := cmd.Flags().GetString(OUTPUT_FORMAT_FLAG)
 			disableDonationPrompt, _ := cmd.Flags().GetBool(DISABLE_DONATION_PROMPT_FLAG)
-			level, _ := cmd.Flags().GetString(LOG_LEVEL_FLAG)
+			logLevelFlag, _ := cmd.Flags().GetString(LOG_LEVEL_FLAG)
 			logServer, _ := cmd.Flags().GetString(LOG_SERVER_FLAG)
 			logFile, _ := cmd.Flags().GetString(LOG_FILE_FLAG)
 
-			setupLogger(LOG_LEVEL_MAP[level], logServer, logFile, format)
-			slog.Debug("logger configured", "format", format, "level", level)
+			logLevel, ok := LOG_LEVEL_MAP[logLevelFlag]
+			if !ok {
+				slog.Error("invalid log level", "level", logLevelFlag)
+				os.Exit(EXIT_INVALID_LOG_LEVEL)
+			}
+			setupLogger(logLevel, logServer, logFile, format)
+			slog.Debug("logger configured", "format", format, "level", logLevelFlag)
 
 			workingDirectory, _ := cmd.Flags().GetString(PATH_FLAG)
 			singerFlagData, _ := cmd.Flags().GetString(SIGNER_FLAG)
