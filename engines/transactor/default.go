@@ -115,14 +115,12 @@ func (transactor *DefaultRpcTransactor) RefreshParams() error {
 	for _, rpc := range transactor.rpcs {
 		err := rpc.Init(context.Background())
 		if err != nil {
-			slog.Warn("failed to refresh rpc params", "error", err.Error(), "rpc_url", rpc.BaseURL.String())
+			slog.Debug("failed to refresh rpc params", "error", err.Error(), "rpc_url", rpc.BaseURL.String())
 			failures++
 		}
 	}
 	if failures == len(transactor.rpcs) {
 		return fmt.Errorf("failed to refresh rpc params for all clients, all %d failed", failures)
-	} else if failures > 0 {
-		slog.Info(">>> at least one RPC client was successfully refreshed - you can ignore above warnings <<<")
 	}
 
 	return nil

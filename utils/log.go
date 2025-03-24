@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"maps"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/fatih/color"
@@ -72,7 +73,12 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 
 	r.Attrs(func(a slog.Attr) bool {
 		if !isHiddenAttr(a) {
-			fields[a.Key] = a.Value.Any()
+			switch {
+			case a.Key == "error" && a.Value.String() != "":
+				fields[a.Key] = strings.Split(a.Value.String(), "\n")
+			default:
+				fields[a.Key] = a.Value.Any()
+			}
 		}
 		return true
 	})

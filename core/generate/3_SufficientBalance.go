@@ -71,7 +71,7 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGeneration
 	diff := payableBalance.Sub(requiredbalance)
 	if diff.IsNeg() || diff.IsZero() {
 		data.IsSufficient = false
-		data.Message = fmt.Sprintf("required: %s, available: %s", requiredbalance, payableBalance)
+		data.Message = fmt.Sprintf("required: %s, available: %s", common.FormatTezAmount(requiredbalance.Int64()), common.FormatTezAmount(payableBalance.Int64()))
 	}
 	return nil
 }
