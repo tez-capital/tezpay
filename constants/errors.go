@@ -63,6 +63,7 @@ var (
 	ErrPayoutsFromStdinLoadFailed            = errors.New("failed to load payouts from stdin")
 	ErrPayoutsSaveToFileFailed               = errors.New("failed to save payouts to file")
 	ErrInsufficientBalance                   = errors.New("insufficient balance")
+	ErrFailedToCheckBalance                  = errors.New("failed to check balance")
 	ErrFailedToEstimateSerializationGasLimit = errors.New("failed to estimate batch serialization gas limit")
 
 	// execute payouts

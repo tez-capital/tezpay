@@ -66,13 +66,12 @@ var payCmd = &cobra.Command{
 					Cycle:            cycle,
 					SkipBalanceCheck: skipBalanceCheck,
 				})
-			if errors.Is(err, constants.ErrNoCycleDataAvailable) {
+			switch {
+			case errors.Is(err, constants.ErrNoCycleDataAvailable):
 				slog.Info("no data available for cycle, skipping", "cycle", cycle)
 				return
-			}
-			if err != nil {
-				slog.Error("failed to generate payouts", "error", err.Error())
-				os.Exit(EXIT_OPERTION_FAILED)
+			case err != nil:
+				handleGeneratePayoutsFailure(err)
 			}
 		}
 

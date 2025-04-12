@@ -89,7 +89,7 @@ func runBalanceCheck(ctx *PayoutGenerationContext, logger *slog.Logger, check fu
 				time.Sleep(time.Minute * 5)
 				continue
 			}
-			return err
+			return errors.Join(constants.ErrFailedToCheckBalance, err)
 		}
 
 		if !data.IsSufficient {

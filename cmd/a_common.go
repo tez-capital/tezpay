@@ -147,3 +147,18 @@ func PrintPayoutWalletRemainingBalance(collector common.CollectorEngine, signer 
 
 	slog.Info("the payout wallet remaining balance", "wallet", addr.String(), "balance", common.FormatTezAmount(balance.Int64()), "phase", "payout_wallet_remaining_balance")
 }
+
+func handleGeneratePayoutsFailure(err error) {
+	if err == nil {
+		return // no error
+	}
+	slog.Error("failed to generate payouts", "error", err.Error())
+	switch {
+	case errors.Is(err, constants.ErrInsufficientBalance):
+		os.Exit(EXIT_INSUFFICIENT_BALANCE_FAILURE)
+	case errors.Is(err, constants.ErrFailedToCheckBalance):
+		os.Exit(EXIT_FAILED_TO_CHECK_BALANCE)
+	default:
+		os.Exit(EXIT_OPERTION_FAILED)
+	}
+}

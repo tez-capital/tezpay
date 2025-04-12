@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"log/slog"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -40,13 +39,12 @@ var generatePayoutsCmd = &cobra.Command{
 				Cycle:            cycle,
 				SkipBalanceCheck: skipBalanceCheck,
 			})
-		if errors.Is(err, constants.ErrNoCycleDataAvailable) {
-			slog.Info("no data available, nothing to pay out", "cycle", cycle)
+		switch {
+		case errors.Is(err, constants.ErrNoCycleDataAvailable):
+			slog.Info("no data available for cycle, skipping", "cycle", cycle)
 			return
-		}
-		if err != nil {
-			slog.Error("failed to generate payouts", "error", err.Error())
-			os.Exit(EXIT_OPERTION_FAILED)
+		case err != nil:
+			handleGeneratePayoutsFailure(err)
 		}
 
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
