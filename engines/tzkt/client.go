@@ -55,6 +55,13 @@ type tzktBakersCycleData struct {
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
 	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
 
+	DalRewardsDelegated  int64 `json:"dalAttestationRewardsDelegated"`
+	DalRewardsLiquid     int64 `json:"dalAttestationRewardsStakedOwn"`
+	DalRewardsStakedOwn  int64 `json:"dalAttestationRewardsStakedEdge"`
+	DalRewardsStakedEdge int64 `json:"dalAttestationRewardsStakedShared"`
+	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
+	MissedDalRewards int64 `json:"missedDalAttestationRewards"`
+
 	DelegatorsCount int32 `json:"delegatorsCount"`
 	StakersCount    int32 `json:"stakersCount"`
 	// NumDelegators            int32            `json:"numDelegators"` // DelegatorsCount
@@ -317,17 +324,11 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 	precision := int64(10000)
 
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
-	firstAiActivatedCycle := constants.FIRST_PARIS_AI_ACTIVATED_CYCLE
-	if cycle >= firstAiActivatedCycle || chainId == tezos.Ghostnet {
-		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
-		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
-		delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakedBalance - tzktBakerCycleData.ExternalStakedBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
-	} else {
-		blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsLiquid).Add64(tzktBakerCycleData.BlockRewardsStakedOwn)
-		endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsLiquid).Add64(tzktBakerCycleData.EndorsementRewardsStakedOwn)
-		delegationShare = tezos.NewZ(1)
-		precision = 1
-	}
+
+	blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
+	endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
+	dalDelegatedRewards := tezos.NewZ(tzktBakerCycleData.DalRewardsDelegated)
+	delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakedBalance - tzktBakerCycleData.ExternalStakedBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
 
 	blockDelegatedFees := delegationShare.Mul64(tzktBakerCycleData.BlockFees).Div64(precision)
 	blockStakingFees := tezos.NewZ(tzktBakerCycleData.BlockFees).Sub(blockDelegatedFees)
@@ -440,6 +441,8 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		IdealBlockDelegatedRewards:       blockDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
 		EndorsementDelegatedRewards:      endorsingDelegatedRewards,
 		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedEndorsementRewards).Div64(precision)),
+		DalDelegatedRewards:              dalDelegatedRewards,
+		IdealDalDelegatedRewards:         dalDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedDalRewards).Div64(precision)),
 		BlockDelegatedFees:               blockDelegatedFees,
 
 		StakersCount:                  tzktBakerCycleData.StakersCount,

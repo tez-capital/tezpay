@@ -19,6 +19,8 @@ type BakersCycleData struct {
 	IdealBlockDelegatedRewards       tezos.Z
 	EndorsementDelegatedRewards      tezos.Z
 	IdealEndorsementDelegatedRewards tezos.Z
+	DalDelegatedRewards              tezos.Z
+	IdealDalDelegatedRewards         tezos.Z
 	BlockDelegatedFees               tezos.Z
 	DelegatorsCount                  int32
 
@@ -39,11 +41,11 @@ type ShareInfo struct {
 }
 
 func (cycleData *BakersCycleData) getActualDelegatedRewards() tezos.Z {
-	return cycleData.BlockDelegatedFees.Add(cycleData.BlockDelegatedRewards).Add(cycleData.EndorsementDelegatedRewards)
+	return cycleData.BlockDelegatedFees.Add(cycleData.BlockDelegatedRewards).Add(cycleData.EndorsementDelegatedRewards).Add(cycleData.DalDelegatedRewards)
 }
 
 func (cycleData *BakersCycleData) getIdealDelegatedRewards() tezos.Z {
-	return cycleData.IdealBlockDelegatedRewards.Add(cycleData.IdealEndorsementDelegatedRewards).Add(cycleData.BlockDelegatedFees)
+	return cycleData.IdealBlockDelegatedRewards.Add(cycleData.IdealEndorsementDelegatedRewards).Add(cycleData.IdealDalDelegatedRewards).Add(cycleData.BlockDelegatedFees)
 }
 
 // GetTotalDelegatedRewards returns the total rewards for the cycle based on payout mode
