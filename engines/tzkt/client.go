@@ -56,9 +56,9 @@ type tzktBakersCycleData struct {
 	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
 
 	DalRewardsDelegated  int64 `json:"dalAttestationRewardsDelegated"`
-	DalRewardsLiquid     int64 `json:"dalAttestationRewardsStakedOwn"`
-	DalRewardsStakedOwn  int64 `json:"dalAttestationRewardsStakedEdge"`
-	DalRewardsStakedEdge int64 `json:"dalAttestationRewardsStakedShared"`
+	DalRewardsLiquid     int64 `json:"dalAttestationRewardsLiquid"`
+	DalRewardsStakedOwn  int64 `json:"dalAttestationRewardsStakedOwn"`
+	DalRewardsStakedEdge int64 `json:"dalAttestationRewardsStakedEdge"`
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
 	MissedDalRewards int64 `json:"missedDalAttestationRewards"`
 
