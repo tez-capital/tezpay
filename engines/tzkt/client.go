@@ -42,21 +42,18 @@ type tzktBakersCycleData struct {
 	ExternalStakedBalance    int64 `json:"externalStakedBalance"` // ExternalDelegatedBalance
 
 	BlockRewardsDelegated  int64 `json:"blockRewardsDelegated"`
-	BlockRewardsLiquid     int64 `json:"blockRewardsLiquid"`
 	BlockRewardsStakedOwn  int64 `json:"blockRewardsStakedOwn"`
 	BlockRewardsStakedEdge int64 `json:"blockRewardsStakedEdge"`
 	// BlockRewards             int64            `json:"blockRewards"` // BlockRewardsLiquid + BlockRewardsStakedOwn
 	MissedBlockRewards int64 `json:"missedBlockRewards"`
 
 	EndorsementRewardsDelegated  int64 `json:"endorsementRewardsDelegated"`
-	EndorsementRewardsLiquid     int64 `json:"endorsementRewardsLiquid"`
 	EndorsementRewardsStakedOwn  int64 `json:"endorsementRewardsStakedOwn"`
 	EndorsementRewardsStakedEdge int64 `json:"endorsementRewardsStakedEdge"`
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
 	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
 
 	DalRewardsDelegated  int64 `json:"dalAttestationRewardsDelegated"`
-	DalRewardsLiquid     int64 `json:"dalAttestationRewardsLiquid"`
 	DalRewardsStakedOwn  int64 `json:"dalAttestationRewardsStakedOwn"`
 	DalRewardsStakedEdge int64 `json:"dalAttestationRewardsStakedEdge"`
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
