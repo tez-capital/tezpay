@@ -31,6 +31,9 @@
     # buffer for transaction gas limit
     transaction_gas_limit_buffer: 200
 
+    # buffer for contract transaction gas limit
+    kt_transaction_gas_limit_buffer: 400
+
     # buffer for transaction deserialization gas
     transaction_deserialization_gas_buffer: 5
 

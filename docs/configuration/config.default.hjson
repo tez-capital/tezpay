@@ -7,6 +7,7 @@
     balance_check_mode: protocol
     fee: 0.05
     transaction_gas_limit_buffer: 100
+    kt_transaction_gas_limit_buffer: 200
     transaction_deserialization_gas_buffer: 2
     minimum_delay_blocks: 500
     maximum_delay_blocks: 1500
