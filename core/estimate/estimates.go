@@ -110,7 +110,6 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 		if batch[i].GetDestination().IsContract() || slices.Contains([]enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA2}, batch[i].GetTxKind()) {
 			feeBuffer = ctx.Configuration.PayoutConfiguration.KtTxFeeBuffer
 			gasLimitBuffer = ctx.Configuration.PayoutConfiguration.KtTxGasLimitBuffer
-			fmt.Println(gasLimitBuffer)
 		}
 
 		common.InjectLimits(op, []tezos.Limits{{
