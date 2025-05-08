@@ -1,11 +1,11 @@
 module github.com/tez-capital/tezpay/extensions/payout-fa
 
-go 1.23.4
+go 1.24.0
 
 require (
 	github.com/alis-is/jsonrpc2 v0.0.0-20240608185122-5f8c3990a8da
 	github.com/tez-capital/tezpay v0.0.0-20250208102828-493ace72d030
-	github.com/trilitech/tzgo v1.21.1
+	github.com/trilitech/tzgo v1.22.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -24,7 +24,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.6 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/hjson/hjson-go/v4 v4.4.0 // indirect
+	github.com/hjson/hjson-go/v4 v4.5.0 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.6.7 // indirect
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
@@ -33,13 +33,13 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/nikoksr/notify v1.3.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/samber/lo v1.49.1 // indirect
+	github.com/samber/lo v1.50.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.60.0 // indirect
+	github.com/valyala/fasthttp v1.62.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
+	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 )
