@@ -106,11 +106,15 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 		}
 
 		feeBuffer := ctx.Configuration.PayoutConfiguration.TxFeeBuffer
+		gasLimitBuffer := ctx.Configuration.PayoutConfiguration.TxGasLimitBuffer
 		if batch[i].GetDestination().IsContract() || slices.Contains([]enums.EPayoutTransactionKind{enums.PAYOUT_TX_KIND_FA1_2, enums.PAYOUT_TX_KIND_FA2}, batch[i].GetTxKind()) {
 			feeBuffer = ctx.Configuration.PayoutConfiguration.KtTxFeeBuffer
+			gasLimitBuffer = ctx.Configuration.PayoutConfiguration.KtTxGasLimitBuffer
+			fmt.Println(gasLimitBuffer)
 		}
+
 		common.InjectLimits(op, []tezos.Limits{{
-			GasLimit:     p.GasUsed + ctx.Configuration.PayoutConfiguration.TxGasLimitBuffer,
+			GasLimit:     p.GasUsed + gasLimitBuffer,
 			StorageLimit: utils.CalculateStorageLimit(p),
 			Fee:          p.Fee,
 		}})
@@ -118,12 +122,12 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 		txSerializationGas := (serializationGas * int64(len(bytes))) / int64(totalBytes)
 
 		totalTxGasUsed := p.GasUsed + txSerializationGas +
-			ctx.Configuration.PayoutConfiguration.TxGasLimitBuffer + // buffer for gas limit
+			gasLimitBuffer + // buffer for gas limit
 			ctx.BatchMetadataDeserializationGasLimit + // potential gas used for deserialization if only one tx in batch
 			ctx.Configuration.PayoutConfiguration.TxDeserializationGasBuffer // buffer for deserialization gas limit
 
 		result = append(result, &common.OpLimits{
-			GasLimit:                p.GasUsed + ctx.Configuration.PayoutConfiguration.TxGasLimitBuffer,
+			GasLimit:                p.GasUsed + gasLimitBuffer,
 			StorageLimit:            utils.CalculateStorageLimit(p),
 			TransactionFee:          utils.EstimateTransactionFee(op, []int64{totalTxGasUsed}, feeBuffer),
 			DeserializationGasLimit: txSerializationGas + ctx.Configuration.PayoutConfiguration.TxDeserializationGasBuffer,

@@ -98,6 +98,11 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		gasLimitBuffer = *configuration.PayoutConfiguration.TxGasLimitBuffer
 	}
 
+	ktGasLimitBuffer := int64(constants.DEFAULT_KT_TX_GAS_LIMIT_BUFFER)
+	if configuration.PayoutConfiguration.KtTxGasLimitBuffer != nil {
+		ktGasLimitBuffer = *configuration.PayoutConfiguration.KtTxGasLimitBuffer
+	}
+
 	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
 	if configuration.PayoutConfiguration.TxDeserializationGasBuffer != nil {
 		deserializaGasBuffer = *configuration.PayoutConfiguration.TxDeserializationGasBuffer
@@ -170,6 +175,7 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 			MinimumAmount:              FloatAmountToMutez(configuration.PayoutConfiguration.MinimumAmount),
 			IgnoreEmptyAccounts:        configuration.PayoutConfiguration.IgnoreEmptyAccounts,
 			TxGasLimitBuffer:           gasLimitBuffer,
+			KtTxGasLimitBuffer:         ktGasLimitBuffer,
 			TxDeserializationGasBuffer: deserializaGasBuffer,
 			TxFeeBuffer:                feeBuffer,
 			KtTxFeeBuffer:              ktFeeBuffer,

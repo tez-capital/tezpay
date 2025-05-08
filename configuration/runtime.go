@@ -49,6 +49,7 @@ type RuntimePayoutConfiguration struct {
 	MinimumAmount              tezos.Z                 `json:"minimum_payout_amount,omitempty"`
 	IgnoreEmptyAccounts        bool                    `json:"ignore_empty_accounts,omitempty"`
 	TxGasLimitBuffer           int64                   `json:"transaction_gas_limit_buffer,omitempty"`
+	KtTxGasLimitBuffer         int64                   `json:"kt_transaction_gas_limit_buffer,omitempty"`
 	TxDeserializationGasBuffer int64                   `json:"transaction_deserialization_gas_buffer,omitempty"`
 	TxFeeBuffer                int64                   `json:"transaction_fee_buffer,omitempty"`
 	KtTxFeeBuffer              int64                   `json:"kt_transaction_fee_buffer,omitempty"`
@@ -100,6 +101,7 @@ func GetDefaultRuntimeConfiguration() RuntimeConfiguration {
 			MinimumAmount:              FloatAmountToMutez(constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT),
 			IgnoreEmptyAccounts:        false,
 			TxGasLimitBuffer:           constants.DEFAULT_TX_GAS_LIMIT_BUFFER,
+			KtTxGasLimitBuffer:         constants.DEFAULT_KT_TX_GAS_LIMIT_BUFFER,
 			TxDeserializationGasBuffer: constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER,
 			TxFeeBuffer:                constants.DEFAULT_TX_FEE_BUFFER,
 			KtTxFeeBuffer:              constants.DEFAULT_KT_TX_FEE_BUFFER,

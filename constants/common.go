@@ -16,6 +16,7 @@ const (
 	DEFAULT_EXPLORER_URL                  = "https://tzkt.io/"
 	DEFAULT_REQUIRED_CONFIRMATIONS        = int64(2)
 	DEFAULT_TX_GAS_LIMIT_BUFFER           = int64(100)
+	DEFAULT_KT_TX_GAS_LIMIT_BUFFER        = int64(200)
 	DEFAULT_TX_DESERIALIZATION_GAS_BUFFER = int64(2) // just because of integer division
 	DEFAULT_TX_FEE_BUFFER                 = int64(0)
 	DEFAULT_KT_TX_FEE_BUFFER              = int64(0)

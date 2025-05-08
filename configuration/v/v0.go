@@ -66,6 +66,7 @@ type PayoutConfigurationV0 struct {
 	MinimumAmount              float64                 `json:"minimum_payout_amount,omitempty" comment:"minimum amount to pay out to delegators, if the amount is less, the payout will be ignored"`
 	IgnoreEmptyAccounts        bool                    `json:"ignore_empty_accounts,omitempty" comment:"if true, empty accounts will be ignored"`
 	TxGasLimitBuffer           *int64                  `json:"transaction_gas_limit_buffer,omitempty" comment:"buffer for transaction gas limit"`
+	KtTxGasLimitBuffer         *int64                  `json:"kt_transaction_gas_limit_buffer,omitempty" comment:"buffer for contract transaction gas limit"`
 	TxDeserializationGasBuffer *int64                  `json:"transaction_deserialization_gas_buffer,omitempty" comment:"buffer for transaction deserialization gas"`
 	TxFeeBuffer                *int64                  `json:"transaction_fee_buffer,omitempty" comment:"buffer for transaction fee"`
 	KtTxFeeBuffer              *int64                  `json:"kt_transaction_fee_buffer,omitempty" comment:"buffer for KT transaction fee"`
@@ -97,6 +98,7 @@ type NotificatorConfigurationBase struct {
 
 func GetDefaultV0() ConfigurationV0 {
 	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
+	ktGasLimitBuffer := int64(constants.DEFAULT_KT_TX_GAS_LIMIT_BUFFER)
 	deserializaGasBuffer := int64(constants.DEFAULT_TX_DESERIALIZATION_GAS_BUFFER)
 	minimumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MINIMUM_DELAY
 	maximumPayoutDelayBlocks := constants.DEFAULT_CYCLE_MONITOR_MAXIMUM_DELAY
@@ -135,6 +137,7 @@ func GetDefaultV0() ConfigurationV0 {
 			IsPayingAllocationTxFee:    false,
 			MinimumAmount:              constants.DEFAULT_PAYOUT_MINIMUM_AMOUNT,
 			TxGasLimitBuffer:           &gasLimitBuffer,
+			KtTxGasLimitBuffer:         &ktGasLimitBuffer,
 			TxDeserializationGasBuffer: &deserializaGasBuffer,
 			MinimumDelayBlocks:         &minimumPayoutDelayBlocks,
 			MaximumDelayBlocks:         &maximumPayoutDelayBlocks,

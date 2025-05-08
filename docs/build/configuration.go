@@ -37,6 +37,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 	donateFees := 0.05
 	donateBonds := 0.03
 	gasLimitBuffer := int64(200)
+	ktGasLimitBuffer := int64(400)
 	deserializationGasBuffer := int64(5)
 	feeBuffer := int64(10)
 	ktFeeBuffer := int64(50)
@@ -90,6 +91,7 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			IsPayingAllocationTxFee:    true,
 			MinimumAmount:              10.5,
 			TxGasLimitBuffer:           &gasLimitBuffer,
+			KtTxGasLimitBuffer:         &ktGasLimitBuffer,
 			TxDeserializationGasBuffer: &deserializationGasBuffer,
 			TxFeeBuffer:                &feeBuffer,
 			KtTxFeeBuffer:              &ktFeeBuffer,
