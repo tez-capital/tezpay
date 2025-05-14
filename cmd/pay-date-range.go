@@ -28,8 +28,8 @@ var payDateRangeCmd = &cobra.Command{
 
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
-		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
-		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
+		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG)
+		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
 		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
@@ -110,7 +110,7 @@ var payDateRangeCmd = &cobra.Command{
 		case state.Global.GetWantsOutputJson():
 			slog.Info(constants.LOG_MESSAGE_PREPAYOUT_SUMMARY,
 				constants.LOG_FIELD_CYCLES, cycles,
-				constants.LOG_FIELD_REPORTS_OF_PAST_PAYOUTS, preparationResult.ReportsOfPastSuccesfulPayouts,
+				constants.LOG_FIELD_REPORTS_OF_PAST_PAYOUTS, preparationResult.ReportsOfPastSuccessfulPayouts,
 				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.AccumulatedPayouts,
 				constants.LOG_FIELD_VALID_PAYOUTS, preparationResult.ValidPayouts,
 				constants.LOG_FIELD_INVALID_PAYOUTS, preparationResult.InvalidPayouts,
@@ -177,8 +177,8 @@ func init() {
 	payDateRangeCmd.Flags().String(END_DATE_FLAG, "", "end date for payout generation (format: 2024-02-01)")
 	payDateRangeCmd.Flags().String(MONTH_FLAG, "", "month to generate payout for (format: 2024-02)")
 	payDateRangeCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
-	payDateRangeCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
-	payDateRangeCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
+	payDateRangeCmd.Flags().Bool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
+	payDateRangeCmd.Flags().Bool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	payDateRangeCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
 	payDateRangeCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
 	payDateRangeCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")

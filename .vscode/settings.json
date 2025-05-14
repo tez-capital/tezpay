@@ -1,4 +1,17 @@
 {
 	"go.inferGopath": false,
-	"liveServer.settings.port": 5558
+	"cSpell.diagnosticLevel": "Hint",
+	"cSpell.words": [
+		"Delegators",
+		"Mutez",
+		"notificator",
+		"Notificators",
+		"OPERTION",
+		"PREPAYOUT",
+		"samber",
+		"tezos",
+		"tezpay",
+		"trilitech",
+		"tzgo"
+	]
 }

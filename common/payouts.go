@@ -443,11 +443,11 @@ type PreparePayoutsOptions struct {
 }
 
 type PreparePayoutsResult struct {
-	Blueprints                    []*CyclePayoutBlueprint `json:"blueprint,omitempty"`
-	ValidPayouts                  []PayoutRecipe          `json:"payouts,omitempty"`
-	AccumulatedPayouts            []PayoutRecipe          `json:"accumulated_payouts,omitempty"`
-	InvalidPayouts                []PayoutRecipe          `json:"invalid_payouts,omitempty"`
-	ReportsOfPastSuccesfulPayouts []PayoutReport          `json:"reports_of_past_succesful_payouts,omitempty"`
+	Blueprints                     []*CyclePayoutBlueprint `json:"blueprint,omitempty"`
+	ValidPayouts                   []PayoutRecipe          `json:"payouts,omitempty"`
+	AccumulatedPayouts             []PayoutRecipe          `json:"accumulated_payouts,omitempty"`
+	InvalidPayouts                 []PayoutRecipe          `json:"invalid_payouts,omitempty"`
+	ReportsOfPastSuccessfulPayouts []PayoutReport          `json:"reports_of_past_successful_payouts,omitempty"`
 }
 
 type ExecutePayoutsEngineContext struct {

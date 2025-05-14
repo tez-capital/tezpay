@@ -14,8 +14,8 @@ const (
 	DRY_RUN_FLAG            = "dry-run"
 
 	REPORT_TO_STDOUT                 = "report-to-stdout"
-	DISABLE_SEPERATE_SC_PAYOUTS_FLAG = "no-separate-sc"
-	DISABLE_SEPERATE_FA_PAYOUTS_FLAG = "no-separate-fa"
+	DISABLE_SEPARATE_SC_PAYOUTS_FLAG = "no-separate-sc"
+	DISABLE_SEPARATE_FA_PAYOUTS_FLAG = "no-separate-fa"
 	FORCE_CONFIRMATION_PROMPT_FLAG   = "force-confirmation-prompt"
 	SILENT_FLAG                      = "silent"
 	CYCLES_FLAG                      = "cycles"

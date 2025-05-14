@@ -133,7 +133,7 @@ func PrintPreparationResults(preparationResult *common.PreparePayoutsResult, cyc
 
 	utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", title), false)
 	utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false)
-	utils.PrintReports(preparationResult.ReportsOfPastSuccesfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true)
+	utils.PrintReports(preparationResult.ReportsOfPastSuccessfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true)
 	utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", title), true)
 }
 

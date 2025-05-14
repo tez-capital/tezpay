@@ -55,7 +55,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		DryRun: isDryRun,
 	})
 
-	// refresh engine params - for protoocol upgrades
+	// refresh engine params - for protocol upgrades
 	if err := errors.Join(transactor.RefreshParams(), collector.RefreshParams()); err != nil {
 		slog.Error("failed to check for protocol changes", "error", err.Error())
 		return retry()
@@ -96,7 +96,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		return
 	}
 
-	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
+	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 
 	if forceConfirmationPrompt && utils.IsTty() {
 		PrintPreparationResults(preparationResult, generationResult.Cycle)
@@ -107,7 +107,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		assertRequireConfirmation(msg)
 	}
 
-	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successfull", len(preparationResult.ReportsOfPastSuccesfulPayouts))
+	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 	executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 		return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 			MixInContractCalls: mixInContractCalls,
@@ -144,8 +144,8 @@ var continualCmd = &cobra.Command{
 		defer extension.CloseExtensions()
 		initialCycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		endCycle, _ = cmd.Flags().GetInt64(END_CYCLE_FLAG)
-		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG)
-		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG)
+		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG)
+		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG)
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 		silent, _ := cmd.Flags().GetBool(SILENT_FLAG)
@@ -247,8 +247,8 @@ var continualCmd = &cobra.Command{
 func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Int64P(END_CYCLE_FLAG, "e", 0, "end cycle")
-	continualCmd.Flags().Bool(DISABLE_SEPERATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
-	continualCmd.Flags().Bool(DISABLE_SEPERATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
+	continualCmd.Flags().Bool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
+	continualCmd.Flags().Bool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")
 	continualCmd.Flags().Bool(DRY_RUN_FLAG, false, "Performs all actions except sending transactions. Reports are stored in 'reports/dry' folder")
 

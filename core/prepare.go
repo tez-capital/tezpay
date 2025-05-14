@@ -25,11 +25,11 @@ func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configura
 	}
 
 	return &common.PreparePayoutsResult{
-		Blueprints:                    ctx.PayoutBlueprints,
-		ValidPayouts:                  ctx.StageData.ValidPayouts,
-		AccumulatedPayouts:            ctx.StageData.AccumulatedPayouts,
-		InvalidPayouts:                ctx.StageData.InvalidPayouts,
-		ReportsOfPastSuccesfulPayouts: ctx.StageData.ReportsOfPastSuccesfulPayouts,
+		Blueprints:                     ctx.PayoutBlueprints,
+		ValidPayouts:                   ctx.StageData.ValidPayouts,
+		AccumulatedPayouts:             ctx.StageData.AccumulatedPayouts,
+		InvalidPayouts:                 ctx.StageData.InvalidPayouts,
+		ReportsOfPastSuccessfulPayouts: ctx.StageData.ReportsOfPastSuccesfulPayouts,
 	}, nil
 }
 
