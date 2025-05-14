@@ -182,7 +182,7 @@ func init() {
 	payDateRangeCmd.Flags().BoolP(SILENT_FLAG, "s", false, "suppresses notifications")
 	payDateRangeCmd.Flags().String(NOTIFICATOR_FLAG, "", "Notify through specific notificator")
 	payDateRangeCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
-	payDateRangeCmd.Flags().Bool(DRY_RUN_FLAG, false, "skips payout wallet balance check")
+	payDateRangeCmd.Flags().Bool(DRY_RUN_FLAG, false, "Performs all actions except sending transactions. Reports are stored in 'reports/dry' folder")
 
 	RootCmd.AddCommand(payDateRangeCmd)
 }
