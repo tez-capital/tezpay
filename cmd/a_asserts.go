@@ -34,5 +34,5 @@ func assertRunWithResultAndErrorMessage[T any](toExecute func() (T, error), exit
 }
 
 func assertRunWithResult[T any](toExecute func() (T, error), exitCode int) T {
-	return assertRunWithResultAndErrorMessage(toExecute, exitCode, "%s")
+	return assertRunWithResultAndErrorMessage(toExecute, exitCode, "operation failed")
 }
