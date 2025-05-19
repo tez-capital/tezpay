@@ -47,6 +47,7 @@ var notificationTestCmd = &cobra.Command{
 					BondIncome:               tezos.NewZ(1339668),
 					FeeIncome:                tezos.NewZ(3356503),
 					IncomeTotal:              tezos.NewZ(4696171),
+					TransactionFeesPaid:      tezos.NewZ(68564),
 					DonatedBonds:             tezos.NewZ(13531),
 					DonatedFees:              tezos.NewZ(33904),
 					DonatedTotal:             tezos.NewZ(47435),

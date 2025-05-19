@@ -298,6 +298,7 @@ type CyclePayoutSummary struct {
 	BondIncome               tezos.Z   `json:"bond_income"`
 	FeeIncome                tezos.Z   `json:"fee_income"`
 	IncomeTotal              tezos.Z   `json:"total_income"`
+	TransactionFeesPaid      tezos.Z   `json:"transaction_fees_paid"`
 	DonatedBonds             tezos.Z   `json:"donated_bonds"`
 	DonatedFees              tezos.Z   `json:"donated_fees"`
 	DonatedTotal             tezos.Z   `json:"donated_total"`
@@ -324,6 +325,7 @@ func (summary *CyclePayoutSummary) CombineNumericData(another *CyclePayoutSummar
 		BondIncome:               summary.BondIncome.Add(another.BondIncome),
 		FeeIncome:                summary.FeeIncome.Add(another.FeeIncome),
 		IncomeTotal:              summary.IncomeTotal.Add(another.IncomeTotal),
+		TransactionFeesPaid:      summary.TransactionFeesPaid.Add(another.TransactionFeesPaid),
 		DonatedBonds:             summary.DonatedBonds.Add(another.DonatedBonds),
 		DonatedFees:              summary.DonatedFees.Add(another.DonatedFees),
 		DonatedTotal:             summary.DonatedTotal.Add(another.DonatedTotal),

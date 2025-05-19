@@ -19,6 +19,15 @@ func sumValidPayoutsAmount(payouts []common.PayoutRecipe) tezos.Z {
 	}, tezos.Zero)
 }
 
+func sumTransactionFees(payouts []common.PayoutRecipe) tezos.Z {
+	return lo.Reduce(payouts, func(agg tezos.Z, payout common.PayoutRecipe, _ int) tezos.Z {
+		if !payout.IsValid {
+			return agg
+		}
+		return agg.Add64(payout.OpLimits.TransactionFee)
+	}, tezos.Zero)
+}
+
 type AfterPayoutsBlueprintGeneratedHookData = common.CyclePayoutBlueprint
 
 // NOTE: do we want to allow rewriting of blueprint?
@@ -48,6 +57,7 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 			BondIncome:               stageData.BakerBondsAmount,
 			FeeIncome:                stageData.BakerFeesAmount,
 			IncomeTotal:              stageData.BakerBondsAmount.Add(stageData.BakerFeesAmount),
+			TransactionFeesPaid:      sumTransactionFees(stageData.Payouts),
 			DonatedBonds:             stageData.DonateBondsAmount,
 			DonatedFees:              stageData.DonateFeesAmount,
 			DonatedTotal:             stageData.DonateFeesAmount.Add(stageData.DonateBondsAmount),

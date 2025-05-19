@@ -206,6 +206,7 @@ func PrintCycleSummary(summary common.CyclePayoutSummary, header string) {
 	summaryTable.AppendRow(table.Row{"Bond Income", common.MutezToTezS(summary.BondIncome.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendRow(table.Row{"Fee Income", common.MutezToTezS(summary.FeeIncome.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendRow(table.Row{"Income Total", common.MutezToTezS(summary.IncomeTotal.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Transaction Fees Paid", common.MutezToTezS(summary.TransactionFeesPaid.Int64())}, table.RowConfig{AutoMerge: false})
 	summaryTable.Render()
 }
 
