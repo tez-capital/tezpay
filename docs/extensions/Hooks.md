@@ -154,6 +154,7 @@ This hook is NOT capable of mutating data *currently*.
     "bond_income": "1000000000",
     "fee_income": "1000000000",
     "total_income": "1000000000",
+    "transaction_fees_paid": "0",
     "donated_bonds": "1000000000",
     "donated_fees": "1000000000",
     "donated_total": "1000000000",
@@ -198,7 +199,7 @@ This hook is capable of mutating data *currently*.
     {
       "id": "fd8d0230c9d70458",
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2025-05-17T19:19:50.339560875Z",
+      "timestamp": "2025-05-19T13:56:46.231746471Z",
       "cycle": 1,
       "kind": "invalid",
       "tx_kind": "fa1",
