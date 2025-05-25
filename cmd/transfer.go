@@ -63,6 +63,7 @@ var transferCmd = &cobra.Command{
 		opts := rpc.DefaultOptions
 		opts.Confirmations = constants.DEFAULT_REQUIRED_CONFIRMATIONS
 		opts.Signer = signer.GetSigner()
+		opts.Sender = signer.GetPKH()
 
 		rcpt, err := transactor.Send(op, &opts)
 		if err != nil {
