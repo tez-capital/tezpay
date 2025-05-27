@@ -31,8 +31,12 @@ func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsD
 	if maximumDelegated.Sub(totalDelegatedBalance).IsNeg() && configuration.Overdelegation.IsProtectionEnabled { // overdelegated and protection enabled
 		totalDelegatedBalance = maximumDelegated // this will bracket the totalDelegatedBalance to maximumDelegated and baker takes his full share from delegated balance, the rest is dilluted
 	}
+	if maximumDelegated.IsLess(bakerDelegatedBalance) && configuration.Overdelegation.IsProtectionEnabled {
+		// this is just to give sane results in case bakers is overdelegated to itself
+		// without this tezpay reports negative rewards for delegators in such cases
+		bakerDelegatedBalance = maximumDelegated
+	}
 	bakerDelegatedBondsAmount := totalRewards.Mul(bakerDelegatedBalance).Div(totalDelegatedBalance)
-
 	return bakerDelegatedBondsAmount
 }
 

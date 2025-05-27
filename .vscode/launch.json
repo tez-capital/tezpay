@@ -11,7 +11,7 @@
 			"mode": "auto",
 			"program": "main.go",
 			"args": [
-				"--log-level=trace",
+				"--log-level=debug",
 				"generate-payouts",
 				"--skip-balance-check"
 			],
@@ -23,7 +23,7 @@
 			"mode": "auto",
 			"program": "main.go",
 			"args": [
-				"--log-level=trace",
+				"--log-level=debug",
 				"pay",
 				"--confirm",
 				// "--dry-run"
@@ -49,7 +49,7 @@
 			"mode": "auto",
 			"program": "main.go",
 			"args": [
-				"--log-level=trace",
+				"--log-level=debug",
 				"pay-date-range",
 				"--start-date",
 				"2024-02-01",
