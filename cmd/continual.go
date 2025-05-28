@@ -154,9 +154,6 @@ var continualCmd = &cobra.Command{
 			slog.Info("Dry run mode enabled")
 		}
 
-		if utils.IsTty() {
-			assertRequireConfirmation("\n\n\t !!! ATTENTION !!!\n\nPreliminary testing has been conducted on the continual mode, but potential for undiscovered bugs still exists.\n Do you want to proceed?")
-		}
 		if forceConfirmationPrompt {
 			if utils.IsTty() {
 				slog.Info("you will be prompted for confirmation before each payout")
