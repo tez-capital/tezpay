@@ -6,6 +6,7 @@ import (
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/core/estimate"
 	"github.com/tez-capital/tezpay/utils"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 func CollectTransactionFees(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
@@ -67,6 +68,10 @@ func CollectTransactionFees(ctx *PayoutGenerationContext, options *common.Genera
 			if !candidate.IsBakerPayingAllocationTxFee {
 				candidate.BondsAmount = candidate.BondsAmount.Sub64(candidate.SimulationResult.GetAllocationFee())
 				candidate.AllocationFeeCollected = true
+			}
+
+			if candidate.BondsAmount.IsNeg() {
+				candidate.BondsAmount = tezos.Zero
 			}
 		}
 
