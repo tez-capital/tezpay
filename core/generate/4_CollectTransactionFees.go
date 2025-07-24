@@ -61,18 +61,29 @@ func CollectTransactionFees(ctx *PayoutGenerationContext, options *common.Genera
 			SimulationResult:                    result.Result,
 		}
 		if candidate.TxKind == enums.PAYOUT_TX_KIND_TEZ {
+			bondsAmountBeforeFees := candidate.BondsAmount
+			utils.AssertZAmountPositiveOrZero(bondsAmountBeforeFees)
+
+			txFee := candidate.SimulationResult.GetOperationFeesWithoutAllocation()
+			allocationFee := candidate.SimulationResult.GetAllocationFee()
+
 			if !candidate.IsBakerPayingTxFee {
-				candidate.BondsAmount = candidate.BondsAmount.Sub64(candidate.SimulationResult.GetOperationFeesWithoutAllocation())
+				candidate.BondsAmount = candidate.BondsAmount.Sub64(txFee)
 				candidate.TxFeeCollected = true
 			}
 			if !candidate.IsBakerPayingAllocationTxFee {
-				candidate.BondsAmount = candidate.BondsAmount.Sub64(candidate.SimulationResult.GetAllocationFee())
+				candidate.BondsAmount = candidate.BondsAmount.Sub64(allocationFee)
 				candidate.AllocationFeeCollected = true
 			}
 
-			if candidate.BondsAmount.IsNeg() {
+			if candidate.BondsAmount.IsNeg() || candidate.BondsAmount.IsZero() {
+				candidate.IsInvalid = true
 				candidate.BondsAmount = tezos.Zero
+				candidate.InvalidBecause = enums.INVALID_NOT_ENOUGH_BONDS_FOR_TX_FEES
+				candidate.Fee = candidate.Fee.Add(bondsAmountBeforeFees)                                 // collect the whole bonds amount as fee if not enough for tx fees
+				ctx.StageData.BakerFeesAmount = ctx.StageData.BakerFeesAmount.Add(bondsAmountBeforeFees) // collect fees if invalid
 			}
+			utils.AssertZAmountPositiveOrZero(candidate.BondsAmount)
 		}
 
 		return candidate

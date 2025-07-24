@@ -23,7 +23,11 @@ func GetZPortion[T FloatConstraint](val tezos.Z, portion T) tezos.Z {
 	if portion >= 1 {
 		return val
 	}
-	return getZPortion(val, portion)
+	result := getZPortion(val, portion)
+	if val.IsLessEqual(result) { // make sure we don't return more than the original value
+		return val
+	}
+	return result
 }
 
 func IsPortionWithin0n1[T FloatConstraint](portion T) bool {

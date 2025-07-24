@@ -70,9 +70,13 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 				BondsAmount:     tezos.Zero,
 			}
 		}
+
+		delegatorBondsAmount := availableRewards.Mul(candidate.GetDelegatedBalance()).Div(totalDelegatorsDelegatedBalance)
+		utils.AssertZAmountPositiveOrZero(delegatorBondsAmount)
+
 		return PayoutCandidateWithBondAmount{
 			PayoutCandidate: candidate,
-			BondsAmount:     availableRewards.Mul(candidate.GetDelegatedBalance()).Div(totalDelegatorsDelegatedBalance),
+			BondsAmount:     delegatorBondsAmount,
 			TxKind:          enums.PAYOUT_TX_KIND_TEZ,
 		}
 	})
@@ -80,6 +84,8 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	bondsDonate := utils.GetZPortion(bakerBonds, configuration.IncomeRecipients.DonateBonds)
 	ctx.StageData.BakerBondsAmount = bakerBonds.Sub(bondsDonate)
 	ctx.StageData.DonateBondsAmount = bondsDonate
+	utils.AssertZAmountPositiveOrZero(ctx.StageData.BakerBondsAmount)
+	utils.AssertZAmountPositiveOrZero(ctx.StageData.DonateBondsAmount)
 
 	hookData := &AfterBondsDistributedHookData{
 		Cycle:      options.Cycle,

@@ -3,7 +3,7 @@ package generate
 import (
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
-	"github.com/trilitech/tzgo/tezos"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 func ValidateSimulatedPayouts(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
@@ -23,11 +23,11 @@ func ValidateSimulatedPayouts(ctx *PayoutGenerationContext, options *common.Gene
 			MinumumAmountSimulatedValidator,
 		).ToPayoutCandidateSimulated()
 
+		utils.AssertZAmountPositiveOrZero(candidate.BondsAmount)
 		// collect fees if invalid
 		if candidate.IsInvalid {
 			ctx.StageData.BakerFeesAmount = ctx.StageData.BakerFeesAmount.Add(candidate.BondsAmount)
-			candidate.Fee = candidate.Fee.Add(candidate.BondsAmount)
-			candidate.BondsAmount = tezos.Zero
+			candidate.Fee = candidate.Fee.Add(candidate.BondsAmount) // we need to add because we already collected fees from bonds in 2_CollectBakerFee.go
 		}
 		return result
 	})

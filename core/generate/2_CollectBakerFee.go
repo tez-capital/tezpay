@@ -42,8 +42,11 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		candidateWithBondsAmount.BondsAmount = candidateWithBondsAmount.BondsAmount.Sub(fee)
 		if candidateWithBondsAmount.BondsAmount.IsZero() || candidateWithBondsAmount.BondsAmount.IsNeg() {
 			candidateWithBondsAmount.IsInvalid = true
-			candidateWithBondsAmount.InvalidBecause = enums.INVALID_PAYOUT_BELLOW_MINIMUM
+			candidateWithBondsAmount.InvalidBecause = enums.INVALID_NOT_ENOUGH_BONDS_FOR_BAKER_FEE
+			candidateWithBondsAmount.BondsAmount = tezos.Zero // this is to prevent negative bonds amount
 		}
+		utils.AssertZAmountPositiveOrZero(candidateWithBondsAmount.BondsAmount)
+
 		return PayoutCandidateWithBondAmountAndFee{
 			PayoutCandidateWithBondAmount: candidateWithBondsAmount,
 			Fee:                           fee,

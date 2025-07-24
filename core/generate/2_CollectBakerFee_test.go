@@ -123,7 +123,7 @@ func TestCollectBakerFees(t *testing.T) {
 			continue
 		}
 		assert.True(v.IsInvalid)
-		assert.Equal(v.InvalidBecause, enums.INVALID_PAYOUT_BELLOW_MINIMUM)
+		assert.Equal(v.InvalidBecause, enums.INVALID_NOT_ENOUGH_BONDS_FOR_BAKER_FEE)
 		collectedFee = collectedFee.Add(v.Fee)
 	}
 	totalBonds := lo.Reduce(ctx.StageData.PayoutCandidatesWithBondAmount, func(agg tezos.Z, v PayoutCandidateWithBondAmount, _ int) tezos.Z {
