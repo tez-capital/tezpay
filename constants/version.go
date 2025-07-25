@@ -1,6 +1,6 @@
 package constants
 
-const (
+var (
 	VERSION  = "dev"
 	CODENAME = "tezpay"
 )
