@@ -23,6 +23,7 @@ var transferCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		_, _, signer, transactor := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		mutez, _ := cmd.Flags().GetBool(MUTEZ_FLAG)
+		confirmed, _ := cmd.Flags().GetBool(CONFIRM_FLAG)
 
 		if len(args)%2 != 0 {
 			slog.Error("invalid number of arguments (expects pairs of destination and amount)")
@@ -56,9 +57,12 @@ var transferCmd = &cobra.Command{
 			op.WithTransfer(destination, mutez)
 		}
 
-		if err := requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", common.MutezToTezS(total), strings.Join(destinations, ", "))); err != nil {
+		switch {
+		case confirmed:
+		case requireConfirmation(fmt.Sprintf("do you really want to transfer %s to %s", common.MutezToTezS(total), strings.Join(destinations, ", "))) != nil:
 			os.Exit(EXIT_OPERTION_CANCELED)
 		}
+
 		slog.Info("transferring tez", "total", common.MutezToTezS(total), "destinations", strings.Join(destinations, ", "), "confirmations_required", constants.DEFAULT_REQUIRED_CONFIRMATIONS)
 		opts := rpc.DefaultOptions
 		opts.Confirmations = constants.DEFAULT_REQUIRED_CONFIRMATIONS
