@@ -327,8 +327,8 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 	dalDelegatedRewards := tezos.NewZ(tzktBakerCycleData.DalRewardsDelegated)
 	delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakedBalance - tzktBakerCycleData.ExternalStakedBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
 
-	blockDelegatedFees := delegationShare.Mul64(tzktBakerCycleData.BlockFees).Div64(precision)
-	blockStakingFees := tezos.NewZ(tzktBakerCycleData.BlockFees).Sub(blockDelegatedFees)
+	// all block fees are distributed as liquid balance only
+	blockDelegatedFees := tezos.NewZ(tzktBakerCycleData.BlockFees)
 
 	if client.balanceCheckMode == enums.PROTOCOL_BALANCE_CHECK_MODE {
 		protocolRewardsCycleData, err := client.getProtocolRewardsCycleData(ctx, bakerAddr, cycle)
@@ -447,7 +447,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		ExternalStakedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance),
 		BlockStakingRewardsEdge:       tezos.NewZ(tzktBakerCycleData.BlockRewardsStakedEdge),
 		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.EndorsementRewardsStakedEdge),
-		BlockStakingFees:              blockStakingFees,
+		BlockStakingFees:              tezos.Zero, // block fees are distributed as liquid balance only
 
 		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),
 		Delegators: lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) common.Delegator {
