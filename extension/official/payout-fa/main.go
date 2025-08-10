@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/alis-is/jsonrpc2/rpc"
+	rpc "github.com/alis-is/jsonrpc2"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/core/generate"

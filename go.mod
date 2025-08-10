@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	code.cloudfoundry.org/filelock v0.41.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/alis-is/jsonrpc2 v0.0.0-20240608185122-5f8c3990a8da
+	github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/dghubble/oauth1 v0.7.3
 	github.com/fatih/color v1.18.0

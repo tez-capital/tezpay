@@ -12,6 +12,14 @@ github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63n
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
 github.com/alis-is/jsonrpc2 v0.0.0-20240608185122-5f8c3990a8da h1:bb4qLaMiKDOgGu8/vYR45Dml+B16MMvz+U24KXQcuXM=
 github.com/alis-is/jsonrpc2 v0.0.0-20240608185122-5f8c3990a8da/go.mod h1:X6faqw8MivOXg/4kbAHraSy7PFNt6hL1WhBHVmvLbxE=
+github.com/alis-is/jsonrpc2 v0.0.0-20250802070521-dea8a693669b h1:H5y6muClJnFw9IFL49mq0rjBREjA6ppFxw6iZhW6LxE=
+github.com/alis-is/jsonrpc2 v0.0.0-20250802070521-dea8a693669b/go.mod h1:lECTSoKkC0kFErtDmD2KsFcyFNiUE0GrKSJ1lkLtOIk=
+github.com/alis-is/jsonrpc2 v0.0.0-20250810061129-404de63b3e10 h1:5mKl3P1sqtApU7h8vsa5jtou/ecGrw4G3fKlRya95+M=
+github.com/alis-is/jsonrpc2 v0.0.0-20250810061129-404de63b3e10/go.mod h1:lECTSoKkC0kFErtDmD2KsFcyFNiUE0GrKSJ1lkLtOIk=
+github.com/alis-is/jsonrpc2 v0.0.0-20250810072628-fbd7bc3c0dab h1:TmPon3tEgUe7LncTgebsW5AwCh633qEEJB1dI45bLiU=
+github.com/alis-is/jsonrpc2 v0.0.0-20250810072628-fbd7bc3c0dab/go.mod h1:lECTSoKkC0kFErtDmD2KsFcyFNiUE0GrKSJ1lkLtOIk=
+github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def h1:YBWp4rZ7VZxsSqdxFleamvtIbCro4RD3+l+5OOiI1R8=
+github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def/go.mod h1:lECTSoKkC0kFErtDmD2KsFcyFNiUE0GrKSJ1lkLtOIk=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/andybalholm/brotli v1.2.0 h1:ukwgCxwYrmACq68yiUqwIWnGY0cTPox/M94sVwToPjQ=

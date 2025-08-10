@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alis-is/jsonrpc2/rpc"
+	rpc "github.com/alis-is/jsonrpc2"
 	"github.com/google/uuid"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
@@ -76,7 +76,7 @@ func CloseExtensions() {
 	}
 }
 
-func ExecuteHook[TData rpc.ResultType](hook enums.EExtensionHook, version string, data *TData) error {
+func ExecuteHook[TData rpc.Result](hook enums.EExtensionHook, version string, data *TData) error {
 	if data == nil {
 		return constants.ErrExtensionHookMissingData
 	}
