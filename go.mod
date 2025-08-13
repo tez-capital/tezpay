@@ -1,6 +1,6 @@
 module github.com/tez-capital/tezpay
 
-go 1.24.0
+go 1.25.0
 
 require (
 	code.cloudfoundry.org/filelock v0.42.0
