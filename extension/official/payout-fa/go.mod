@@ -1,6 +1,6 @@
 module github.com/tez-capital/tezpay/extensions/payout-fa
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def
@@ -39,7 +39,7 @@ require (
 	github.com/valyala/fasthttp v1.64.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a // indirect
+	golang.org/x/exp v0.0.0-20250813145105-42675adae3e6 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 )

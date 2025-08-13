@@ -10,12 +10,13 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-version"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
-	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 
 	"github.com/samber/lo"
@@ -41,21 +42,24 @@ type tzktBakersCycleData struct {
 	OwnStakedBalance         int64 `json:"ownStakedBalance"`      // OwnDelegatedBalance + ExternalDelegatedBalance
 	ExternalStakedBalance    int64 `json:"externalStakedBalance"` // ExternalDelegatedBalance
 
-	BlockRewardsDelegated  int64 `json:"blockRewardsDelegated"`
-	BlockRewardsStakedOwn  int64 `json:"blockRewardsStakedOwn"`
-	BlockRewardsStakedEdge int64 `json:"blockRewardsStakedEdge"`
+	BlockRewardsDelegated    int64 `json:"blockRewardsDelegated"`
+	BlockRewardsStakedOwn    int64 `json:"blockRewardsStakedOwn"`
+	BlockRewardsStakedEdge   int64 `json:"blockRewardsStakedEdge"`
+	BlockRewardsStakedShared int64 `json:"blockRewardsStakedShared"`
 	// BlockRewards             int64            `json:"blockRewards"` // BlockRewardsLiquid + BlockRewardsStakedOwn
 	MissedBlockRewards int64 `json:"missedBlockRewards"`
 
-	EndorsementRewardsDelegated  int64 `json:"endorsementRewardsDelegated"`
-	EndorsementRewardsStakedOwn  int64 `json:"endorsementRewardsStakedOwn"`
-	EndorsementRewardsStakedEdge int64 `json:"endorsementRewardsStakedEdge"`
-	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
-	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
+	AttestationRewardsDelegated    int64 `json:"attestationRewardsDelegated"`
+	AttestationRewardsStakedOwn    int64 `json:"attestationRewardsStakedOwn"`
+	AttestationRewardsStakedEdge   int64 `json:"attestationRewardsStakedEdge"`
+	AttestationRewardsStakedShared int64 `json:"attestationRewardsStakedShared"`
+	// AttestationRewards       int64            `json:"attestationRewards"` // AttestationRewardsLiquid + AttestationRewardsStakedOwn
+	MissedAttestationRewards int64 `json:"missedAttestationRewards"`
 
-	DalRewardsDelegated  int64 `json:"dalAttestationRewardsDelegated"`
-	DalRewardsStakedOwn  int64 `json:"dalAttestationRewardsStakedOwn"`
-	DalRewardsStakedEdge int64 `json:"dalAttestationRewardsStakedEdge"`
+	DalRewardsDelegated    int64 `json:"dalAttestationRewardsDelegated"`
+	DalRewardsStakedOwn    int64 `json:"dalAttestationRewardsStakedOwn"`
+	DalRewardsStakedEdge   int64 `json:"dalAttestationRewardsStakedEdge"`
+	DalRewardsStakedShared int64 `json:"dalAttestationRewardsStakedShared"`
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
 	MissedDalRewards int64 `json:"missedDalAttestationRewards"`
 
@@ -112,12 +116,26 @@ func InitClient(rootUrl string, protocolRewardsUrl string, options *TzktClientOp
 		}
 	}
 
-	return &Client{
+	client := &Client{
 		Client:             options.HttpClient,
 		rootUrl:            root,
 		protocolRewardsUrl: protocolRewards,
 		balanceCheckMode:   options.BalanceCheckMode,
-	}, nil
+	}
+
+	if root.Hostname() == "api.tzkt.io" {
+		isNewTzkt, err := client.IsTzktVersionHigherOrEqual(context.Background(), "1.16.0")
+		if err != nil {
+			return nil, errors.Join(constants.ErrTzktVersionCheckFailed, err)
+		}
+		if !isNewTzkt {
+			// override to staging
+			slog.Warn("!!! tzkt version is lower than 1.16.0, using TzKT staging !!!")
+			client.rootUrl, err = url.Parse("https://staging.api.tzkt.io")
+		}
+	}
+
+	return client, nil
 }
 
 func (client *Client) Get(ctx context.Context, path string) (*http.Response, error) {
@@ -132,6 +150,49 @@ func (client *Client) Get(ctx context.Context, path string) (*http.Response, err
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (client *Client) Options(ctx context.Context, path string) (*http.Response, error) {
+	rel, err := url.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+	request, _ := http.NewRequestWithContext(ctx, "OPTIONS", client.rootUrl.ResolveReference(rel).String(), nil)
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (client *Client) IsTzktVersionHigherOrEqual(ctx context.Context, rawDesiredVersion string) (bool, error) {
+	u := "/v1/accounts/count"
+	resp, err := client.Options(ctx, u)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch tzkt version: %w", err)
+	}
+	defer resp.Body.Close()
+
+	rawVersion := resp.Header.Get("tzkt-version")
+	if rawVersion == "" {
+		return false, fmt.Errorf("tzkt-version header is missing")
+	}
+	// tzkt-version: 1.14.9.0
+	if strings.Count(rawVersion, ".") < 2 || strings.Count(rawDesiredVersion, ".") < 2 {
+		return false, fmt.Errorf("invalid version format: version=%s, desiredVersion=%s", rawVersion, rawDesiredVersion)
+	}
+
+	ver, err := version.NewVersion(rawVersion)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse tzkt version: %w", err)
+	}
+	desiredVer, err := version.NewVersion(rawDesiredVersion)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse desired version: %w", err)
+	}
+
+	return ver.Compare(desiredVer) >= 0, nil
 }
 
 func (client *Client) GetFromProtocolRewards(ctx context.Context, path string) (*http.Response, error) {
@@ -323,112 +384,113 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
 
 	blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
-	endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
+	endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.AttestationRewardsDelegated)
 	dalDelegatedRewards := tezos.NewZ(tzktBakerCycleData.DalRewardsDelegated)
 	delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakedBalance - tzktBakerCycleData.ExternalStakedBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
 
 	// all block fees are distributed as liquid balance only
 	blockDelegatedFees := tezos.NewZ(tzktBakerCycleData.BlockFees)
 
-	if client.balanceCheckMode == enums.PROTOCOL_BALANCE_CHECK_MODE {
-		protocolRewardsCycleData, err := client.getProtocolRewardsCycleData(ctx, bakerAddr, cycle)
-		if err != nil {
-			return nil, err
-		}
+	// TODO: remove this when we confirm all works as expected
+	// if client.balanceCheckMode == enums.PROTOCOL_BALANCE_CHECK_MODE {
+	// 	protocolRewardsCycleData, err := client.getProtocolRewardsCycleData(ctx, bakerAddr, cycle)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		tzktBakerCycleData.OwnDelegatedBalance = protocolRewardsCycleData.OwnDelegatedBalance
-		tzktBakerCycleData.ExternalDelegatedBalance = protocolRewardsCycleData.ExternalDelegatedBalance
-		tzktBakerCycleData.OwnStakedBalance = protocolRewardsCycleData.OwnStakedBalance
-		tzktBakerCycleData.ExternalStakedBalance = protocolRewardsCycleData.ExternalStakedBalance
-		tzktBakerCycleData.DelegatorsCount = protocolRewardsCycleData.DelegatorsCount
+	// 	tzktBakerCycleData.OwnDelegatedBalance = protocolRewardsCycleData.OwnDelegatedBalance
+	// 	tzktBakerCycleData.ExternalDelegatedBalance = protocolRewardsCycleData.ExternalDelegatedBalance
+	// 	tzktBakerCycleData.OwnStakedBalance = protocolRewardsCycleData.OwnStakedBalance
+	// 	tzktBakerCycleData.ExternalStakedBalance = protocolRewardsCycleData.ExternalStakedBalance
+	// 	tzktBakerCycleData.DelegatorsCount = protocolRewardsCycleData.DelegatorsCount
 
-		delegatorsMap := make(map[string]splitDelegator, len(protocolRewardsCycleData.Delegators))
-		for _, delegator := range protocolRewardsCycleData.Delegators {
-			delegatorsMap[delegator.Address] = delegator
-		}
+	// 	delegatorsMap := make(map[string]splitDelegator, len(protocolRewardsCycleData.Delegators))
+	// 	for _, delegator := range protocolRewardsCycleData.Delegators {
+	// 		delegatorsMap[delegator.Address] = delegator
+	// 	}
 
-		// TODO: remove this when we confirm all works as expected
-		var bakingPower tezos.Z
-		delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
-		switch {
-		case chainId == tezos.Ghostnet && cycle > 1343+2: // first Q rewards cycle on ghostnet
-			fallthrough
-		case chainId == tezos.Mainnet && cycle > 823+2: // first Q rewards cycle on mainnet
-			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
-			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(tzktBakerData.LimitOfStakingOverBaking).Div64(constants.LIMIT_OF_STAKING_OVER_BAKING_PRECISION)
+	// 	// TODO: remove this when we confirm all works as expected
+	// 	var bakingPower tezos.Z
+	// 	delegatedPower := tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance).Add64(tzktBakerCycleData.ExternalDelegatedBalance)
+	// 	switch {
+	// 	case chainId == tezos.Ghostnet && cycle > 1343+2: // first Q rewards cycle on ghostnet
+	// 		fallthrough
+	// 	case chainId == tezos.Mainnet && cycle > 823+2: // first Q rewards cycle on mainnet
+	// 		externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
+	// 		maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(tzktBakerData.LimitOfStakingOverBaking).Div64(constants.LIMIT_OF_STAKING_OVER_BAKING_PRECISION)
 
-			if maximumExternalStaked.IsLess(externalStakedBalance) {
-				diff := externalStakedBalance.Sub(maximumExternalStaked)
-				externalStakedBalance = maximumExternalStaked
-				delegatedPower = delegatedPower.Add(diff)
-			}
+	// 		if maximumExternalStaked.IsLess(externalStakedBalance) {
+	// 			diff := externalStakedBalance.Sub(maximumExternalStaked)
+	// 			externalStakedBalance = maximumExternalStaked
+	// 			delegatedPower = delegatedPower.Add(diff)
+	// 		}
 
-			maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
-			if maximumDelegated.IsLess(delegatedPower) {
-				delegatedPower = maximumDelegated
-			}
-			// delegation power / 3
-			delegatedPower = delegatedPower.Div64(3)
+	// 		maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
+	// 		if maximumDelegated.IsLess(delegatedPower) {
+	// 			delegatedPower = maximumDelegated
+	// 		}
+	// 		// delegation power / 3
+	// 		delegatedPower = delegatedPower.Div64(3)
 
-			stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add(externalStakedBalance)
-			bakingPower = stakedPower.Add(delegatedPower)
-		case cycle > 750: // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
-			externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
-			maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(tzktBakerData.LimitOfStakingOverBaking).Div64(constants.LIMIT_OF_STAKING_OVER_BAKING_PRECISION)
+	// 		stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add(externalStakedBalance)
+	// 		bakingPower = stakedPower.Add(delegatedPower)
+	// 	case cycle > 750: // 751 is first cycle with baking power based on new staking model -> delegationPower is halved
+	// 		externalStakedBalance := tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance)
+	// 		maximumExternalStaked := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(tzktBakerData.LimitOfStakingOverBaking).Div64(constants.LIMIT_OF_STAKING_OVER_BAKING_PRECISION)
 
-			if maximumExternalStaked.IsLess(externalStakedBalance) {
-				diff := externalStakedBalance.Sub(maximumExternalStaked)
-				externalStakedBalance = maximumExternalStaked
-				delegatedPower = delegatedPower.Add(diff)
-			}
+	// 		if maximumExternalStaked.IsLess(externalStakedBalance) {
+	// 			diff := externalStakedBalance.Sub(maximumExternalStaked)
+	// 			externalStakedBalance = maximumExternalStaked
+	// 			delegatedPower = delegatedPower.Add(diff)
+	// 		}
 
-			maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
-			if maximumDelegated.IsLess(delegatedPower) {
-				delegatedPower = maximumDelegated
-			}
-			// halve delegation power
-			delegatedPower = delegatedPower.Div64(2)
+	// 		maximumDelegated := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(9)
+	// 		if maximumDelegated.IsLess(delegatedPower) {
+	// 			delegatedPower = maximumDelegated
+	// 		}
+	// 		// halve delegation power
+	// 		delegatedPower = delegatedPower.Div64(2)
 
-			stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add(externalStakedBalance)
-			bakingPower = stakedPower.Add(delegatedPower)
-		default:
-			bakingPower = tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).
-				Add64(tzktBakerCycleData.ExternalStakedBalance).
-				Add(delegatedPower)
-			maximumBakingPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(10)
-			if maximumBakingPower.IsLess(bakingPower) {
-				bakingPower = maximumBakingPower
-			}
-		}
+	// 		stakedPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Add(externalStakedBalance)
+	// 		bakingPower = stakedPower.Add(delegatedPower)
+	// 	default:
+	// 		bakingPower = tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).
+	// 			Add64(tzktBakerCycleData.ExternalStakedBalance).
+	// 			Add(delegatedPower)
+	// 		maximumBakingPower := tezos.NewZ(tzktBakerCycleData.OwnStakedBalance).Mul64(10)
+	// 		if maximumBakingPower.IsLess(bakingPower) {
+	// 			bakingPower = maximumBakingPower
+	// 		}
+	// 	}
 
-		numberOfStakers := lo.Reduce(protocolRewardsCycleData.Delegators, func(agg int64, delegator splitDelegator, _ int) int64 {
-			if delegator.StakedBalance > 0 {
-				return agg + 1
-			}
-			return agg
-		}, 0)
+	// 	numberOfStakers := lo.Reduce(protocolRewardsCycleData.Delegators, func(agg int64, delegator splitDelegator, _ int) int64 {
+	// 		if delegator.StakedBalance > 0 {
+	// 			return agg + 1
+	// 		}
+	// 		return agg
+	// 	}, 0)
 
-		if utils.Abs(bakingPower.Int64()-tzktBakerCycleData.BakingPower) > numberOfStakers { // up to numberOfStakers difference in mutez is allowed - rounding deviations from staking_numerator/staking_denominator
-			slog.Error("bakingPower mismatch", "bakingPower", bakingPower, "tzktBakerCycleData.BakingPower", tzktBakerCycleData.BakingPower)
-			return nil, errors.Join(constants.ErrCycleDataProtocolRewardsMismatch, fmt.Errorf("bakingPower: %d, tzktBakerCycleData.BakingPower: %d, diff: %d", bakingPower.Int64(), tzktBakerCycleData.BakingPower, bakingPower.Int64()-tzktBakerCycleData.BakingPower))
-		}
-		// TODO: end remove this when we confirm all works as expected
-		collectedDelegators = lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) splitDelegator {
-			if protocolRewardsDelegator, ok := delegatorsMap[delegator.Address]; ok {
-				delegator.DelegatedBalance = protocolRewardsDelegator.DelegatedBalance
-				delegator.StakedBalance = protocolRewardsDelegator.StakedBalance
-				delete(delegatorsMap, delegator.Address) // remove from map to be able to check if there are any left
-			} else {
-				delegator.DelegatedBalance = 0
-				delegator.StakedBalance = 0
-			}
-			return delegator
-		})
+	// 	if utils.Abs(bakingPower.Int64()-tzktBakerCycleData.BakingPower) > numberOfStakers { // up to numberOfStakers difference in mutez is allowed - rounding deviations from staking_numerator/staking_denominator
+	// 		slog.Error("bakingPower mismatch", "bakingPower", bakingPower, "tzktBakerCycleData.BakingPower", tzktBakerCycleData.BakingPower)
+	// 		return nil, errors.Join(constants.ErrCycleDataProtocolRewardsMismatch, fmt.Errorf("bakingPower: %d, tzktBakerCycleData.BakingPower: %d, diff: %d", bakingPower.Int64(), tzktBakerCycleData.BakingPower, bakingPower.Int64()-tzktBakerCycleData.BakingPower))
+	// 	}
+	// 	// TODO: end remove this when we confirm all works as expected
+	// 	collectedDelegators = lo.Map(collectedDelegators, func(delegator splitDelegator, _ int) splitDelegator {
+	// 		if protocolRewardsDelegator, ok := delegatorsMap[delegator.Address]; ok {
+	// 			delegator.DelegatedBalance = protocolRewardsDelegator.DelegatedBalance
+	// 			delegator.StakedBalance = protocolRewardsDelegator.StakedBalance
+	// 			delete(delegatorsMap, delegator.Address) // remove from map to be able to check if there are any left
+	// 		} else {
+	// 			delegator.DelegatedBalance = 0
+	// 			delegator.StakedBalance = 0
+	// 		}
+	// 		return delegator
+	// 	})
 
-		for _, delegator := range delegatorsMap {
-			collectedDelegators = append(collectedDelegators, delegator)
-		}
-	}
+	// 	for _, delegator := range delegatorsMap {
+	// 		collectedDelegators = append(collectedDelegators, delegator)
+	// 	}
+	// }
 
 	return &common.BakersCycleData{
 		DelegatorsCount:                  tzktBakerCycleData.DelegatorsCount,
@@ -437,7 +499,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		BlockDelegatedRewards:            blockDelegatedRewards,
 		IdealBlockDelegatedRewards:       blockDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
 		EndorsementDelegatedRewards:      endorsingDelegatedRewards,
-		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedEndorsementRewards).Div64(precision)),
+		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedAttestationRewards).Div64(precision)),
 		DalDelegatedRewards:              dalDelegatedRewards,
 		IdealDalDelegatedRewards:         dalDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedDalRewards).Div64(precision)),
 		BlockDelegatedFees:               blockDelegatedFees,
@@ -446,7 +508,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		OwnStakedBalance:              tezos.NewZ(tzktBakerCycleData.OwnStakedBalance),
 		ExternalStakedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance),
 		BlockStakingRewardsEdge:       tezos.NewZ(tzktBakerCycleData.BlockRewardsStakedEdge),
-		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.EndorsementRewardsStakedEdge),
+		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.AttestationRewardsStakedEdge),
 		BlockStakingFees:              tezos.Zero, // block fees are distributed as liquid balance only
 
 		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),
