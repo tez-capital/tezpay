@@ -41,21 +41,24 @@ type tzktBakersCycleData struct {
 	OwnStakedBalance         int64 `json:"ownStakedBalance"`      // OwnDelegatedBalance + ExternalDelegatedBalance
 	ExternalStakedBalance    int64 `json:"externalStakedBalance"` // ExternalDelegatedBalance
 
-	BlockRewardsDelegated  int64 `json:"blockRewardsDelegated"`
-	BlockRewardsStakedOwn  int64 `json:"blockRewardsStakedOwn"`
-	BlockRewardsStakedEdge int64 `json:"blockRewardsStakedEdge"`
+	BlockRewardsDelegated    int64 `json:"blockRewardsDelegated"`
+	BlockRewardsStakedOwn    int64 `json:"blockRewardsStakedOwn"`
+	BlockRewardsStakedEdge   int64 `json:"blockRewardsStakedEdge"`
+	BlockRewardsStakedShared int64 `json:"blockRewardsStakedShared"`
 	// BlockRewards             int64            `json:"blockRewards"` // BlockRewardsLiquid + BlockRewardsStakedOwn
 	MissedBlockRewards int64 `json:"missedBlockRewards"`
 
-	EndorsementRewardsDelegated  int64 `json:"endorsementRewardsDelegated"`
-	EndorsementRewardsStakedOwn  int64 `json:"endorsementRewardsStakedOwn"`
-	EndorsementRewardsStakedEdge int64 `json:"endorsementRewardsStakedEdge"`
-	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
-	MissedEndorsementRewards int64 `json:"missedEndorsementRewards"`
+	AttestationRewardsDelegated    int64 `json:"attestationRewardsDelegated"`
+	AttestationRewardsStakedOwn    int64 `json:"attestationRewardsStakedOwn"`
+	AttestationRewardsStakedEdge   int64 `json:"attestationRewardsStakedEdge"`
+	AttestationRewardsStakedShared int64 `json:"attestationRewardsStakedShared"`
+	// AttestationRewards       int64            `json:"attestationRewards"` // AttestationRewardsLiquid + AttestationRewardsStakedOwn
+	MissedAttestationRewards int64 `json:"missedAttestationRewards"`
 
-	DalRewardsDelegated  int64 `json:"dalAttestationRewardsDelegated"`
-	DalRewardsStakedOwn  int64 `json:"dalAttestationRewardsStakedOwn"`
-	DalRewardsStakedEdge int64 `json:"dalAttestationRewardsStakedEdge"`
+	DalRewardsDelegated    int64 `json:"dalAttestationRewardsDelegated"`
+	DalRewardsStakedOwn    int64 `json:"dalAttestationRewardsStakedOwn"`
+	DalRewardsStakedEdge   int64 `json:"dalAttestationRewardsStakedEdge"`
+	DalRewardsStakedShared int64 `json:"dalAttestationRewardsStakedShared"`
 	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
 	MissedDalRewards int64 `json:"missedDalAttestationRewards"`
 
@@ -323,7 +326,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 	var blockDelegatedRewards, endorsingDelegatedRewards, delegationShare tezos.Z
 
 	blockDelegatedRewards = tezos.NewZ(tzktBakerCycleData.BlockRewardsDelegated)
-	endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.EndorsementRewardsDelegated)
+	endorsingDelegatedRewards = tezos.NewZ(tzktBakerCycleData.AttestationRewardsDelegated)
 	dalDelegatedRewards := tezos.NewZ(tzktBakerCycleData.DalRewardsDelegated)
 	delegationShare = tezos.NewZ(tzktBakerCycleData.BakingPower - tzktBakerCycleData.OwnStakedBalance - tzktBakerCycleData.ExternalStakedBalance).Mul64(precision).Div64(tzktBakerCycleData.BakingPower)
 
@@ -437,7 +440,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		BlockDelegatedRewards:            blockDelegatedRewards,
 		IdealBlockDelegatedRewards:       blockDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
 		EndorsementDelegatedRewards:      endorsingDelegatedRewards,
-		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedEndorsementRewards).Div64(precision)),
+		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedAttestationRewards).Div64(precision)),
 		DalDelegatedRewards:              dalDelegatedRewards,
 		IdealDalDelegatedRewards:         dalDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedDalRewards).Div64(precision)),
 		BlockDelegatedFees:               blockDelegatedFees,
@@ -446,7 +449,7 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 		OwnStakedBalance:              tezos.NewZ(tzktBakerCycleData.OwnStakedBalance),
 		ExternalStakedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance),
 		BlockStakingRewardsEdge:       tezos.NewZ(tzktBakerCycleData.BlockRewardsStakedEdge),
-		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.EndorsementRewardsStakedEdge),
+		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.AttestationRewardsStakedEdge),
 		BlockStakingFees:              tezos.Zero, // block fees are distributed as liquid balance only
 
 		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),

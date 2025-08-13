@@ -3,7 +3,7 @@ module github.com/tez-capital/tezpay
 go 1.24.0
 
 require (
-	code.cloudfoundry.org/filelock v0.41.0
+	code.cloudfoundry.org/filelock v0.42.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def
 	github.com/bwmarrin/discordgo v0.29.0
@@ -21,7 +21,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	github.com/trilitech/tzgo v1.22.0
-	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a
+	golang.org/x/exp v0.0.0-20250813145105-42675adae3e6
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
