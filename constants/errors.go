@@ -96,4 +96,7 @@ var (
 	ErrUnsupportedExtensionHookMode = errors.New("unsupported extension hook mode")
 	ErrUnsupportedExtensionKind     = errors.New("unsupported extension kind")
 	ErrExtensionHookMissingData     = errors.New("no data forwarded to hook, cannot execute")
+
+	// tzkt client
+	ErrTzktVersionCheckFailed = errors.New("failed to check tzkt version")
 )
