@@ -75,7 +75,6 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 			RpcUrl:                 "https://rpc.tzkt.io/mainnet",
 			RpcPool:                constants.DEFAULT_RPC_POOL,
 			TzktUrl:                constants.DEFAULT_TZKT_URL,
-			ProtocolRewardsUrl:     constants.DEFAULT_PROTOCOL_REWARDS_URL,
 			Explorer:               "https://tzstats.com/",
 			DoNotPaySmartContracts: true,
 		},
@@ -85,7 +84,6 @@ func genrateSample() *tezpay_configuration.ConfigurationV0 {
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
 			WalletMode:                 enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
 			PayoutMode:                 enums.PAYOUT_MODE_IDEAL,
-			BalanceCheckMode:           enums.PROTOCOL_BALANCE_CHECK_MODE,
 			Fee:                        .075,
 			IsPayingTxFee:              true,
 			IsPayingAllocationTxFee:    true,
@@ -211,11 +209,10 @@ func genrateStarter() *tezpay_configuration.ConfigurationV0 {
 			IsProtectionEnabled: true,
 		},
 		PayoutConfiguration: tezpay_configuration.PayoutConfigurationV0{
-			WalletMode:       enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
-			BalanceCheckMode: enums.PROTOCOL_BALANCE_CHECK_MODE,
-			PayoutMode:       enums.PAYOUT_MODE_ACTUAL,
-			Fee:              .10,
-			MinimumAmount:    0.01,
+			WalletMode:    enums.WALLET_MODE_LOCAL_PRIVATE_KEY,
+			PayoutMode:    enums.PAYOUT_MODE_ACTUAL,
+			Fee:           .10,
+			MinimumAmount: 0.01,
 		},
 	}
 }

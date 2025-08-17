@@ -88,10 +88,6 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 	if payoutMode == "" {
 		payoutMode = enums.PAYOUT_MODE_ACTUAL
 	}
-	balanceCheckMode := configuration.PayoutConfiguration.BalanceCheckMode
-	if balanceCheckMode == "" {
-		balanceCheckMode = enums.PROTOCOL_BALANCE_CHECK_MODE
-	}
 
 	gasLimitBuffer := int64(constants.DEFAULT_TX_GAS_LIMIT_BUFFER)
 	if configuration.PayoutConfiguration.TxGasLimitBuffer != nil {
@@ -168,7 +164,6 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		PayoutConfiguration: RuntimePayoutConfiguration{
 			WalletMode:                 walletMode,
 			PayoutMode:                 payoutMode,
-			BalanceCheckMode:           balanceCheckMode,
 			Fee:                        configuration.PayoutConfiguration.Fee,
 			IsPayingTxFee:              configuration.PayoutConfiguration.IsPayingTxFee,
 			IsPayingAllocationTxFee:    configuration.PayoutConfiguration.IsPayingAllocationTxFee,
@@ -202,7 +197,6 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		Network: RuntimeNetworkConfiguration{
 			RpcPool:                rpcPool,
 			TzktUrl:                configuration.Network.TzktUrl,
-			ProtocolRewardsUrl:     configuration.Network.ProtocolRewardsUrl,
 			Explorer:               configuration.Network.Explorer,
 			DoNotPaySmartContracts: configuration.Network.DoNotPaySmartContracts,
 			IgnoreProtocolChanges:  configuration.Network.IgnoreProtocolChanges,

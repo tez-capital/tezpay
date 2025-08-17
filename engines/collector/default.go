@@ -36,9 +36,8 @@ func InitDefaultRpcAndTzktColletor(config *configuration.RuntimeConfiguration) (
 		return nil, err
 	}
 
-	tzkt_client, err := tzkt.InitClient(config.Network.TzktUrl, config.Network.ProtocolRewardsUrl, &tzkt.TzktClientOptions{
-		HttpClient:       http_client,
-		BalanceCheckMode: config.PayoutConfiguration.BalanceCheckMode,
+	tzkt_client, err := tzkt.InitClient(config.Network.TzktUrl, &tzkt.TzktClientOptions{
+		HttpClient: http_client,
 	})
 	if err != nil {
 		return nil, err
