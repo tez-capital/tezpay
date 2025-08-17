@@ -132,6 +132,6 @@ jobs:
       - name: Notify new version available
         uses: Ilshidur/action-discord@master
         env:
-          DISCORD_WEBHOOK: ${{ secrets.PB_DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_TZC_TEZPAY }}
         with:
             args: "New tezpay ${{ github.ref_name }} released. (<https://github.com/tez-capital/tezpay/releases/tag/${{ github.ref_name }}>)"
