@@ -4,7 +4,6 @@
   payouts: {
     wallet_mode: local-private-key
     payout_mode: actual
-    balance_check_mode: protocol
     fee: 0.05
     transaction_gas_limit_buffer: 100
     kt_transaction_gas_limit_buffer: 200
@@ -25,7 +24,6 @@
       https://us.rpc.tez.capital/
     ]
     tzkt_url: https://api.tzkt.io/
-    protocol_rewards_url: https://protocol-rewards.tez.capital/
     explorer: https://tzkt.io/
   }
   overdelegation: {

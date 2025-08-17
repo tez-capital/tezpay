@@ -14,9 +14,6 @@
   # payout configuration
   payouts: {
 
-    # balance check mode to use, can be 'protocol' or 'tzkt'
-    balance_check_mode: protocol
-
     # fee to charge delegators for the payout (portion of the reward as decimal, e.g. 0.075 for 7.5%)
     fee: 0.1
 

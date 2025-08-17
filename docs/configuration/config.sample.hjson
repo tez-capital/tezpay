@@ -13,9 +13,6 @@
     # payout mode to use, can be 'actual' or 'ideal'
     payout_mode: ideal
 
-    # balance check mode to use, can be 'protocol' or 'tzkt'
-    balance_check_mode: protocol
-
     # fee to charge delegators for the payout (portion of the reward as decimal, e.g. 0.075 for 7.5%)
     fee: 0.075
 
@@ -149,9 +146,6 @@
 
     # Url to tzkt endpoint
     tzkt_url: https://api.tzkt.io/
-
-    # Url to protocol rewards endpoint
-    protocol_rewards_url: https://protocol-rewards.tez.capital/
 
     # Url to block explorer
     explorer: https://tzstats.com/
