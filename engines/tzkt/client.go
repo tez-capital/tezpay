@@ -109,18 +109,6 @@ func InitClient(rootUrl string, options *TzktClientOptions) (*Client, error) {
 		rootUrl: root,
 	}
 
-	if root.Hostname() == "api.tzkt.io" {
-		isNewTzkt, err := client.IsTzktVersionHigherOrEqual(context.Background(), "1.16.0")
-		if err != nil {
-			return nil, errors.Join(constants.ErrTzktVersionCheckFailed, err)
-		}
-		if !isNewTzkt {
-			// override to staging
-			slog.Warn("!!! tzkt version is lower than 1.16.0, using TzKT staging !!!")
-			client.rootUrl, err = url.Parse("https://staging.api.tzkt.io")
-		}
-	}
-
 	return client, nil
 }
 
