@@ -91,14 +91,14 @@ func (engine *DefaultRpcAndTzktColletor) IsRevealed(addr tezos.Address) (bool, e
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetCurrentCycleNumber() (int64, error) {
-	head, err := utils.AttemptWithRpcClients(defaultCtx, engine.rpcs, func(client *rpc.Client) (*rpc.Block, error) {
-		return client.GetHeadBlock(defaultCtx)
+	head, err := utils.AttemptWithRpcClients(defaultCtx, engine.rpcs, func(client *rpc.Client) (*rpc.BlockMetadata, error) {
+		return client.GetBlockMetadata(defaultCtx, rpc.Head)
 	})
 	if err != nil {
 		return 0, err
 	}
 
-	return head.GetLevelInfo().Cycle, err
+	return head.LevelInfo.Cycle, nil
 }
 
 func (engine *DefaultRpcAndTzktColletor) GetLastCompletedCycle() (int64, error) {
