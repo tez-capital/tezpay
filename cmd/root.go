@@ -165,7 +165,7 @@ func init() {
 	RootCmd.Flags().Bool(VERSION_FLAG, false, "Prints version")
 	RootCmd.PersistentFlags().StringP(PATH_FLAG, "p", ".", "path to working directory")
 	RootCmd.PersistentFlags().StringP(OUTPUT_FORMAT_FLAG, "o", "auto", "Sets output log format (json/text/auto)")
-	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
+	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (debug/info/warn/error)")
 	RootCmd.PersistentFlags().String(LOG_SERVER_FLAG, "", "launches log server at specified address")
 	RootCmd.PersistentFlags().String(LOG_FILE_FLAG, "", "Logs to file")
 	RootCmd.PersistentFlags().Bool(NO_COLOR_FLAG, false, "Disable color output")
