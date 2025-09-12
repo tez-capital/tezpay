@@ -18,7 +18,7 @@ tezpay [flags]
       --disable-donation-prompt          Disable donation prompt
   -h, --help                             help for tezpay
       --log-file string                  Logs to file
-  -l, --log-level string                 Sets log level format (trace/debug/info/warn/error) (default "info")
+  -l, --log-level string                 Sets log level format (debug/info/warn/error) (default "info")
       --log-server string                launches log server at specified address
       --no-color                         Disable color output
   -o, --output-format string             Sets output log format (json/text/auto) (default "auto")
