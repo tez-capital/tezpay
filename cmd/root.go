@@ -22,6 +22,7 @@ const (
 	LOG_LEVEL_FLAG               = "log-level"
 	LOG_SERVER_FLAG              = "log-server"
 	LOG_FILE_FLAG                = "log-file"
+	NO_COLOR_FLAG                = "no-color"
 	PATH_FLAG                    = "path"
 	VERSION_FLAG                 = "version"
 	DISABLE_DONATION_PROMPT_FLAG = "disable-donation-prompt"
@@ -49,7 +50,7 @@ func setupLumberjackLogger(logFile string) io.Writer {
 	}
 }
 
-func setupLogger(level slog.Level, logServerAddress string, logFile string, format string) {
+func setupLogger(level slog.Level, logServerAddress string, logFile string, format string, noColor bool) {
 	var jsonWriters []io.Writer
 	if logServerAddress != "" {
 		jsonWriters = append(jsonWriters, utils.NewLogServer(logServerAddress))
@@ -71,6 +72,7 @@ func setupLogger(level slog.Level, logServerAddress string, logFile string, form
 	if len(textWriters) > 0 {
 		textHandler := utils.NewPrettyTextLogHandler(utils.NewMultiWriter(textWriters...), utils.PrettyHandlerOptions{
 			HandlerOptions: slog.HandlerOptions{Level: level},
+			NoColor:        noColor,
 		})
 		handlers = append(handlers, textHandler)
 	}
@@ -106,7 +108,8 @@ Copyright © %d alis.is
 				slog.Error("invalid log level", "level", logLevelFlag)
 				os.Exit(EXIT_INVALID_LOG_LEVEL)
 			}
-			setupLogger(logLevel, logServer, logFile, format)
+			noColor, _ := cmd.Flags().GetBool(NO_COLOR_FLAG)
+			setupLogger(logLevel, logServer, logFile, format, noColor)
 			slog.Debug("logger configured", "format", format, "level", logLevelFlag)
 
 			workingDirectory, _ := cmd.Flags().GetString(PATH_FLAG)
@@ -165,6 +168,7 @@ func init() {
 	RootCmd.PersistentFlags().StringP(LOG_LEVEL_FLAG, "l", "info", "Sets log level format (trace/debug/info/warn/error)")
 	RootCmd.PersistentFlags().String(LOG_SERVER_FLAG, "", "launches log server at specified address")
 	RootCmd.PersistentFlags().String(LOG_FILE_FLAG, "", "Logs to file")
+	RootCmd.PersistentFlags().Bool(NO_COLOR_FLAG, false, "Disable color output")
 	RootCmd.PersistentFlags().String(SIGNER_FLAG, "", "Override signer")
 	RootCmd.PersistentFlags().Bool(SKIP_VERSION_CHECK_FLAG, false, "Skip version check")
 	RootCmd.PersistentFlags().Bool(DISABLE_DONATION_PROMPT_FLAG, false, "Disable donation prompt")

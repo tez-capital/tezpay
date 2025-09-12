@@ -21,14 +21,16 @@ import (
 
 type PrettyHandlerOptions struct {
 	slog.HandlerOptions
+	NoColor bool
 }
 
 type PrettyTextLogHandler struct {
 	slog.Handler
 	l *log.Logger
 
-	attrs  map[string][]slog.Attr
-	groups []string
+	attrs   map[string][]slog.Attr
+	groups  []string
+	noColor bool
 }
 
 func isHiddenAttr(attr slog.Attr) bool {
@@ -38,17 +40,6 @@ func isHiddenAttr(attr slog.Attr) bool {
 
 func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error {
 	level := r.Level.String() + ":"
-	switch r.Level {
-	case slog.LevelDebug:
-		level = color.MagentaString(level)
-	case slog.LevelInfo:
-		level = color.BlueString(level)
-	case slog.LevelWarn:
-		level = color.YellowString(level)
-	case slog.LevelError:
-		level = color.RedString(level)
-	}
-
 	fields := make(map[string]any, r.NumAttrs())
 
 	for groupId, group := range h.attrs {
@@ -83,19 +74,33 @@ func (h *PrettyTextLogHandler) Handle(ctx context.Context, r slog.Record) error 
 		return true
 	})
 
-	var fieldsSerialized []byte
+	var fieldsSerializedRaw []byte
 	if len(fields) != 0 {
 		var err error
-		fieldsSerialized, err = json.MarshalIndent(fields, "", "  ")
+		fieldsSerializedRaw, err = json.MarshalIndent(fields, "", "  ")
 		if err != nil {
 			slog.Error("failed to serialize fields", "error", err.Error())
 		}
 	}
 
 	timeStr := r.Time.Format("[15:04:05.000]")
-	msg := color.HiWhiteString(r.Message)
+	fieldsSerialized := string(fieldsSerializedRaw)
+	if !h.noColor {
+		fieldsSerialized = color.WhiteString(fieldsSerialized)
 
-	h.l.Println(timeStr, level, msg, color.WhiteString(string(fieldsSerialized)))
+		switch r.Level {
+		case slog.LevelDebug:
+			level = color.MagentaString(level)
+		case slog.LevelInfo:
+			level = color.BlueString(level)
+		case slog.LevelWarn:
+			level = color.YellowString(level)
+		case slog.LevelError:
+			level = color.RedString(level)
+		}
+	}
+
+	h.l.Println(timeStr, level, r.Message, fieldsSerialized)
 
 	return nil
 }
@@ -113,6 +118,7 @@ func (h *PrettyTextLogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		l:       h.l,
 		attrs:   newAttrs,
 		groups:  slices.Clone(h.groups),
+		noColor: h.noColor,
 	}
 }
 
@@ -122,6 +128,7 @@ func (h *PrettyTextLogHandler) WithGroup(name string) slog.Handler {
 		l:       h.l,
 		attrs:   maps.Clone(h.attrs),
 		groups:  append(h.groups, name),
+		noColor: h.noColor,
 	}
 }
 
@@ -133,6 +140,7 @@ func NewPrettyTextLogHandler(
 		Handler: slog.NewJSONHandler(out, &opts.HandlerOptions),
 		l:       log.New(out, "", 0),
 		attrs:   make(map[string][]slog.Attr),
+		noColor: opts.NoColor,
 	}
 
 	return h
