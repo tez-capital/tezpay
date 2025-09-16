@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	ctx "context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -33,9 +34,13 @@ var payCmd = &cobra.Command{
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
-		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
-			DryRun: isDryRun,
-		})
+		gcReporter, err := reporter_engines.NewGCSReporter(ctx.Background(), config.GCPBucket)
+		if err != nil {
+			slog.Info("reporter_engines.NewGCSReporter", "cycle", cycle, "error", err.Error())
+			return
+		}
+		defer gcReporter.Close()
+
 		stdioReporter := reporter_engines.NewStdioReporter(config)
 
 		if !state.Global.IsDonationPromptDisabled() && !config.IsDonatingToTezCapital() {
@@ -92,7 +97,7 @@ var payCmd = &cobra.Command{
 
 		slog.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, gcReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 		}, EXIT_OPERTION_FAILED)
 
 		switch {
@@ -128,7 +133,7 @@ var payCmd = &cobra.Command{
 		slog.Info("executing payouts")
 		executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 			var reporter common.ReporterEngine
-			reporter = fsReporter
+			reporter = gcReporter
 			if reportToStdout, _ := cmd.Flags().GetBool(REPORT_TO_STDOUT); reportToStdout {
 				reporter = stdioReporter
 			}

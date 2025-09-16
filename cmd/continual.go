@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	ctx "context"
+
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/tez-capital/tezpay/common"
@@ -51,9 +53,13 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	}()
 
 	config, collector, signer, transactor := context.Unwrap()
-	fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
-		DryRun: isDryRun,
-	})
+
+	gcReporter, err := reporter_engines.NewGCSReporter(ctx.Background(), config.GCPBucket)
+	if err != nil {
+		slog.Error("reporter_engines.NewGCSReporter", "error", err.Error())
+		return processed
+	}
+	defer gcReporter.Close()
 
 	// refresh engine params - for protocol upgrades
 	if err := errors.Join(transactor.RefreshParams(), collector.RefreshParams()); err != nil {
@@ -88,7 +94,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	slog.Info("checking reports of past payouts")
 	preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-		return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+		return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, gcReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 	}, EXIT_OPERTION_FAILED)
 
 	if len(preparationResult.ValidPayouts) == 0 {
@@ -109,7 +115,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 	executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
-		return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
+		return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, gcReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 			MixInContractCalls: mixInContractCalls,
 			MixInFATransfers:   mixInFATransfers,
 			DryRun:             isDryRun,

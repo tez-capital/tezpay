@@ -87,6 +87,8 @@ type ConfigurationV0 struct {
 	Extensions                 []ExtensionConfigurationV0    `json:"extensions,omitempty" comment:"extensions (for custom functionality)"`
 	SourceBytes                []byte                        `json:"-"`
 	DisableAnalytics           bool                          `json:"disable_analytics,omitempty" comment:"disables analytics, please consider leaving it enabled🙏"`
+	GCPBucket                  string                        `json:"gcp_bucket" comment:"GCP storage bucket name"`
+	GCPSigner                  string                        `json:"gcp_signer" comment:"GCP KMS key source"`
 }
 
 type NotificatorConfigurationBase struct {

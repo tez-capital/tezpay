@@ -219,6 +219,8 @@ func ConfigurationToRuntimeConfiguration(configuration *LatestConfigurationType)
 		Extensions:       configuration.Extensions,
 		SourceBytes:      []byte{},
 		DisableAnalytics: configuration.DisableAnalytics,
+		GCPBucket:        configuration.GCPBucket,
+		GCPSigner:        configuration.GCPSigner,
 	}, nil
 }
 

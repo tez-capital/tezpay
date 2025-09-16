@@ -40,7 +40,7 @@ func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOpt
 	reportsOfPastSuccesfulPayouts := make([]common.PayoutReport, 0, count)
 	for _, blueprint := range ctx.PayoutBlueprints {
 		reports, err := ctx.GetReporter().GetExistingReports(blueprint.Cycle)
-		if err != nil && !os.IsNotExist(err) {
+		if err != nil && !os.IsNotExist(err) && err.Error() != "storage: object doesn't exist" {
 			return nil, errors.Join(constants.ErrPayoutsFromFileLoadFailed, fmt.Errorf("cycle: %d", blueprint.Cycle), err)
 		}
 		reportResidues := utils.FilterReportsByBaker(reports, ctx.configuration.BakerPKH)

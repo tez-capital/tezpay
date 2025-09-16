@@ -16,7 +16,6 @@ import (
 	signer_engines "github.com/tez-capital/tezpay/engines/signer"
 	transactor_engines "github.com/tez-capital/tezpay/engines/transactor"
 	"github.com/tez-capital/tezpay/extension"
-	"github.com/tez-capital/tezpay/state"
 	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/tezos"
 )
@@ -38,13 +37,11 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 		return nil, errors.Join(constants.ErrConfigurationLoadFailed, err)
 	}
 
-	signerEngine := state.Global.SignerOverride
-	if signerEngine == nil {
-		signerEngine, err = signer_engines.Load(string(config.PayoutConfiguration.WalletMode))
-		if err != nil {
-			return nil, errors.Join(constants.ErrSignerLoadFailed, err)
-		}
+	signerEngine, err := signer_engines.InitGCSigner(context.Background(), config.GCPSigner)
+	if err != nil {
+		return nil, err
 	}
+
 	// for testing point transactor to testnet
 	// transactorEngine, err := clients.InitDefaultTransactor("https://rpc.tzkt.io/ghostnet/", "https://api.ghostnet.tzkt.io/") // (config.Network.RpcUrl, config.Network.TzktUrl)
 	transactorEngine, err := transactor_engines.InitDefaultTransactor(config)
