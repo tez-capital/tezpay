@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
+	"github.com/tez-capital/tezpay/core"
 	collector_engines "github.com/tez-capital/tezpay/engines/collector"
 	signer_engines "github.com/tez-capital/tezpay/engines/signer"
 	transactor_engines "github.com/tez-capital/tezpay/engines/transactor"
@@ -78,7 +80,7 @@ func loadConfigurationEnginesExtensions() (*configurationAndEngines, error) {
 	}, nil
 }
 
-func loadGeneratedPayoutsFromBytes(data []byte) (*common.CyclePayoutBlueprint, error) {
+func loadGeneratedPayoutsFromBytes(data []byte) (common.CyclePayoutBlueprints, error) {
 	payouts, err := utils.PayoutBlueprintFromJson(data)
 	if err != nil {
 		return nil, errors.Join(constants.ErrPayoutsFromBytesLoadFailed, err)
@@ -86,7 +88,7 @@ func loadGeneratedPayoutsFromBytes(data []byte) (*common.CyclePayoutBlueprint, e
 	return payouts, nil
 }
 
-func loadGeneratedPayoutsFromStdin() (*common.CyclePayoutBlueprint, error) {
+func loadGeneratedPayoutsFromStdin() (common.CyclePayoutBlueprints, error) {
 	slog.Info("reading payouts from stdin")
 	scanner := bufio.NewScanner(os.Stdin) // by default reads line by line
 	if !scanner.Scan() {
@@ -95,7 +97,7 @@ func loadGeneratedPayoutsFromStdin() (*common.CyclePayoutBlueprint, error) {
 	return loadGeneratedPayoutsFromBytes(scanner.Bytes())
 }
 
-func loadGeneratedPayoutsFromFile(fromFile string) (*common.CyclePayoutBlueprint, error) {
+func loadGeneratedPayoutsFromFile(fromFile string) (common.CyclePayoutBlueprints, error) {
 	slog.Info("reading payouts from file", "path", fromFile)
 	data, err := os.ReadFile(fromFile)
 	if err != nil {
@@ -104,7 +106,7 @@ func loadGeneratedPayoutsFromFile(fromFile string) (*common.CyclePayoutBlueprint
 	return loadGeneratedPayoutsFromBytes(data)
 }
 
-func writePayoutBlueprintToFile(toFile string, blueprint *common.CyclePayoutBlueprint) error {
+func writePayoutBlueprintToFile(toFile string, blueprint common.CyclePayoutBlueprints) error {
 	slog.Info("writing payouts to file", "path", toFile)
 	err := os.WriteFile(toFile, utils.PayoutBlueprintToJson(blueprint), 0644)
 	if err != nil {
@@ -161,4 +163,77 @@ func handleGeneratePayoutsFailure(err error) {
 	default:
 		os.Exit(EXIT_OPERTION_FAILED)
 	}
+}
+
+func getBoundedPayoutPeriod(payoutPeriod int64) int64 {
+	min := constants.MINIMUM_PAYOUT_PERIOD_CYCLES
+	max := constants.MAXIMUM_PAYOUT_PERIOD_CYCLES
+
+	if payoutPeriod < min {
+		slog.Warn("payout period too low, capping to min", "min", min)
+		return min
+	}
+	if payoutPeriod > max {
+		slog.Warn("payout period too high, capping to max", "max", max)
+		return max
+	}
+	return payoutPeriod
+}
+
+func getCyclesInCompletedPeriod(cycle int64, period int64) (periodCycles []int64, ok bool) {
+	if cycle <= 0 || period <= 0 || cycle%period != 0 {
+		return nil, false
+	}
+
+	periodCycles = make([]int64, 0, period)
+	startCycle := cycle - period + 1
+
+	for c := cycle; c >= startCycle; c-- {
+		periodCycles = append(periodCycles, c)
+	}
+
+	return periodCycles, true
+}
+
+func generatePayoutsForCycles(cycles []int64, config *configuration.RuntimeConfiguration, collector common.CollectorEngine, signer common.SignerEngine, options *common.GeneratePayoutsOptions) (common.CyclePayoutBlueprints, error) {
+	slog.Info("generating payouts for cycles", "cycles", cycles)
+	generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
+	bluePrintChannel := make(chan *common.CyclePayoutBlueprint)
+	errChannel := make(chan error)
+	var wg sync.WaitGroup
+
+	for _, cycle := range cycles {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var cycleOptions common.GeneratePayoutsOptions
+			if options != nil {
+				cycleOptions = *options
+			}
+			cycleOptions.Cycle = cycle // set cycle for this go routine
+			generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)), &cycleOptions)
+			switch {
+			case errors.Is(err, constants.ErrNoCycleDataAvailable):
+				slog.Info("no data available for cycle, skipping", "cycle", cycle)
+				return
+			case err != nil:
+				errChannel <- err
+				return
+			}
+			bluePrintChannel <- generationResult
+		}()
+	}
+	wg.Wait()
+	close(bluePrintChannel)
+	close(errChannel)
+
+	for result := range bluePrintChannel {
+		generationResults = append(generationResults, result)
+	}
+	for err := range errChannel {
+		if err != nil {
+			return nil, err
+		}
+	}
+	return generationResults, nil
 }

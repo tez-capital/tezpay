@@ -2,6 +2,7 @@ package prepare
 
 import (
 	"log/slog"
+	"slices"
 
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
@@ -16,6 +17,16 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 		return nil, constants.ErrMissingPayoutBlueprint
 	}
 	if !options.Accumulate {
+		return ctx, nil
+	}
+
+	cycles := lo.Reduce(ctx.StageData.ValidPayouts, func(acc []int64, payout common.PayoutRecipe, _ int) []int64 {
+		if !slices.Contains(acc, payout.Cycle) {
+			acc = append(acc, payout.Cycle)
+		}
+		return acc
+	}, []int64{})
+	if len(cycles) <= 1 { // nothing to accumulate
 		return ctx, nil
 	}
 

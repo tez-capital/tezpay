@@ -26,11 +26,19 @@ var (
 	endCycle              int64
 )
 
-func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool) (processed bool) {
+func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool, payoutPeriod int64) (processed bool) {
 	processed = true
 	retry := func() bool {
 		processed = false
 		return false
+	}
+
+	cycleToProcess = lastProcessedCycle + 1
+	cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycleToProcess, payoutPeriod)
+	if !isEndOfThePeriod {
+		slog.Info("cycle is not at the end of the specified payout period, skipping", "cycle", cycleToProcess, "payout_period", payoutPeriod)
+		lastProcessedCycle = cycleToProcess
+		return
 	}
 
 	defer func() { // complete cycle
@@ -72,11 +80,9 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	slog.Info("===================== PROCESSING START =====================")
 	slog.Info("processing cycle", "cycle", cycleToProcess)
 
-	generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-		&common.GeneratePayoutsOptions{
-			Cycle:                    cycleToProcess,
-			WaitForSufficientBalance: true,
-		})
+	generationResult, err := generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{
+		WaitForSufficientBalance: true,
+	})
 	if err != nil {
 		if errors.Is(err, constants.ErrNoCycleDataAvailable) {
 			slog.Info("no data available for cycle, skipping", "cycle", cycleToProcess)
@@ -88,7 +94,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	slog.Info("checking reports of past payouts")
 	preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-		return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+		return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
 	}, EXIT_OPERTION_FAILED)
 
 	if len(preparationResult.ValidPayouts) == 0 {
@@ -99,7 +105,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 
 	if forceConfirmationPrompt && utils.IsTty() {
-		PrintPreparationResults(preparationResult, generationResult.Cycle)
+		PrintPreparationResults(preparationResult, generationResult.GetCycles()...)
 		msg := "Do you want to pay out above VALID payouts?"
 		if isDryRun {
 			msg = msg + " (dry-run)"
@@ -128,7 +134,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		}
 	}
 	if !silent && !isDryRun {
-		notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
+		notifyPayoutsProcessedThroughAllNotificators(config, generationResult.GetSummary())
 	}
 	PrintPayoutWalletRemainingBalance(collector, signer)
 	return
@@ -149,6 +155,8 @@ var continualCmd = &cobra.Command{
 		forceConfirmationPrompt, _ := cmd.Flags().GetBool(FORCE_CONFIRMATION_PROMPT_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 		silent, _ := cmd.Flags().GetBool(SILENT_FLAG)
+		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
+		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
 
 		if isDryRun {
 			slog.Info("Dry run mode enabled")
@@ -227,8 +235,6 @@ var continualCmd = &cobra.Command{
 				}
 			}
 
-			cycleToProcess = lastProcessedCycle + 1
-
 			if !notifiedNewVersionAvailable {
 				if available, latest := checkForNewVersionAvailable(); available {
 					notifyAdmin(config, fmt.Sprintf("New tezpay version available - %s", latest))
@@ -236,7 +242,7 @@ var continualCmd = &cobra.Command{
 				}
 			}
 
-			processCycleInContinualMode(configurationContext, forceConfirmationPrompt, mixInContractCalls, mixInFATransfers, isDryRun, silent)
+			processCycleInContinualMode(configurationContext, forceConfirmationPrompt, mixInContractCalls, mixInFATransfers, isDryRun, silent, payoutPeriod)
 		}
 	},
 }
@@ -244,6 +250,7 @@ var continualCmd = &cobra.Command{
 func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Int64P(END_CYCLE_FLAG, "e", 0, "end cycle")
+	continualCmd.Flags().Uint(PAYOUT_PERIOD_FLAG, 1, "payout period")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")

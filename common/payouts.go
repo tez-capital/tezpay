@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/samber/lo"
@@ -396,6 +397,17 @@ func (results CyclePayoutBlueprints) GetSummary() *CyclePayoutSummary {
 	return summary
 }
 
+func (results CyclePayoutBlueprints) GetCycles() []int64 {
+	return lo.Reduce(results, func(acc []int64, result *CyclePayoutBlueprint, _ int) []int64 {
+		for _, p := range result.Payouts {
+			if !slices.Contains(acc, p.Cycle) {
+				acc = append(acc, p.Cycle)
+			}
+		}
+		return acc
+	}, []int64{})
+}
+
 type PreparePayoutsEngineContext struct {
 	collector   CollectorEngine
 	signer      SignerEngine
@@ -450,6 +462,15 @@ type PreparePayoutsResult struct {
 	AccumulatedPayouts             []PayoutRecipe          `json:"accumulated_payouts,omitempty"`
 	InvalidPayouts                 []PayoutRecipe          `json:"invalid_payouts,omitempty"`
 	ReportsOfPastSuccessfulPayouts []PayoutReport          `json:"reports_of_past_successful_payouts,omitempty"`
+}
+
+func (result *PreparePayoutsResult) GetCycles() []int64 {
+	return lo.Reduce(result.Blueprints, func(acc []int64, blueprint *CyclePayoutBlueprint, _ int) []int64 {
+		if !slices.Contains(acc, blueprint.Cycle) {
+			acc = append(acc, blueprint.Cycle)
+		}
+		return acc
+	}, []int64{})
 }
 
 type ExecutePayoutsEngineContext struct {

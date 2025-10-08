@@ -2,6 +2,7 @@ package reporter_engines
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -57,6 +58,10 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 	if len(payouts) == 0 {
 		return nil
 	}
+	if engine.options.IsReadOnly {
+		return errors.New("reporter is in read-only mode")
+	}
+
 	cyclesToBeWritten := lo.Uniq(lo.Map(payouts, func(pr common.PayoutReport, _ int) int64 {
 		return pr.Cycle
 	}))
@@ -100,6 +105,9 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 	if len(invalid) == 0 {
 		return nil
 	}
+	if engine.options.IsReadOnly {
+		return errors.New("reporter is in read-only mode")
+	}
 	cyclesToBeWritten := lo.Uniq(lo.Map(invalid, func(pr common.PayoutRecipe, _ int) int64 {
 		return pr.Cycle
 	}))
@@ -128,6 +136,9 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 }
 
 func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
+	if engine.options.IsReadOnly {
+		return errors.New("reporter is in read-only mode")
+	}
 	reportsDirectory, err := engine.getReportsDirectory()
 	if err != nil {
 		return err

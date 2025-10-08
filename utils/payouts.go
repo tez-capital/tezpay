@@ -19,18 +19,18 @@ type PayoutConstraint interface {
 	common.PayoutRecipe | common.PayoutReport
 }
 
-func PayoutBlueprintToJson(payoutBlueprint *common.CyclePayoutBlueprint) []byte {
+func PayoutBlueprintToJson(payoutBlueprint common.CyclePayoutBlueprints) []byte {
 	marshaled, _ := json.Marshal(payoutBlueprint)
 	return marshaled
 }
 
-func PayoutBlueprintFromJson(data []byte) (*common.CyclePayoutBlueprint, error) {
-	var payuts common.CyclePayoutBlueprint
+func PayoutBlueprintFromJson(data []byte) (common.CyclePayoutBlueprints, error) {
+	var payuts common.CyclePayoutBlueprints
 	err := json.Unmarshal(data, &payuts)
 	if err != nil {
 		return nil, err
 	}
-	return &payuts, err
+	return payuts, err
 }
 
 func PayoutsFromJson(data []byte) ([]common.PayoutRecipe, error) {

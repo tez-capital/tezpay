@@ -3,7 +3,7 @@ module github.com/tez-capital/tezpay
 go 1.25.0
 
 require (
-	code.cloudfoundry.org/filelock v0.46.0
+	code.cloudfoundry.org/filelock v0.48.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def
 	github.com/bwmarrin/discordgo v0.29.0
@@ -20,14 +20,15 @@ require (
 	github.com/samber/lo v1.51.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.10.0
-	github.com/trilitech/tzgo v1.22.0
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	github.com/trilitech/tzgo v1.23.0
+	golang.org/x/exp v0.0.0-20251002181428-27f1f14c8bb9
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
@@ -42,7 +43,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect

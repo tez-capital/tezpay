@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -69,35 +68,11 @@ var payDateRangeCmd = &cobra.Command{
 		defer unlock()
 
 		slog.Info("generating payouts for cycles in the date range", "date_range", fmt.Sprintf("%s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)), "cycles", cycles)
-		generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
-
-		channels := make([]chan *common.CyclePayoutBlueprint, 0, len(cycles))
-
-		for _, cycle := range cycles {
-			ch := make(chan *common.CyclePayoutBlueprint)
-			channels = append(channels, ch)
-			go func() {
-				generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-					&common.GeneratePayoutsOptions{
-						Cycle:            cycle,
-						SkipBalanceCheck: skipBalanceCheck,
-					})
-				switch {
-				case errors.Is(err, constants.ErrNoCycleDataAvailable):
-					slog.Info("no data available for cycle, skipping", "cycle", cycle)
-					return
-				case err != nil:
-					handleGeneratePayoutsFailure(err)
-				}
-				ch <- generationResult
-			}()
-		}
-		for _, ch := range channels {
-			generationResult := <-ch
-			if generationResult != nil {
-				generationResults = append(generationResults, generationResult)
-			}
-		}
+		generationResults := assertRunWithErrorHandler(func() (common.CyclePayoutBlueprints, error) {
+			return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{
+				SkipBalanceCheck: skipBalanceCheck,
+			})
+		}, handleGeneratePayoutsFailure)
 
 		slog.Info("checking reports of past payouts")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {

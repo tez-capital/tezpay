@@ -72,7 +72,8 @@ type CycleMonitor interface {
 }
 
 type ReporterEngineOptions struct {
-	DryRun bool
+	DryRun     bool
+	IsReadOnly bool
 }
 
 type ReporterEngine interface {

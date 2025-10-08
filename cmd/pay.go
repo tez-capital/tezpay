@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -32,6 +31,8 @@ var payCmd = &cobra.Command{
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
+		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
+		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
 
 		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
 			DryRun: isDryRun,
@@ -42,45 +43,42 @@ var payCmd = &cobra.Command{
 			assertRequireConfirmation("⚠️  With your current configuration you are not going to donate to tez.capital.😔 Do you want to proceed?")
 		}
 
-		var generationResult *common.CyclePayoutBlueprint
+		var generationResults common.CyclePayoutBlueprints
 		fromFile, _ := cmd.Flags().GetString(FROM_FILE_FLAG)
 		fromStdin, _ := cmd.Flags().GetBool(FROM_STDIN_FLAG)
+
+		cycles := make([]int64, 0, payoutPeriod)
 		switch {
 		case fromStdin:
-			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
+			generationResults = assertRunWithResult(func() (common.CyclePayoutBlueprints, error) {
 				return loadGeneratedPayoutsFromStdin()
 			}, EXIT_PAYOUTS_READ_FAILURE)
+
+			cycles = generationResults.GetCycles()
 		case fromFile != "":
-			generationResult = assertRunWithResult(func() (*common.CyclePayoutBlueprint, error) {
+			generationResults = assertRunWithResult(func() (common.CyclePayoutBlueprints, error) {
 				return loadGeneratedPayoutsFromFile(fromFile)
 			}, EXIT_PAYOUTS_READ_FAILURE)
+
+			cycles = generationResults.GetCycles()
 		default:
 			if cycle <= 0 {
 				lastCompletedCycle := assertRunWithResultAndErrorMessage(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED, "failed to get last completed cycle")
 				cycle = lastCompletedCycle + cycle
 			}
 
-			var err error
-			generationResult, err = core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-				&common.GeneratePayoutsOptions{
-					Cycle:            cycle,
+			cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycle, payoutPeriod)
+			if !isEndOfThePeriod {
+				slog.Error("cycle is not at the end of the specified payout period", "cycle", cycle, "payout_period", payoutPeriod)
+				os.Exit(EXIT_OPERTION_FAILED)
+			}
+
+			generationResults = assertRunWithErrorHandler(func() (common.CyclePayoutBlueprints, error) {
+				return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{
 					SkipBalanceCheck: skipBalanceCheck,
 				})
-			switch {
-			case errors.Is(err, constants.ErrNoCycleDataAvailable):
-				slog.Info("no data available for cycle, skipping", "cycle", cycle)
-				return
-			case err != nil:
-				handleGeneratePayoutsFailure(err)
-			}
+			}, handleGeneratePayoutsFailure)
 		}
-
-		cycles := lo.Reduce(generationResult.Payouts, func(acc []int64, cp common.PayoutRecipe, _ int) []int64 {
-			if lo.Contains(acc, cp.Cycle) {
-				return acc
-			}
-			return append(acc, cp.Cycle)
-		}, []int64{})
 
 		slog.Info("acquiring lock", "cycles", cycles, "phase", "acquiring_lock")
 		unlock, err := lockCyclesWithTimeout(time.Minute*10, cycles...)
@@ -92,7 +90,9 @@ var payCmd = &cobra.Command{
 
 		slog.Info("checking past reports")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-			return core.PrepareCyclePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
+				Accumulate: true,
+			})
 		}, EXIT_OPERTION_FAILED)
 
 		switch {
@@ -112,7 +112,7 @@ var payCmd = &cobra.Command{
 			slog.Info("nothing to pay out", "phase", "result")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
-				notifyPayoutsProcessed(config, &generationResult.Summary, notificator)
+				notifyPayoutsProcessed(config, generationResults.GetSummary(), notificator)
 			}
 			os.Exit(0)
 		}
@@ -146,7 +146,7 @@ var payCmd = &cobra.Command{
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent && !isDryRun {
-			notifyPayoutsProcessedThroughAllNotificators(config, &generationResult.Summary)
+			notifyPayoutsProcessedThroughAllNotificators(config, generationResults.GetSummary())
 		}
 		switch {
 		case state.Global.GetWantsOutputJson():
@@ -161,6 +161,7 @@ var payCmd = &cobra.Command{
 func init() {
 	payCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
 	payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
+	payCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
 	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
 	payCmd.Flags().Bool(FROM_STDIN_FLAG, false, "loads payouts from stdin instead of generating on the fly")
