@@ -104,8 +104,8 @@ func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind) ([
 }
 
 type PayoutCycleReport struct {
-	Cycle   int64               `json:"cycle"`
-	Invalid []PayoutRecipe      `json:"invalid,omitempty"`
-	Payouts []PayoutReport      `json:"payouts"`
-	Sumary  *CyclePayoutSummary `json:"summary"`
+	Cycle   int64          `json:"cycle"`
+	Invalid []PayoutRecipe `json:"invalid,omitempty"`
+	Payouts []PayoutReport `json:"payouts"`
+	Sumary  *PayoutSummary `json:"summary"`
 }

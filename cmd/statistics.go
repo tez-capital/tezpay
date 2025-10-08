@@ -25,9 +25,8 @@ var statisticsCmd = &cobra.Command{
 		}
 		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{})
 
-		var total common.CyclePayoutSummary
+		var total common.PayoutSummary
 		ok := 0
-		collectedCycles := make([]int64, 0, n)
 		for i := 0; i < n; i++ {
 			cycle := lastCycle - int64(i)
 			summary, err := fsReporter.GetExistingCycleSummary(cycle)
@@ -35,8 +34,7 @@ var statisticsCmd = &cobra.Command{
 				slog.Warn("failed to read report", "cycle", cycle, "error", err.Error())
 				continue
 			}
-			total = *total.CombineNumericData(summary)
-			collectedCycles = append(collectedCycles, cycle)
+			total = *total.AddCycleSummary(cycle, summary)
 			ok++
 		}
 
@@ -47,7 +45,7 @@ var statisticsCmd = &cobra.Command{
 		}
 
 		if state.Global.GetWantsOutputJson() {
-			slog.Info("statistics generated", "result", total, "cycles", collectedCycles, "phase", "result")
+			slog.Info("statistics generated", "result", total, "cycles", total.Cycles, "phase", "result")
 			return
 		}
 		utils.PrintCycleSummary(total, header)

@@ -42,11 +42,12 @@ func (engine *StdioReporter) ReportInvalidPayouts(reports []common.PayoutRecipe)
 }
 
 type CycleSummaryReport struct {
+	Cycle        int64                     `json:"cycle"`
 	CycleSummary common.CyclePayoutSummary `json:"cycle_summary"`
 }
 
-func (engine *StdioReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
-	data, err := json.Marshal(CycleSummaryReport{CycleSummary: summary})
+func (engine *StdioReporter) ReportCycleSummary(cycle int64, summary common.CyclePayoutSummary) error {
+	data, err := json.Marshal(CycleSummaryReport{Cycle: cycle, CycleSummary: summary})
 	if err != nil {
 		return err
 	}

@@ -131,7 +131,7 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 		failureDetected = true
 	}
 	for _, blueprint := range ctx.PayoutBlueprints {
-		if err := reporter.ReportCycleSummary(blueprint.Summary); err != nil {
+		if err := reporter.ReportCycleSummary(blueprint.Cycle, blueprint.Summary); err != nil {
 			logger.Warn("failed to report cycle summary", "error", err.Error())
 			failureDetected = true
 		}

@@ -44,7 +44,6 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		Cycle:   options.Cycle,
 		Payouts: stageData.Payouts,
 		Summary: common.CyclePayoutSummary{
-			Cycle:                    options.Cycle,
 			Delegators:               len(stageData.CycleData.Delegators),
 			PaidDelegators:           stageData.PaidDelegators,
 			OwnStakedBalance:         stageData.CycleData.OwnStakedBalance,

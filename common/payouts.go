@@ -286,7 +286,6 @@ func GetRecipesFilteredTotals(recipes []PayoutRecipe, kind enums.EPayoutKind) ([
 }
 
 type CyclePayoutSummary struct {
-	Cycle                    int64     `json:"cycle"`
 	Delegators               int       `json:"delegators"`
 	PaidDelegators           int       `json:"paid_delegators"`
 	OwnStakedBalance         tezos.Z   `json:"own_staked_balance"`
@@ -306,30 +305,40 @@ type CyclePayoutSummary struct {
 	Timestamp                time.Time `json:"timestamp"`
 }
 
-func (summary *CyclePayoutSummary) GetTotalStakedBalance() tezos.Z {
+type PayoutSummary struct {
+	CyclePayoutSummary
+	Cycles []int64 `json:"cycle"`
+}
+
+func (summary *PayoutSummary) GetTotalStakedBalance() tezos.Z {
 	return summary.OwnStakedBalance.Add(summary.ExternalStakedBalance)
 }
 
-func (summary *CyclePayoutSummary) GetTotalDelegatedBalance() tezos.Z {
+func (summary *PayoutSummary) GetTotalDelegatedBalance() tezos.Z {
 	return summary.OwnDelegatedBalance.Add(summary.ExternalDelegatedBalance)
 }
 
-func (summary *CyclePayoutSummary) CombineNumericData(another *CyclePayoutSummary) *CyclePayoutSummary {
-	return &CyclePayoutSummary{
-		OwnStakedBalance:         summary.OwnStakedBalance.Add(another.OwnStakedBalance),
-		OwnDelegatedBalance:      summary.OwnDelegatedBalance.Add(another.OwnDelegatedBalance),
-		ExternalStakedBalance:    summary.ExternalStakedBalance.Add(another.ExternalStakedBalance),
-		ExternalDelegatedBalance: summary.ExternalDelegatedBalance.Add(another.ExternalDelegatedBalance),
-		EarnedFees:               summary.EarnedFees.Add(another.EarnedFees),
-		EarnedRewards:            summary.EarnedRewards.Add(another.EarnedRewards),
-		DistributedRewards:       summary.DistributedRewards.Add(another.DistributedRewards),
-		BondIncome:               summary.BondIncome.Add(another.BondIncome),
-		FeeIncome:                summary.FeeIncome.Add(another.FeeIncome),
-		IncomeTotal:              summary.IncomeTotal.Add(another.IncomeTotal),
-		TransactionFeesPaid:      summary.TransactionFeesPaid.Add(another.TransactionFeesPaid),
-		DonatedBonds:             summary.DonatedBonds.Add(another.DonatedBonds),
-		DonatedFees:              summary.DonatedFees.Add(another.DonatedFees),
-		DonatedTotal:             summary.DonatedTotal.Add(another.DonatedTotal),
+func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutSummary) *PayoutSummary {
+	cycles := append(summary.Cycles, cycle)
+	cycles = lo.Uniq(cycles)
+	return &PayoutSummary{
+		Cycles: cycles,
+		CyclePayoutSummary: CyclePayoutSummary{
+			OwnStakedBalance:         summary.OwnStakedBalance.Add(another.OwnStakedBalance),
+			OwnDelegatedBalance:      summary.OwnDelegatedBalance.Add(another.OwnDelegatedBalance),
+			ExternalStakedBalance:    summary.ExternalStakedBalance.Add(another.ExternalStakedBalance),
+			ExternalDelegatedBalance: summary.ExternalDelegatedBalance.Add(another.ExternalDelegatedBalance),
+			EarnedFees:               summary.EarnedFees.Add(another.EarnedFees),
+			EarnedRewards:            summary.EarnedRewards.Add(another.EarnedRewards),
+			DistributedRewards:       summary.DistributedRewards.Add(another.DistributedRewards),
+			BondIncome:               summary.BondIncome.Add(another.BondIncome),
+			FeeIncome:                summary.FeeIncome.Add(another.FeeIncome),
+			IncomeTotal:              summary.IncomeTotal.Add(another.IncomeTotal),
+			TransactionFeesPaid:      summary.TransactionFeesPaid.Add(another.TransactionFeesPaid),
+			DonatedBonds:             summary.DonatedBonds.Add(another.DonatedBonds),
+			DonatedFees:              summary.DonatedFees.Add(another.DonatedFees),
+			DonatedTotal:             summary.DonatedTotal.Add(another.DonatedTotal),
+		},
 	}
 }
 
@@ -386,12 +395,14 @@ type GeneratePayoutsOptions struct {
 
 type CyclePayoutBlueprints []*CyclePayoutBlueprint
 
-func (results CyclePayoutBlueprints) GetSummary() *CyclePayoutSummary {
-	summary := &CyclePayoutSummary{}
+func (results CyclePayoutBlueprints) GetSummary() *PayoutSummary {
+	summary := &PayoutSummary{
+		Cycles: make([]int64, 0, len(results)),
+	}
 	delegators := 0
 	for _, result := range results {
 		delegators += result.Summary.Delegators
-		summary = summary.CombineNumericData(&result.Summary)
+		summary = summary.AddCycleSummary(result.Cycle, &result.Summary)
 	}
 	summary.Delegators = delegators / len(results) // average
 	return summary

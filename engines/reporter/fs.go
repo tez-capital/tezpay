@@ -135,7 +135,7 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 	return nil
 }
 
-func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
+func (engine *FsReporter) ReportCycleSummary(cycle int64, summary common.CyclePayoutSummary) error {
 	if engine.options.IsReadOnly {
 		return errors.New("reporter is in read-only mode")
 	}
@@ -143,7 +143,7 @@ func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) 
 	if err != nil {
 		return err
 	}
-	targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", summary.Cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
 	data, err := json.MarshalIndent(summary, "", "\t")
 	if err != nil {
 		return err

@@ -75,7 +75,6 @@ func GenerateHookSampleData() {
 			simulatedCandidate.ToPayoutRecipe(tezos.ZeroAddress, 1, enums.PAYOUT_KIND_DELEGATOR_REWARD),
 		},
 		Summary: common.CyclePayoutSummary{
-			Cycle:              1,
 			Delegators:         2,
 			PaidDelegators:     1,
 			OwnStakedBalance:   tezos.NewZ(1000000000),

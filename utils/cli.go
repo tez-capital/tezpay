@@ -188,7 +188,7 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 	payoutTable.Render()
 }
 
-func PrintCycleSummary(summary common.CyclePayoutSummary, header string) {
+func PrintCycleSummary(summary common.PayoutSummary, header string) {
 	summaryTable := table.NewWriter()
 	summaryTable.SetStyle(table.StyleLight)
 	summaryTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignRight}})

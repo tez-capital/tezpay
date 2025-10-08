@@ -66,7 +66,7 @@ func (en *ExternalNotificator) mapArgs(kind NotificationKind, data string, addit
 	return args
 }
 
-func (en *ExternalNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+func (en *ExternalNotificator) PayoutSummaryNotify(summary *common.PayoutSummary, additionalData map[string]string) error {
 	summaryBytes, _ := json.Marshal(summary)
 	additionalDataBytes, _ := json.Marshal(additionalData)
 	args := en.mapArgs(PAYOUT_SUMMARY_NOTIFICATION, string(summaryBytes), string(additionalDataBytes))

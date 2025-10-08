@@ -11,7 +11,7 @@ import (
 	"github.com/tez-capital/tezpay/notifications"
 )
 
-func collectAdditionalData(_ *common.CyclePayoutSummary) map[string]string {
+func collectAdditionalData(_ *common.PayoutSummary) map[string]string {
 	data := make(map[string]json.RawMessage)
 
 	err := extension.ExecuteHook(enums.EXTENSION_HOOK_COLLECT_ADDITIONAL_NOTIFICATION_DATA, "0.1", &data)
@@ -26,7 +26,7 @@ func collectAdditionalData(_ *common.CyclePayoutSummary) map[string]string {
 	return result
 }
 
-func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, summary *common.CyclePayoutSummary, filter string) {
+func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, summary *common.PayoutSummary, filter string) {
 	for _, notificatorConfiguration := range configuration.NotificationConfigurations {
 		if filter != "" && string(notificatorConfiguration.Type) != filter {
 			continue
@@ -52,7 +52,7 @@ func notifyPayoutsProcessed(configuration *configuration.RuntimeConfiguration, s
 	}
 	slog.Info("notifications sent")
 }
-func notifyPayoutsProcessedThroughAllNotificators(configuration *configuration.RuntimeConfiguration, summary *common.CyclePayoutSummary) {
+func notifyPayoutsProcessedThroughAllNotificators(configuration *configuration.RuntimeConfiguration, summary *common.PayoutSummary) {
 	notifyPayoutsProcessed(configuration, summary, "")
 }
 
