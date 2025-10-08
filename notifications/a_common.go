@@ -46,6 +46,9 @@ func PopulateMessageTemplate(messageTempalte string, summary *common.PayoutSumma
 			}), ", ")
 		}
 		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", typeOfS.Field(i).Name), val)
+		if typeOfS.Field(i).Name == "Cycles" { // backward compatibility
+			messageTempalte = strings.ReplaceAll(messageTempalte, "<Cycle>", val)
+		}
 	}
 
 	for k, v := range additionalData {
