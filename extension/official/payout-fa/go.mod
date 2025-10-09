@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/alis-is/jsonrpc2 v0.0.0-20250810072930-5096354c2def
 	github.com/tez-capital/tezpay v0.0.0-20250208102828-493ace72d030
-	github.com/trilitech/tzgo v1.22.0
+	github.com/trilitech/tzgo v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -14,6 +14,7 @@ replace github.com/tez-capital/tezpay => ../../../
 require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/bwmarrin/discordgo v0.29.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/dghubble/oauth1 v0.7.3 // indirect
 	github.com/echa/bson v0.0.0-20220430141917-c0fbdf7f8b79 // indirect
@@ -30,16 +31,14 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/nikoksr/notify v1.3.0 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.66.0 // indirect
-	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.42.0 // indirect
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
+	golang.org/x/exp v0.0.0-20251002181428-27f1f14c8bb9 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 )

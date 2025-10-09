@@ -48,7 +48,7 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 		basePayout := groupedPayouts[0]
 		groupedPayouts = groupedPayouts[1:]
 		for _, payout := range groupedPayouts {
-			combined, err := basePayout.Combine(&payout)
+			combined, err := basePayout.Merge(&payout)
 			if err != nil {
 				return nil, err
 			}

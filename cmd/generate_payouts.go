@@ -67,7 +67,7 @@ var generatePayoutsCmd = &cobra.Command{
 					Accumulate: true,
 				})
 			}, EXIT_OPERTION_FAILED)
-			PrintPreparationResults(preparationResult, cycles...)
+			PrintPreparationResults(preparationResult, cycles, &PrintPreparationResultsOptions{AutoMergeRecords: true})
 		}
 	},
 }

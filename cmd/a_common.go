@@ -130,13 +130,22 @@ func GetProtocolWithRetry(collector common.CollectorEngine) tezos.ProtocolHash {
 	return protocol
 }
 
-func PrintPreparationResults(preparationResult *common.PreparePayoutsResult, cyclesForTitle ...int64) {
+type PrintPreparationResultsOptions struct {
+	AutoMergeRecords bool
+}
+
+func PrintPreparationResults(preparationResult *common.PreparePayoutsResult, cyclesForTitle []int64, options *PrintPreparationResultsOptions) {
+	if options == nil {
+		options = &PrintPreparationResultsOptions{
+			AutoMergeRecords: true,
+		}
+	}
 	title := utils.FormatCycleNumbers(cyclesForTitle...)
 
-	utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", title), false)
-	utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false)
-	utils.PrintReports(preparationResult.ReportsOfPastSuccessfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true)
-	utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", title), true)
+	utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", title), false, options.AutoMergeRecords)
+	utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false, options.AutoMergeRecords)
+	utils.PrintReports(preparationResult.ReportsOfPastSuccessfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true, options.AutoMergeRecords)
+	utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", title), true, options.AutoMergeRecords)
 }
 
 func PrintPayoutWalletRemainingBalance(collector common.CollectorEngine, signer common.SignerEngine) {

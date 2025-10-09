@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"slices"
 	"strings"
@@ -71,9 +72,47 @@ func sortPayouts(payouts []common.PayoutRecipe) {
 	})
 }
 
-func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool) {
+func mergePayouts(payouts []common.PayoutRecipe) []common.PayoutRecipe {
+	merged := make([]common.PayoutRecipe, 0, len(payouts))
+
+	slices.SortFunc(payouts, func(a, b common.PayoutRecipe) int {
+		return int(a.Cycle) - int(b.Cycle)
+	})
+	grouped := lo.GroupBy(payouts, func(payout common.PayoutRecipe) string {
+		return payout.GetIdentifier()
+	})
+
+	for k, groupedPayouts := range grouped {
+		if k == "" || len(groupedPayouts) <= 1 {
+			merged = append(merged, groupedPayouts...)
+			continue
+		}
+
+		basePayout := groupedPayouts[0]
+		groupedPayouts = groupedPayouts[1:]
+		for _, payout := range groupedPayouts {
+			noteBackup := basePayout.Note
+			combined, err := basePayout.Merge(&payout)
+			if err != nil {
+				slog.Warn("failed to merge payout records, skipping", "error", err.Error(), "base", basePayout, "other", payout)
+				return payouts // return original if error
+			}
+			basePayout = *combined
+			basePayout.Note = noteBackup // keep original note
+		}
+
+		merged = append(merged, basePayout) // add the combined
+	}
+	return merged
+}
+
+func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool, autoMergeRecords bool) {
 	if len(payouts) == 0 {
 		return
+	}
+
+	if autoMergeRecords {
+		payouts = mergePayouts(payouts)
 	}
 
 	sortPayouts(payouts)
@@ -152,7 +191,7 @@ func IsTty() bool {
 	}
 }
 
-func PrintReports(payouts []common.PayoutReport, header string, printTotals bool) {
+func PrintReports(payouts []common.PayoutReport, header string, printTotals bool, autoMergeRecords bool) {
 	if len(payouts) == 0 {
 		return
 	}

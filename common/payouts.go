@@ -2,7 +2,6 @@ package common
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/base58"
 	"github.com/trilitech/tzgo/tezos"
 )
 
@@ -110,61 +110,62 @@ func (recipe *PayoutRecipe) GetIdentifier() string {
 		return ""
 	}
 	hashBytes := sha256.Sum256(k)
-	hash := hex.EncodeToString(hashBytes[:])
-	return hash
+	return base58.Encode(hashBytes[:])
 }
 
 func (recipe *PayoutRecipe) GetShortIdentifier() string {
 	return recipe.GetIdentifier()[:16]
 }
 
-func (recipe *PayoutRecipe) Combine(otherRecipe *PayoutRecipe) (*PayoutRecipe, error) {
+func (recipe *PayoutRecipe) Merge(otherRecipe *PayoutRecipe) (*PayoutRecipe, error) {
 	if !recipe.Recipient.Equal(otherRecipe.Recipient) {
-		return nil, errors.New("cannot combine different recipients")
+		return nil, errors.New("cannot merge different recipients")
 	}
 	if !recipe.Delegator.Equal(otherRecipe.Delegator) {
-		return nil, errors.New("cannot combine different delegators")
+		return nil, errors.New("cannot merge different delegators")
 	}
 	if recipe.Kind != otherRecipe.Kind {
-		return nil, errors.New("cannot combine different kinds")
+		return nil, errors.New("cannot merge different kinds")
 	}
 	if recipe.TxKind != otherRecipe.TxKind {
-		return nil, errors.New("cannot combine different tx kinds")
+		return nil, errors.New("cannot merge different tx kinds")
 	}
 	if !recipe.FATokenId.Equal(otherRecipe.FATokenId) {
-		return nil, errors.New("cannot combine different FA token ids")
+		return nil, errors.New("cannot merge different FA token ids")
 	}
 	if !recipe.FAContract.Equal(otherRecipe.FAContract) {
-		return nil, errors.New("cannot combine different FA contracts")
+		return nil, errors.New("cannot merge different FA contracts")
 	}
 	if recipe.IsValid != otherRecipe.IsValid {
-		return nil, errors.New("cannot combine different validities")
+		return nil, errors.New("cannot merge different validities")
 	}
-	if recipe.OpLimits == nil || otherRecipe.OpLimits == nil {
-		return nil, errors.New("cannot combine recipes with missing op limits")
+	if (recipe.OpLimits == nil || otherRecipe.OpLimits == nil) && recipe.IsValid {
+		return nil, errors.New("cannot merge valid recipes with missing op limits")
 	}
 
 	recipe.DelegatedBalance = recipe.DelegatedBalance.Add(otherRecipe.DelegatedBalance).Div64(2)
 	recipe.StakedBalance = recipe.StakedBalance.Add(otherRecipe.StakedBalance).Div64(2)
 	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
 	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
-	recipe.OpLimits = &OpLimits{
-		StorageBurn:             recipe.OpLimits.StorageBurn + otherRecipe.OpLimits.StorageBurn,
-		AllocationBurn:          recipe.OpLimits.AllocationBurn + otherRecipe.OpLimits.AllocationBurn,
-		TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
-		StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
-		GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
-		DeserializationGasLimit: recipe.OpLimits.DeserializationGasLimit + otherRecipe.OpLimits.DeserializationGasLimit,
+	if recipe.IsValid { // only accumulate op limits if valid recipes
+		recipe.OpLimits = &OpLimits{
+			StorageBurn:             recipe.OpLimits.StorageBurn + otherRecipe.OpLimits.StorageBurn,
+			AllocationBurn:          recipe.OpLimits.AllocationBurn + otherRecipe.OpLimits.AllocationBurn,
+			TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
+			StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
+			GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
+			DeserializationGasLimit: recipe.OpLimits.DeserializationGasLimit + otherRecipe.OpLimits.DeserializationGasLimit,
+		}
 	}
 
 	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
-	otherRecipe.Note = fmt.Sprintf("%s#%d", recipe.GetShortIdentifier(), recipe.Cycle)
+	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
 
 	return recipe, nil
 }
 
 func (pr *PayoutRecipe) GetAccumulatedIdentifier() string {
-	return fmt.Sprintf("%s#%d", pr.GetShortIdentifier(), pr.Cycle)
+	return fmt.Sprintf("%s #%d", pr.GetShortIdentifier(), pr.Cycle)
 }
 
 func (pr *PayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
@@ -172,7 +173,7 @@ func (pr *PayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id s
 		return false, "", 0
 	}
 	if len(pr.Note) > 0 {
-		_, err := fmt.Sscanf(pr.Note, "%s#%d", &id, &cycle)
+		_, err := fmt.Sscanf(pr.Note, "%s_%d", &id, &cycle)
 		if err == nil {
 			return true, id, cycle
 		}

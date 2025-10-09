@@ -105,7 +105,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 
 	if forceConfirmationPrompt && utils.IsTty() {
-		PrintPreparationResults(preparationResult, generationResult.GetCycles()...)
+		PrintPreparationResults(preparationResult, generationResult.GetCycles(), &PrintPreparationResultsOptions{AutoMergeRecords: true})
 		msg := "Do you want to pay out above VALID payouts?"
 		if isDryRun {
 			msg = msg + " (dry-run)"
