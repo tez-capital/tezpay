@@ -198,14 +198,12 @@ func getCyclesInCompletedPeriod(cycle int64, period int64) (periodCycles []int64
 func generatePayoutsForCycles(cycles []int64, config *configuration.RuntimeConfiguration, collector common.CollectorEngine, signer common.SignerEngine, options *common.GeneratePayoutsOptions) (common.CyclePayoutBlueprints, error) {
 	slog.Info("generating payouts for cycles", "cycles", cycles)
 	generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
-	bluePrintChannel := make(chan *common.CyclePayoutBlueprint)
-	errChannel := make(chan error)
+	bluePrintChannel := make(chan *common.CyclePayoutBlueprint, len(cycles))
+	errChannel := make(chan error, len(cycles))
 	var wg sync.WaitGroup
 
 	for _, cycle := range cycles {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			var cycleOptions common.GeneratePayoutsOptions
 			if options != nil {
 				cycleOptions = *options
@@ -221,7 +219,10 @@ func generatePayoutsForCycles(cycles []int64, config *configuration.RuntimeConfi
 				return
 			}
 			bluePrintChannel <- generationResult
-		}()
+		})
+		// NOTE: do we want to run sequentially to avoid rate limits?
+		// If not we can remove the Wait here and just wait after the loop
+		wg.Wait()
 	}
 	wg.Wait()
 	close(bluePrintChannel)

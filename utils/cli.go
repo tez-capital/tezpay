@@ -115,6 +115,7 @@ func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool
 
 func FormatCycleNumbers(cycles ...int64) string {
 	conscutive := false
+	slices.Sort(cycles)
 	if len(cycles) > 1 {
 		conscutive = true
 		for i := 1; i < len(cycles); i++ {
