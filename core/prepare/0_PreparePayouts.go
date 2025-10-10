@@ -55,15 +55,17 @@ func PreparePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOpt
 		Recipes: lo.Reduce(ctx.PayoutBlueprints, func(agg []common.PayoutRecipe, blueprint *common.CyclePayoutBlueprint, _ int) []common.PayoutRecipe {
 			return append(agg, blueprint.Payouts...)
 		}, make([]common.PayoutRecipe, 0)),
-		ValidPayouts:                  utils.OnlyValidPayouts(payouts),
-		InvalidPayouts:                utils.OnlyInvalidPayouts(payouts),
+		ValidPayouts:                  utils.OnlyValidPayoutRecipes(payouts),
+		InvalidPayouts:                utils.OnlyInvalidPayoutRecipes(payouts),
 		ReportsOfPastSuccesfulPayouts: reportsOfPastSuccesfulPayouts,
 	}
 	err = ExecuteAfterPayoutsPrepared(hookData)
 	if err != nil {
 		return ctx, err
 	}
-	ctx.StageData.ValidPayouts, ctx.StageData.InvalidPayouts, ctx.StageData.ReportsOfPastSuccesfulPayouts = hookData.ValidPayouts, hookData.InvalidPayouts, hookData.ReportsOfPastSuccesfulPayouts
+	ctx.StageData.ValidPayouts = hookData.ValidPayouts
+	ctx.StageData.InvalidPayouts = hookData.InvalidPayouts
+	ctx.StageData.ReportsOfPastSuccesfulPayouts = hookData.ReportsOfPastSuccesfulPayouts
 
 	return ctx, nil
 }

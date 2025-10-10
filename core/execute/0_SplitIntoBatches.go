@@ -11,7 +11,7 @@ import (
 	"github.com/trilitech/tzgo/tezos"
 )
 
-func splitIntoBatches(payouts []common.PayoutRecipe, limits *common.OperationLimits, metadataDeserializationGasLimit int64) ([]common.RecipeBatch, error) {
+func splitIntoBatches(payouts []*common.AccumulatedPayoutRecipe, limits *common.OperationLimits, metadataDeserializationGasLimit int64) ([]common.RecipeBatch, error) {
 	batches := make([]common.RecipeBatch, 0)
 	batchBlueprint := common.NewBatch(limits, metadataDeserializationGasLimit)
 
@@ -47,7 +47,7 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 	contractTezRecipes := utils.FilterPayoutsByType(payoutsWithoutFa, tezos.AddressTypeContract)
 	classicTezRecipes := utils.RejectPayoutsByType(payoutsWithoutFa, tezos.AddressTypeContract)
 
-	toBatch := make([][]common.PayoutRecipe, 0, 3)
+	toBatch := make([][]*common.AccumulatedPayoutRecipe, 0, 3)
 	if options.MixInFATransfers {
 		classicTezRecipes = append(classicTezRecipes, faRecipes...)
 	} else {

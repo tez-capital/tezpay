@@ -25,7 +25,7 @@ func ExecutePayouts(preparationResult *common.PreparePayoutsResult, config *conf
 	}
 
 	return &common.ExecutePayoutsResult{
-		BatchResults:   ctx.StageData.BatchResults,
-		PaidDelegators: ctx.StageData.PaidDelegators,
+		BatchResults: ctx.StageData.BatchResults,
+		Summary:      ctx.StageData.Summary,
 	}, nil
 }

@@ -55,6 +55,9 @@ func (engine *FsReporter) GetExistingReports(cycle int64) ([]common.PayoutReport
 }
 
 func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
+	payouts = append(payouts, lo.Flatten(lo.Map(payouts, func(pr common.PayoutReport, _ int) []common.PayoutReport {
+		return lo.Map(pr.Accumulated, func(p *common.PayoutReport, _ int) common.PayoutReport { return *p })
+	}))...)
 	if len(payouts) == 0 {
 		return nil
 	}
@@ -96,19 +99,15 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 	return nil
 }
 
-func mapPayoutRecipeToPayoutReport(pr common.PayoutRecipe, _ int) common.PayoutReport {
-	return pr.ToPayoutReport()
-}
-
-func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) error {
-	invalid := utils.OnlyInvalidPayouts(payouts)
+func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutReport) error {
+	invalid := utils.OnlyFailedOrInvalidPayouts(payouts)
 	if len(invalid) == 0 {
 		return nil
 	}
 	if engine.options.IsReadOnly {
 		return errors.New("reporter is in read-only mode")
 	}
-	cyclesToBeWritten := lo.Uniq(lo.Map(invalid, func(pr common.PayoutRecipe, _ int) int64 {
+	cyclesToBeWritten := lo.Uniq(lo.Map(invalid, func(pr common.PayoutReport, _ int) int64 {
 		return pr.Cycle
 	}))
 
@@ -122,7 +121,7 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 		if err != nil {
 			return err
 		}
-		reports := lo.Map(utils.FilterPayoutsByCycle(invalid, cycle), mapPayoutRecipeToPayoutReport)
+		reports := utils.FilterPayoutsByCycle(invalid, cycle)
 		csv, err := gocsv.MarshalBytes(reports)
 		if err != nil {
 			return err

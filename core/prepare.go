@@ -19,15 +19,17 @@ func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configura
 
 	ctx, err = WrapContext[*prepare.PayoutPrepareContext, *common.PreparePayoutsOptions](ctx).ExecuteStages(options,
 		prepare.PreparePayouts,
-		prepare.AccumulatePayouts).Unwrap()
+		prepare.AccumulatePayouts,
+		prepare.CollectTransactionFees,
+		prepare.ValidatePreparedPayouts,
+	).Unwrap()
 	if err != nil {
 		return nil, err
 	}
 
 	return &common.PreparePayoutsResult{
 		Blueprints:                     ctx.PayoutBlueprints,
-		ValidPayouts:                   ctx.StageData.ValidPayouts,
-		AccumulatedPayouts:             ctx.StageData.AccumulatedPayouts,
+		ValidPayouts:                   ctx.StageData.AccumulatedValidPayouts,
 		InvalidPayouts:                 ctx.StageData.InvalidPayouts,
 		ReportsOfPastSuccessfulPayouts: ctx.StageData.ReportsOfPastSuccesfulPayouts,
 	}, nil

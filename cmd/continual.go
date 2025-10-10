@@ -102,7 +102,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		return
 	}
 
-	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
+	slog.Info("processing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.ValidPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 
 	if forceConfirmationPrompt && utils.IsTty() {
 		PrintPreparationResults(preparationResult, generationResult.GetCycles(), &PrintPreparationResultsOptions{AutoMergeRecords: true})
@@ -113,7 +113,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		assertRequireConfirmation(msg)
 	}
 
-	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.AccumulatedPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
+	slog.Info("executing payouts", "valid", len(preparationResult.ValidPayouts), "invalid", len(preparationResult.InvalidPayouts), "accumulated", len(preparationResult.ValidPayouts), "already_successful", len(preparationResult.ReportsOfPastSuccessfulPayouts))
 	executionResult := assertRunWithResult(func() (*common.ExecutePayoutsResult, error) {
 		return core.ExecutePayouts(preparationResult, config, common.NewExecutePayoutsEngineContext(signer, transactor, fsReporter, notifyAdminFactory(config)), &common.ExecutePayoutsOptions{
 			MixInContractCalls: mixInContractCalls,
@@ -134,7 +134,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		}
 	}
 	if !silent && !isDryRun {
-		notifyPayoutsProcessedThroughAllNotificators(config, generationResult.GetSummary())
+		notifyPayoutsProcessedThroughAllNotificators(config, &executionResult.Summary)
 	}
 	PrintPayoutWalletRemainingBalance(collector, signer)
 	return

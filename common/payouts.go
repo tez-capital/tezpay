@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"time"
 
@@ -48,17 +49,13 @@ type PayoutRecipe struct {
 	FAAlias          string                       `json:"fa_alias,omitempty"`
 	FADecimals       int                          `json:"fa_decimals,omitempty"`
 	DelegatedBalance tezos.Z                      `json:"delegator_balance,omitempty"`
-	StakedBalance    tezos.Z                      `json:"-"` // enable in output when relevant (P)
+	StakedBalance    tezos.Z                      `json:"staked_balance,omitempty"`
 	Amount           tezos.Z                      `json:"amount,omitempty"`
 	FeeRate          float64                      `json:"fee_rate,omitempty"`
 	Fee              tezos.Z                      `json:"fee,omitempty"`
 	OpLimits         *OpLimits                    `json:"op_limits,omitempty"`
 	Note             string                       `json:"note,omitempty"`
 	IsValid          bool                         `json:"valid,omitempty"`
-	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
-	TxFeeCollected bool `json:"tx_fee_collected,omitempty"`
-	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
-	AllocationFeeCollected bool `json:"allocation_fee_collected,omitempty"`
 }
 
 func (candidate *PayoutRecipe) GetDestination() tezos.Address {
@@ -117,69 +114,11 @@ func (recipe *PayoutRecipe) GetShortIdentifier() string {
 	return recipe.GetIdentifier()[:16]
 }
 
-func (recipe *PayoutRecipe) Merge(otherRecipe *PayoutRecipe) (*PayoutRecipe, error) {
-	if !recipe.Recipient.Equal(otherRecipe.Recipient) {
-		return nil, errors.New("cannot merge different recipients")
+func (recipe PayoutRecipe) AsAccumulated() *AccumulatedPayoutRecipe {
+	return &AccumulatedPayoutRecipe{
+		PayoutRecipe: recipe,
+		Accumulated:  []*PayoutRecipe{&recipe},
 	}
-	if !recipe.Delegator.Equal(otherRecipe.Delegator) {
-		return nil, errors.New("cannot merge different delegators")
-	}
-	if recipe.Kind != otherRecipe.Kind {
-		return nil, errors.New("cannot merge different kinds")
-	}
-	if recipe.TxKind != otherRecipe.TxKind {
-		return nil, errors.New("cannot merge different tx kinds")
-	}
-	if !recipe.FATokenId.Equal(otherRecipe.FATokenId) {
-		return nil, errors.New("cannot merge different FA token ids")
-	}
-	if !recipe.FAContract.Equal(otherRecipe.FAContract) {
-		return nil, errors.New("cannot merge different FA contracts")
-	}
-	if recipe.IsValid != otherRecipe.IsValid {
-		return nil, errors.New("cannot merge different validities")
-	}
-	if (recipe.OpLimits == nil || otherRecipe.OpLimits == nil) && recipe.IsValid {
-		return nil, errors.New("cannot merge valid recipes with missing op limits")
-	}
-
-	recipe.DelegatedBalance = recipe.DelegatedBalance.Add(otherRecipe.DelegatedBalance).Div64(2)
-	recipe.StakedBalance = recipe.StakedBalance.Add(otherRecipe.StakedBalance).Div64(2)
-	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
-	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
-	if recipe.IsValid { // only accumulate op limits if valid recipes
-		recipe.OpLimits = &OpLimits{
-			StorageBurn:             recipe.OpLimits.StorageBurn + otherRecipe.OpLimits.StorageBurn,
-			AllocationBurn:          recipe.OpLimits.AllocationBurn + otherRecipe.OpLimits.AllocationBurn,
-			TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
-			StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
-			GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
-			DeserializationGasLimit: recipe.OpLimits.DeserializationGasLimit + otherRecipe.OpLimits.DeserializationGasLimit,
-		}
-	}
-
-	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
-	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
-
-	return recipe, nil
-}
-
-func (pr *PayoutRecipe) GetAccumulatedIdentifier() string {
-	return fmt.Sprintf("%s #%d", pr.GetShortIdentifier(), pr.Cycle)
-}
-
-func (pr *PayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
-	if pr.Kind != enums.PAYOUT_KIND_ACCUMULATED {
-		return false, "", 0
-	}
-	if len(pr.Note) > 0 {
-		_, err := fmt.Sscanf(pr.Note, "%s_%d", &id, &cycle)
-		if err == nil {
-			return true, id, cycle
-		}
-	}
-
-	return false, "", 0
 }
 
 func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
@@ -286,6 +225,105 @@ func GetRecipesFilteredTotals(recipes []PayoutRecipe, kind enums.EPayoutKind) ([
 	return GetRecipesTotals(r), len(r)
 }
 
+type AccumulatedPayoutRecipe struct {
+	PayoutRecipe
+	Accumulated []*PayoutRecipe `json:"-"`
+}
+
+func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*AccumulatedPayoutRecipe, error) {
+	if !recipe.Recipient.Equal(otherRecipe.Recipient) {
+		return nil, errors.New("cannot add different recipients")
+	}
+	if !recipe.Delegator.Equal(otherRecipe.Delegator) {
+		return nil, errors.New("cannot add different delegators")
+	}
+	if recipe.Kind != otherRecipe.Kind {
+		return nil, errors.New("cannot add different kinds")
+	}
+	if recipe.TxKind != otherRecipe.TxKind {
+		return nil, errors.New("cannot add different tx kinds")
+	}
+	if !recipe.FATokenId.Equal(otherRecipe.FATokenId) {
+		return nil, errors.New("cannot add different FA token ids")
+	}
+	if !recipe.FAContract.Equal(otherRecipe.FAContract) {
+		return nil, errors.New("cannot add different FA contracts")
+	}
+	if recipe.IsValid != otherRecipe.IsValid {
+		return nil, errors.New("cannot add different validities")
+	}
+	if (recipe.OpLimits == nil || otherRecipe.OpLimits == nil) && recipe.IsValid {
+		return nil, errors.New("cannot add valid recipes with missing op limits")
+	}
+
+	recipe.DelegatedBalance = recipe.DelegatedBalance.Add(otherRecipe.DelegatedBalance).Div64(2)
+	recipe.StakedBalance = recipe.StakedBalance.Add(otherRecipe.StakedBalance).Div64(2)
+	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
+	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
+	if recipe.IsValid { // only accumulate op limits if valid recipes
+		recipe.OpLimits = &OpLimits{
+			StorageBurn:             recipe.OpLimits.StorageBurn + otherRecipe.OpLimits.StorageBurn,
+			AllocationBurn:          recipe.OpLimits.AllocationBurn + otherRecipe.OpLimits.AllocationBurn,
+			TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
+			StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
+			GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
+			DeserializationGasLimit: recipe.OpLimits.DeserializationGasLimit + otherRecipe.OpLimits.DeserializationGasLimit,
+		}
+	}
+
+	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
+	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
+	recipe.Accumulated = append(recipe.Accumulated, otherRecipe)
+	return recipe, nil
+}
+
+func (pr *AccumulatedPayoutRecipe) GetAccumulatedIdentifier() string {
+	return fmt.Sprintf("%s #%d", pr.GetShortIdentifier(), pr.Cycle)
+}
+
+func (pr *AccumulatedPayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
+	if pr.Kind != enums.PAYOUT_KIND_ACCUMULATED {
+		return false, "", 0
+	}
+	if len(pr.Note) > 0 {
+		_, err := fmt.Sscanf(pr.Note, "%s_%d", &id, &cycle)
+		if err == nil {
+			return true, id, cycle
+		}
+	}
+
+	return false, "", 0
+}
+
+func (pr *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {
+	report := pr.PayoutRecipe.ToPayoutReport()
+	report.Accumulated = lo.Map(pr.Accumulated, func(p *PayoutRecipe, _ int) *PayoutReport {
+		accumulated := p.ToPayoutReport()
+		return &accumulated
+	})
+	return report
+}
+
+func (pr *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {
+	if pr.IsValid {
+		panic("THIS SHOULD NEVER HAPPEN: cannot disperse valid accumulated payout")
+	}
+
+	return lo.Map(pr.Accumulated, func(r *PayoutRecipe, _ int) PayoutRecipe {
+		r.IsValid = false
+		r.Note = pr.Note
+		r.Fee = r.Fee.Add(pr.Amount) // collect the whole bonds amount as fee if invalid
+		r.Amount = tezos.Zero
+		return *r
+	})
+}
+
+// AsRecipe returns the PayoutRecipe representation of the AccumulatedPayoutRecipe.
+// This is useful only for printing and reporting purposes. Do not use it for execution.
+func (pr *AccumulatedPayoutRecipe) AsRecipe() PayoutRecipe {
+	return pr.PayoutRecipe
+}
+
 type CyclePayoutSummary struct {
 	Delegators               int       `json:"delegators"`
 	PaidDelegators           int       `json:"paid_delegators"`
@@ -308,7 +346,8 @@ type CyclePayoutSummary struct {
 
 type PayoutSummary struct {
 	CyclePayoutSummary
-	Cycles []int64 `json:"cycle"`
+	Cycles         []int64                      `json:"cycle"`
+	CycleSummaries map[int64]CyclePayoutSummary `json:"cycle_summaries,omitempty"`
 }
 
 func (summary *PayoutSummary) GetTotalStakedBalance() tezos.Z {
@@ -320,8 +359,18 @@ func (summary *PayoutSummary) GetTotalDelegatedBalance() tezos.Z {
 }
 
 func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutSummary) *PayoutSummary {
+	if summary.CycleSummaries == nil {
+		summary.CycleSummaries = make(map[int64]CyclePayoutSummary)
+	}
+	if _, ok := summary.CycleSummaries[cycle]; ok {
+		panic("cannot add the same cycle summary twice")
+	}
 	cycles := append(summary.Cycles, cycle)
 	cycles = lo.Uniq(cycles)
+
+	cycleSummaries := maps.Clone(summary.CycleSummaries)
+	cycleSummaries[cycle] = *another
+
 	return &PayoutSummary{
 		Cycles: cycles,
 		CyclePayoutSummary: CyclePayoutSummary{
@@ -340,14 +389,26 @@ func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutS
 			DonatedFees:              summary.DonatedFees.Add(another.DonatedFees),
 			DonatedTotal:             summary.DonatedTotal.Add(another.DonatedTotal),
 		},
+		CycleSummaries: cycleSummaries,
 	}
 }
 
 type CyclePayoutBlueprint struct {
-	Cycle                                int64              `json:"cycles,omitempty"`
-	Payouts                              []PayoutRecipe     `json:"payouts,omitempty"`
-	Summary                              CyclePayoutSummary `json:"summary,omitempty"`
-	BatchMetadataDeserializationGasLimit int64              `json:"batch_metadata_deserialization_gas_limit,omitempty"`
+	Cycle   int64          `json:"cycles,omitempty"`
+	Payouts []PayoutRecipe `json:"payouts,omitempty"`
+
+	OwnStakedBalance         tezos.Z `json:"own_staked_balance"`
+	OwnDelegatedBalance      tezos.Z `json:"own_delegated_balance"`
+	ExternalStakedBalance    tezos.Z `json:"external_staked_balance"`
+	ExternalDelegatedBalance tezos.Z `json:"external_delegated_balance"`
+	EarnedFees               tezos.Z `json:"cycle_fees"`
+	EarnedRewards            tezos.Z `json:"cycle_rewards"`
+	BondIncome               tezos.Z `json:"bond_income"`
+	DonatedBonds             tezos.Z `json:"donated_bonds"`
+	DonatedFees              tezos.Z `json:"donated_fees"`
+	DonatedTotal             tezos.Z `json:"donated_total"`
+	// Summary                              CyclePayoutSummary `json:"summary,omitempty"`
+	BatchMetadataDeserializationGasLimit int64 `json:"batch_metadata_deserialization_gas_limit,omitempty"`
 }
 
 type GeneratePayoutsEngineContext struct {
@@ -396,18 +457,18 @@ type GeneratePayoutsOptions struct {
 
 type CyclePayoutBlueprints []*CyclePayoutBlueprint
 
-func (results CyclePayoutBlueprints) GetSummary() *PayoutSummary {
-	summary := &PayoutSummary{
-		Cycles: make([]int64, 0, len(results)),
-	}
-	delegators := 0
-	for _, result := range results {
-		delegators += result.Summary.Delegators
-		summary = summary.AddCycleSummary(result.Cycle, &result.Summary)
-	}
-	summary.Delegators = delegators / len(results) // average
-	return summary
-}
+// func (results CyclePayoutBlueprints) GetSummary() *PayoutSummary {
+// 	summary := &PayoutSummary{
+// 		Cycles: make([]int64, 0, len(results)),
+// 	}
+// 	delegators := 0
+// 	for _, result := range results {
+// 		delegators += result.Summary.Delegators
+// 		summary = summary.AddCycleSummary(result.Cycle, &result.Summary)
+// 	}
+// 	summary.Delegators = delegators / len(results) // average
+// 	return summary
+// }
 
 func (results CyclePayoutBlueprints) GetCycles() []int64 {
 	return lo.Reduce(results, func(acc []int64, result *CyclePayoutBlueprint, _ int) []int64 {
@@ -469,11 +530,10 @@ type PreparePayoutsOptions struct {
 }
 
 type PreparePayoutsResult struct {
-	Blueprints                     []*CyclePayoutBlueprint `json:"blueprint,omitempty"`
-	ValidPayouts                   []PayoutRecipe          `json:"payouts,omitempty"`
-	AccumulatedPayouts             []PayoutRecipe          `json:"accumulated_payouts,omitempty"`
-	InvalidPayouts                 []PayoutRecipe          `json:"invalid_payouts,omitempty"`
-	ReportsOfPastSuccessfulPayouts []PayoutReport          `json:"reports_of_past_successful_payouts,omitempty"`
+	Blueprints                     []*CyclePayoutBlueprint    `json:"blueprint,omitempty"`
+	ValidPayouts                   []*AccumulatedPayoutRecipe `json:"payouts,omitempty"`
+	InvalidPayouts                 []PayoutRecipe             `json:"invalid_payouts,omitempty"`
+	ReportsOfPastSuccessfulPayouts []PayoutReport             `json:"reports_of_past_successful_payouts,omitempty"`
 }
 
 func (result *PreparePayoutsResult) GetCycles() []int64 {
@@ -539,6 +599,7 @@ type ExecutePayoutsOptions struct {
 }
 
 type ExecutePayoutsResult struct {
-	BatchResults   BatchResults `json:"batch_results,omitempty"`
-	PaidDelegators int          `json:"paid_delegators,omitempty"`
+	BatchResults   BatchResults  `json:"batch_results,omitempty"`
+	PaidDelegators int           `json:"paid_delegators,omitempty"`
+	Summary        PayoutSummary `json:"cycle_payout_summary,omitempty"`
 }

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants"
@@ -143,9 +144,12 @@ func PrintPreparationResults(preparationResult *common.PreparePayoutsResult, cyc
 	title := utils.FormatCycleNumbers(cyclesForTitle...)
 
 	utils.PrintPayouts(preparationResult.InvalidPayouts, fmt.Sprintf("Invalid - %s", title), false, options.AutoMergeRecords)
-	utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false, options.AutoMergeRecords)
+	// utils.PrintPayouts(preparationResult.AccumulatedPayouts, fmt.Sprintf("Accumulated - %s", title), false, options.AutoMergeRecords)
 	utils.PrintReports(preparationResult.ReportsOfPastSuccessfulPayouts, fmt.Sprintf("Already Successfull - %s", title), true, options.AutoMergeRecords)
-	utils.PrintPayouts(preparationResult.ValidPayouts, fmt.Sprintf("Valid - %s", title), true, options.AutoMergeRecords)
+	validPayouts := lo.Map(preparationResult.ValidPayouts, func(r *common.AccumulatedPayoutRecipe, _ int) common.PayoutRecipe {
+		return r.AsRecipe()
+	})
+	utils.PrintPayouts(validPayouts, fmt.Sprintf("Valid - %s", title), true, options.AutoMergeRecords)
 }
 
 func PrintPayoutWalletRemainingBalance(collector common.CollectorEngine, signer common.SignerEngine) {

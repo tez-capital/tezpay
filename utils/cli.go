@@ -73,7 +73,7 @@ func sortPayouts(payouts []common.PayoutRecipe) {
 }
 
 func mergePayouts(payouts []common.PayoutRecipe) []common.PayoutRecipe {
-	merged := make([]common.PayoutRecipe, 0, len(payouts))
+	merged := make([]*common.AccumulatedPayoutRecipe, 0, len(payouts))
 
 	slices.SortFunc(payouts, func(a, b common.PayoutRecipe) int {
 		return int(a.Cycle) - int(b.Cycle)
@@ -84,26 +84,30 @@ func mergePayouts(payouts []common.PayoutRecipe) []common.PayoutRecipe {
 
 	for k, groupedPayouts := range grouped {
 		if k == "" || len(groupedPayouts) <= 1 {
-			merged = append(merged, groupedPayouts...)
+			merged = append(merged, lo.Map(groupedPayouts, func(p common.PayoutRecipe, _ int) *common.AccumulatedPayoutRecipe {
+				return p.AsAccumulated()
+			})...)
 			continue
 		}
 
-		basePayout := groupedPayouts[0]
+		basePayout := groupedPayouts[0].AsAccumulated()
 		groupedPayouts = groupedPayouts[1:]
 		for _, payout := range groupedPayouts {
 			noteBackup := basePayout.Note
-			combined, err := basePayout.Merge(&payout)
+			combined, err := basePayout.Add(&payout)
 			if err != nil {
 				slog.Warn("failed to merge payout records, skipping", "error", err.Error(), "base", basePayout, "other", payout)
 				return payouts // return original if error
 			}
-			basePayout = *combined
+			basePayout = combined
 			basePayout.Note = noteBackup // keep original note
 		}
 
 		merged = append(merged, basePayout) // add the combined
 	}
-	return merged
+	return lo.Map(merged, func(pr *common.AccumulatedPayoutRecipe, _ int) common.PayoutRecipe {
+		return pr.AsRecipe()
+	})
 }
 
 func PrintPayouts(payouts []common.PayoutRecipe, header string, printTotals bool, autoMergeRecords bool) {

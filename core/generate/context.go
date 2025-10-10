@@ -13,7 +13,6 @@ type StageData struct {
 	PayoutCandidates                      []PayoutCandidate
 	PayoutCandidatesWithBondAmount        []PayoutCandidateWithBondAmount
 	PayoutCandidatesWithBondAmountAndFees []PayoutCandidateWithBondAmountAndFee
-	PayoutCandidatesSimulated             []PayoutCandidateSimulated
 	PayoutBlueprint                       *common.CyclePayoutBlueprint
 
 	Payouts           []common.PayoutRecipe
@@ -21,7 +20,7 @@ type StageData struct {
 	DonateBondsAmount tezos.Z
 	BakerFeesAmount   tezos.Z
 	DonateFeesAmount  tezos.Z
-	PaidDelegators    int
+	// PaidDelegators    int
 
 	// protocol, signature etc.
 	BatchMetadataDeserializationGasLimit int64

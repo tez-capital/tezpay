@@ -6,13 +6,13 @@ import (
 )
 
 type BatchResult struct {
-	Payouts   []PayoutRecipe `json:"payouts"`
-	OpHash    tezos.OpHash   `json:"op_hash"`
-	IsSuccess bool           `json:"is_success"`
-	Err       error          `json:"err"`
+	Payouts   []*AccumulatedPayoutRecipe `json:"payouts"`
+	OpHash    tezos.OpHash               `json:"op_hash"`
+	IsSuccess bool                       `json:"is_success"`
+	Err       error                      `json:"err"`
 }
 
-func NewFailedBatchResult(payouts []PayoutRecipe, err error) *BatchResult {
+func NewFailedBatchResult(payouts []*AccumulatedPayoutRecipe, err error) *BatchResult {
 	return &BatchResult{
 		Payouts:   payouts,
 		Err:       err,
@@ -20,13 +20,13 @@ func NewFailedBatchResult(payouts []PayoutRecipe, err error) *BatchResult {
 	}
 }
 
-func NewFailedBatchResultWithOpHash(Payouts []PayoutRecipe, opHash tezos.OpHash, err error) *BatchResult {
+func NewFailedBatchResultWithOpHash(Payouts []*AccumulatedPayoutRecipe, opHash tezos.OpHash, err error) *BatchResult {
 	result := NewFailedBatchResult(Payouts, err)
 	result.OpHash = opHash
 	return result
 }
 
-func NewSuccessBatchResult(payouts []PayoutRecipe, opHash tezos.OpHash) *BatchResult {
+func NewSuccessBatchResult(payouts []*AccumulatedPayoutRecipe, opHash tezos.OpHash) *BatchResult {
 	return &BatchResult{
 		Payouts:   payouts,
 		OpHash:    opHash,

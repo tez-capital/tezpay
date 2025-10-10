@@ -9,8 +9,8 @@ import (
 
 type StageData struct {
 	ValidPayouts                  []common.PayoutRecipe
+	AccumulatedValidPayouts       []*common.AccumulatedPayoutRecipe
 	InvalidPayouts                []common.PayoutRecipe
-	AccumulatedPayouts            []common.PayoutRecipe
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport
 }
 

@@ -98,40 +98,26 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 		}
 	}
 
-	ctx.StageData.BatchResults = batchesResults
 	failureDetected := false
-
-	validPayoutReports := append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)
-
-	validAccumulatedPayouts := make([]common.PayoutReport, 0, len(ctx.AccumulatedPayouts))
-	invalidAccumulatedPayouts := make([]common.PayoutRecipe, 0, len(ctx.AccumulatedPayouts))
-	for _, payout := range ctx.AccumulatedPayouts {
-		wasAccumulated, id, cycle := payout.GetAccumulatedPayoutDetails()
-		if !wasAccumulated {
-			continue
-		}
-		if !lo.ContainsBy(validPayoutReports, func(report common.PayoutReport) bool {
-			return report.Cycle == cycle && report.Id == id
-		}) {
-			validAccumulatedPayouts = append(validAccumulatedPayouts, payout.ToPayoutReport())
-		} else {
-			invalidAccumulatedPayouts = append(invalidAccumulatedPayouts, payout)
-		}
-	}
-
-	validPayoutReports = append(validPayoutReports, validAccumulatedPayouts...)
-	if err := reporter.ReportPayouts(validPayoutReports); err != nil {
-		logger.Warn("failed to report sent payouts", "error", err.Error())
+	successfulPayoutReports := append(ctx.StageData.BatchResults.ToReports(), ctx.StageData.ReportsOfPastSuccesfulPayouts...)
+	if err := reporter.ReportPayouts(successfulPayoutReports); err != nil {
+		logger.Warn("!!! failed to report sent payouts !!!", "error", err.Error())
 		failureDetected = true
 	}
+	ctx.StageData.BatchResults = batchesResults
 
-	invalidPayoutReports := append(ctx.InvalidPayouts, invalidAccumulatedPayouts...)
-	if err := reporter.ReportInvalidPayouts(invalidPayoutReports); err != nil {
+	invalidReports := lo.Map(ctx.InvalidPayouts, func(pr common.PayoutRecipe, _ int) common.PayoutReport {
+		return pr.ToPayoutReport()
+	})
+
+	if err := reporter.ReportInvalidPayouts(invalidReports); err != nil {
 		logger.Warn("failed to report invalid payouts", "error", err.Error())
 		failureDetected = true
 	}
-	for _, blueprint := range ctx.PayoutBlueprints {
-		if err := reporter.ReportCycleSummary(blueprint.Cycle, blueprint.Summary); err != nil {
+
+	summary := utils.GeneratePayoutSummary(ctx.PayoutBlueprints, append(successfulPayoutReports, invalidReports...))
+	for cycle, cycleSummary := range summary.CycleSummaries {
+		if err := reporter.ReportCycleSummary(cycle, cycleSummary); err != nil {
 			logger.Warn("failed to report cycle summary", "error", err.Error())
 			failureDetected = true
 		}
@@ -140,13 +126,9 @@ func executePayouts(ctx *PayoutExecutionContext, options *common.ExecutePayoutsO
 		logger.Info("all payouts reports written successfully")
 	}
 
+	ctx.StageData.Summary = *summary
 	ctx.protectedSection.Stop()
 
-	paidDelegators := lo.Reduce(validPayoutReports, func(agg []tezos.Address, report common.PayoutReport, _ int) []tezos.Address {
-		return append(agg, report.Delegator)
-	}, []tezos.Address{})
-	paidDelegators = lo.Uniq(paidDelegators)
-	ctx.StageData.PaidDelegators = len(paidDelegators)
 	return ctx
 }
 

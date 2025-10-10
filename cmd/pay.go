@@ -100,7 +100,7 @@ var payCmd = &cobra.Command{
 			slog.Info(constants.LOG_MESSAGE_PREPAYOUT_SUMMARY,
 				constants.LOG_FIELD_CYCLES, cycles,
 				constants.LOG_FIELD_REPORTS_OF_PAST_PAYOUTS, preparationResult.ReportsOfPastSuccessfulPayouts,
-				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.AccumulatedPayouts,
+				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.ValidPayouts,
 				constants.LOG_FIELD_VALID_PAYOUTS, preparationResult.ValidPayouts,
 				constants.LOG_FIELD_INVALID_PAYOUTS, preparationResult.InvalidPayouts,
 			)
@@ -112,7 +112,7 @@ var payCmd = &cobra.Command{
 			slog.Info("nothing to pay out", "phase", "result")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
-				notifyPayoutsProcessed(config, generationResults.GetSummary(), notificator)
+				notifyPayoutsProcessed(config, utils.GeneratePayoutSummaryFromPreparationResult(preparationResult), notificator)
 			}
 			os.Exit(0)
 		}
@@ -146,7 +146,7 @@ var payCmd = &cobra.Command{
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent && !isDryRun {
-			notifyPayoutsProcessedThroughAllNotificators(config, generationResults.GetSummary())
+			notifyPayoutsProcessedThroughAllNotificators(config, &executionResult.Summary)
 		}
 		switch {
 		case state.Global.GetWantsOutputJson():

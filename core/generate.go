@@ -30,8 +30,7 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.DistributeBonds,
 		generate.CollectBakerFee,
 		generate.CheckSufficientBalance,
-		generate.CollectTransactionFees,
-		generate.ValidateSimulatedPayouts,
+		generate.ValidatePayouts,
 		generate.FinalizePayouts,
 		generate.CreateBlueprint).Unwrap()
 	if err != nil {

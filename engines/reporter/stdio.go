@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sort"
 
+	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
 )
@@ -24,6 +25,9 @@ func (engine *StdioReporter) GetExistingReports(cycle int64) ([]common.PayoutRep
 }
 
 func (engine *StdioReporter) ReportPayouts(payouts []common.PayoutReport) error {
+	payouts = append(payouts, lo.Flatten(lo.Map(payouts, func(pr common.PayoutReport, _ int) []common.PayoutReport {
+		return lo.Map(pr.Accumulated, func(p *common.PayoutReport, _ int) common.PayoutReport { return *p })
+	}))...)
 	sort.Slice(payouts, func(i, j int) bool {
 		return !payouts[i].Amount.IsLess(payouts[j].Amount)
 	})
@@ -36,8 +40,8 @@ type InvalidPayoutsReport struct {
 	InvalidPayouts []common.PayoutRecipe `json:"invalid_payouts"`
 }
 
-func (engine *StdioReporter) ReportInvalidPayouts(reports []common.PayoutRecipe) error {
-	slog.Info("REPORT", "invalid_payouts", reports)
+func (engine *StdioReporter) ReportInvalidPayouts(payouts []common.PayoutReport) error {
+	slog.Info("REPORT", "invalid_payouts", payouts)
 	return nil
 }
 

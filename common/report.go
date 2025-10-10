@@ -21,7 +21,7 @@ type PayoutReport struct {
 	FADecimals       int                          `json:"fa_decimals,omitempty" csv:"fa_decimals"`
 	Delegator        tezos.Address                `json:"delegator,omitempty" csv:"delegator"`
 	DelegatedBalance tezos.Z                      `json:"delegator_balance,omitempty" csv:"delegator_balance"`
-	StakedBalance    tezos.Z                      `json:"-" csv:"-"` // enable when relevant
+	StakedBalance    tezos.Z                      `json:"staked_balance,omitempty" csv:"staked_balance"`
 	Recipient        tezos.Address                `json:"recipient,omitempty" csv:"recipient"`
 	Amount           tezos.Z                      `json:"amount,omitempty" csv:"amount"`
 	FeeRate          float64                      `json:"fee_rate,omitempty" csv:"fee_rate"`
@@ -30,6 +30,8 @@ type PayoutReport struct {
 	OpHash           tezos.OpHash                 `json:"op_hash,omitempty" csv:"op_hash"`
 	IsSuccess        bool                         `json:"success" csv:"success"`
 	Note             string                       `json:"note,omitempty" csv:"note"`
+
+	Accumulated []*PayoutReport `json:"-" csv:"-"` // just for internal linking of accumulated payouts
 }
 
 func (pr *PayoutReport) GetTransactionFee() int64 {
@@ -51,6 +53,25 @@ func (pr *PayoutReport) ToTableRowData() []string {
 		pr.OpHash.String(),
 		pr.Note,
 	}
+}
+
+func (pr *PayoutReport) Disperse() []PayoutReport {
+	if len(pr.Accumulated) == 0 {
+		return []PayoutReport{*pr}
+	}
+
+	dispersed := make([]PayoutReport, 0, len(pr.Accumulated)+1)
+	dispersed = append(dispersed, *pr)
+
+	for _, acc := range pr.Accumulated {
+		if acc.Id == pr.Id { // avoid duplicates if first accumulated is the same as parent
+			continue
+		}
+		acc.OpHash = pr.OpHash
+		acc.IsSuccess = pr.IsSuccess
+		dispersed = append(dispersed, *acc)
+	}
+	return dispersed
 }
 
 func (pr *PayoutReport) GetTableHeaders() []string {

@@ -8,20 +8,14 @@ import (
 )
 
 type PayoutCandidate struct {
-	Source                       tezos.Address              `json:"source,omitempty"`
-	Recipient                    tezos.Address              `json:"recipient,omitempty"`
-	FeeRate                      float64                    `json:"fee_rate,omitempty"`
-	StakedBalance                tezos.Z                    `json:"staked_balance,omitempty"`
-	DelegatedBalance             tezos.Z                    `json:"delegated_balance,omitempty"`
-	IsInvalid                    bool                       `json:"is_invalid,omitempty"`
-	IsEmptied                    bool                       `json:"is_emptied,omitempty"`
-	IsBakerPayingTxFee           bool                       `json:"is_baker_paying_tx_fee,omitempty"`
-	IsBakerPayingAllocationTxFee bool                       `json:"is_baker_paying_allocation_tx_fee,omitempty"`
-	InvalidBecause               enums.EPayoutInvalidReason `json:"invalid_because,omitempty"`
-	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
-	TxFeeCollected bool `json:"tx_fee_collected,omitempty"`
-	// mainly for accumulation to be able to check if fee was collected and subtract it from the amount
-	AllocationFeeCollected bool `json:"allocation_fee_collected,omitempty"`
+	Source           tezos.Address              `json:"source,omitempty"`
+	Recipient        tezos.Address              `json:"recipient,omitempty"`
+	FeeRate          float64                    `json:"fee_rate,omitempty"`
+	StakedBalance    tezos.Z                    `json:"staked_balance,omitempty"`
+	DelegatedBalance tezos.Z                    `json:"delegated_balance,omitempty"`
+	IsInvalid        bool                       `json:"is_invalid,omitempty"`
+	IsEmptied        bool                       `json:"is_emptied,omitempty"`
+	InvalidBecause   enums.EPayoutInvalidReason `json:"invalid_because,omitempty"`
 }
 
 func (candidate *PayoutCandidate) GetDelegatedBalance() tezos.Z {
@@ -82,31 +76,20 @@ type PayoutCandidateWithBondAmountAndFee struct {
 }
 
 func (candidate *PayoutCandidateWithBondAmountAndFee) ToValidationContext(ctx *PayoutGenerationContext) PresimPayoutCandidateValidationContext {
-	return PresimPayoutCandidateValidationContext{
-		Configuration: ctx.configuration,
-		Payout:        candidate,
-	}
-}
-
-type PayoutCandidateSimulated struct {
-	PayoutCandidateWithBondAmountAndFee
-	SimulationResult *common.OpLimits
-}
-
-func (candidate *PayoutCandidateSimulated) ToValidationContext(config *configuration.RuntimeConfiguration) PayoutSimulatedValidationContext {
 	pkh, _ := candidate.Recipient.MarshalText()
 	var overrides *configuration.RuntimeDelegatorOverride
-	if delegatorOverride, found := config.Delegators.Overrides[string(pkh)]; found {
+	if delegatorOverride, found := ctx.configuration.Delegators.Overrides[string(pkh)]; found {
 		overrides = &delegatorOverride
 	}
-	return PayoutSimulatedValidationContext{
-		Configuration: config,
+
+	return PresimPayoutCandidateValidationContext{
+		Configuration: ctx.configuration,
 		Overrides:     overrides,
 		Payout:        candidate,
 	}
 }
 
-func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycle int64, kind enums.EPayoutKind) common.PayoutRecipe {
+func (payout *PayoutCandidateWithBondAmountAndFee) ToPayoutRecipe(baker tezos.Address, cycle int64, kind enums.EPayoutKind) common.PayoutRecipe {
 	note := ""
 	if payout.IsInvalid {
 		kind = enums.PAYOUT_KIND_INVALID
@@ -114,26 +97,24 @@ func (payout *PayoutCandidateSimulated) ToPayoutRecipe(baker tezos.Address, cycl
 	}
 
 	return common.PayoutRecipe{
-		Baker:                  baker,
-		Cycle:                  cycle,
-		Kind:                   kind,
-		TxKind:                 payout.TxKind,
-		Delegator:              payout.Source,
-		Recipient:              payout.Recipient,
-		DelegatedBalance:       payout.DelegatedBalance,
-		StakedBalance:          payout.StakedBalance,
-		FATokenId:              payout.FATokenId,
-		FAContract:             payout.FAContract,
-		FAAlias:                payout.FAAlias,
-		FADecimals:             payout.FADecimals,
-		Amount:                 payout.BondsAmount,
-		FeeRate:                payout.FeeRate,
-		Fee:                    payout.Fee,
-		OpLimits:               payout.SimulationResult,
-		TxFeeCollected:         payout.TxFeeCollected,
-		AllocationFeeCollected: payout.AllocationFeeCollected,
-		Note:                   note,
-		IsValid:                !payout.IsInvalid,
+		Baker:            baker,
+		Cycle:            cycle,
+		Kind:             kind,
+		TxKind:           payout.TxKind,
+		Delegator:        payout.Source,
+		Recipient:        payout.Recipient,
+		DelegatedBalance: payout.DelegatedBalance,
+		StakedBalance:    payout.StakedBalance,
+		FATokenId:        payout.FATokenId,
+		FAContract:       payout.FAContract,
+		FAAlias:          payout.FAAlias,
+		FADecimals:       payout.FADecimals,
+		Amount:           payout.BondsAmount,
+		FeeRate:          payout.FeeRate,
+		Fee:              payout.Fee,
+		OpLimits:         nil,
+		Note:             note,
+		IsValid:          !payout.IsInvalid,
 	}
 }
 
@@ -142,8 +123,6 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 	delegatorOverrides := configuration.Delegators.Overrides
 	payoutFeeRate := configuration.PayoutConfiguration.Fee
 	payoutRecipient := delegator.Address
-	isBakerPayingTxFee := configuration.PayoutConfiguration.IsPayingTxFee
-	IsBakerPayingAllocationTxFee := configuration.PayoutConfiguration.IsPayingAllocationTxFee
 
 	if delegatorOverride, ok := delegatorOverrides[string(pkh)]; ok {
 		if !delegatorOverride.Recipient.Equal(tezos.InvalidAddress) {
@@ -152,25 +131,17 @@ func DelegatorToPayoutCandidate(delegator common.Delegator, configuration *confi
 		if delegatorOverride.Fee != nil {
 			payoutFeeRate = *delegatorOverride.Fee
 		}
-		if delegatorOverride.IsBakerPayingTxFee != nil {
-			isBakerPayingTxFee = *delegatorOverride.IsBakerPayingTxFee
-		}
-		if delegatorOverride.IsBakerPayingAllocationTxFee != nil {
-			IsBakerPayingAllocationTxFee = *delegatorOverride.IsBakerPayingAllocationTxFee
-		}
 		if delegatorOverride.MaximumBalance != nil && delegatorOverride.MaximumBalance.IsLess(delegator.DelegatedBalance) {
 			delegator.DelegatedBalance = *delegatorOverride.MaximumBalance
 		}
 	}
 
 	return PayoutCandidate{
-		Source:                       delegator.Address,
-		Recipient:                    payoutRecipient,
-		FeeRate:                      payoutFeeRate,
-		DelegatedBalance:             delegator.DelegatedBalance,
-		StakedBalance:                delegator.StakedBalance,
-		IsEmptied:                    delegator.Emptied,
-		IsBakerPayingTxFee:           isBakerPayingTxFee,
-		IsBakerPayingAllocationTxFee: IsBakerPayingAllocationTxFee,
+		Source:           delegator.Address,
+		Recipient:        payoutRecipient,
+		FeeRate:          payoutFeeRate,
+		DelegatedBalance: delegator.DelegatedBalance,
+		StakedBalance:    delegator.StakedBalance,
+		IsEmptied:        delegator.Emptied,
 	}
 }

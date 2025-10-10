@@ -13,7 +13,7 @@ type StageData struct {
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport
 	Batches                       []common.RecipeBatch
 	BatchResults                  common.BatchResults
-	PaidDelegators                int
+	Summary                       common.PayoutSummary
 }
 
 type PayoutExecutionContext struct {
@@ -23,10 +23,9 @@ type PayoutExecutionContext struct {
 	protectedSection *utils.ProtectedSection
 	StageData        *StageData
 
-	ValidPayouts       []common.PayoutRecipe
-	InvalidPayouts     []common.PayoutRecipe
-	AccumulatedPayouts []common.PayoutRecipe
-	PayoutBlueprints   []*common.CyclePayoutBlueprint
+	ValidPayouts     []*common.AccumulatedPayoutRecipe
+	InvalidPayouts   []common.PayoutRecipe
+	PayoutBlueprints []*common.CyclePayoutBlueprint
 
 	logger *slog.Logger
 }
@@ -49,10 +48,9 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 			ReportsOfPastSuccesfulPayouts: preparationResult.ReportsOfPastSuccessfulPayouts,
 		},
 
-		ValidPayouts:       preparationResult.ValidPayouts,
-		InvalidPayouts:     preparationResult.InvalidPayouts,
-		AccumulatedPayouts: preparationResult.AccumulatedPayouts,
-		PayoutBlueprints:   preparationResult.Blueprints,
+		ValidPayouts:     preparationResult.ValidPayouts,
+		InvalidPayouts:   preparationResult.InvalidPayouts,
+		PayoutBlueprints: preparationResult.Blueprints,
 
 		logger: slog.Default().With("stage", "execute"),
 	}, nil

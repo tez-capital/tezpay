@@ -79,7 +79,7 @@ type ReporterEngineOptions struct {
 type ReporterEngine interface {
 	GetExistingReports(cycle int64) ([]PayoutReport, error)
 	ReportPayouts(reports []PayoutReport) error
-	ReportInvalidPayouts(reports []PayoutRecipe) error
+	ReportInvalidPayouts(reports []PayoutReport) error
 	ReportCycleSummary(cycle int64, summary CyclePayoutSummary) error
 	GetExistingCycleSummary(cycle int64) (*CyclePayoutSummary, error)
 }
