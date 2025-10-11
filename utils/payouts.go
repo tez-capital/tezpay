@@ -207,12 +207,12 @@ func GeneratePayoutSummary(blueprints []*common.CyclePayoutBlueprint, reports []
 			EarnedFees:               blueprint.EarnedFees,
 			EarnedRewards:            blueprint.EarnedRewards,
 			BondIncome:               blueprint.BondIncome,
-			FeeIncome:                tezos.Zero,           // will be calculated from reports
-			IncomeTotal:              blueprint.BondIncome, // start with bond income, fees will be added from reports
+			FeeIncome:                blueprint.FeeIncome,
+			IncomeTotal:              blueprint.IncomeTotal,
 			DonatedBonds:             blueprint.DonatedBonds,
-			// DonatedFees:              blueprint.DonatedFees,
-			// DonatedTotal:             blueprint.DonatedTotal,
-			Timestamp: time.Now(),
+			DonatedFees:              blueprint.DonatedFees,
+			DonatedTotal:             blueprint.DonatedTotal,
+			Timestamp:                time.Now(),
 		}
 		cycleDelegators := make(map[string]struct{}, len(cycleReports))
 		cyclePaidDelegators := make(map[string]struct{}, len(cycleReports))
