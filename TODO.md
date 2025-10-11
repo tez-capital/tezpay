@@ -8,6 +8,7 @@ TODO:
 - [ ] test pay date range
 
 Notes:
-- donated and forwarded fees are now only from the executed payouts
-    * this is to avoid inconsistancy in case of configuration changes
-- fees from invalid payouts - not matching rules, failed execution etc. are untouched and sitting on the payout address
+- invalid payouts are no longer included in the fee
+- rather there are meant to be exposed as dangling in produced payout report
+    * dangling is sum of amounts of invalid payouts
+- this is because invalid in the age of aggregation may not be permanent. 

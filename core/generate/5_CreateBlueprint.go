@@ -1,6 +1,8 @@
 package generate
 
 import (
+	"time"
+
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/extension"
@@ -29,7 +31,12 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		EarnedFees:               stageData.CycleData.BlockDelegatedFees,
 		EarnedRewards:            stageData.CycleData.GetTotalDelegatedRewards(ctx.configuration.PayoutConfiguration.PayoutMode),
 		BondIncome:               stageData.BakerBondsAmount,
+		FeeIncome:                stageData.BakerFeesAmount,
+		IncomeTotal:              stageData.BakerBondsAmount.Add(stageData.BakerFeesAmount),
 		DonatedBonds:             stageData.DonateBondsAmount,
+		DonatedFees:              stageData.DonateFeesAmount,
+		DonatedTotal:             stageData.DonateFeesAmount.Add(stageData.DonateBondsAmount),
+		Timestamp:                time.Now(),
 	}
 
 	err = ExecuteAfterPayoutsBlueprintGenerated(blueprint)

@@ -397,14 +397,19 @@ type CyclePayoutBlueprint struct {
 	Cycle   int64          `json:"cycles,omitempty"`
 	Payouts []PayoutRecipe `json:"payouts,omitempty"`
 
-	OwnStakedBalance         tezos.Z `json:"own_staked_balance"`
-	OwnDelegatedBalance      tezos.Z `json:"own_delegated_balance"`
-	ExternalStakedBalance    tezos.Z `json:"external_staked_balance"`
-	ExternalDelegatedBalance tezos.Z `json:"external_delegated_balance"`
-	EarnedFees               tezos.Z `json:"cycle_fees"`
-	EarnedRewards            tezos.Z `json:"cycle_rewards"`
-	BondIncome               tezos.Z `json:"bond_income"`
-	DonatedBonds             tezos.Z `json:"donated_bonds"`
+	OwnStakedBalance         tezos.Z   `json:"own_staked_balance"`
+	OwnDelegatedBalance      tezos.Z   `json:"own_delegated_balance"`
+	ExternalStakedBalance    tezos.Z   `json:"external_staked_balance"`
+	ExternalDelegatedBalance tezos.Z   `json:"external_delegated_balance"`
+	EarnedFees               tezos.Z   `json:"cycle_fees"`
+	EarnedRewards            tezos.Z   `json:"cycle_rewards"`
+	BondIncome               tezos.Z   `json:"bond_income"`
+	FeeIncome                tezos.Z   `json:"fee_income"`
+	IncomeTotal              tezos.Z   `json:"total_income"`
+	DonatedBonds             tezos.Z   `json:"donated_bonds"`
+	DonatedFees              tezos.Z   `json:"donated_fees"`
+	DonatedTotal             tezos.Z   `json:"donated_total"`
+	Timestamp                time.Time `json:"timestamp"`
 }
 
 type GeneratePayoutsEngineContext struct {

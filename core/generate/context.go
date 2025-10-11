@@ -17,8 +17,9 @@ type StageData struct {
 
 	Payouts           []common.PayoutRecipe
 	BakerBondsAmount  tezos.Z
+	BakerFeesAmount   tezos.Z
 	DonateBondsAmount tezos.Z
-	// PaidDelegators    int
+	DonateFeesAmount  tezos.Z
 }
 
 type PayoutGenerationContext struct {

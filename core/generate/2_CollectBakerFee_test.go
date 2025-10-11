@@ -80,7 +80,13 @@ func TestCollectBakerFees(t *testing.T) {
 	adjustFee(ctx, feeRate)
 	result, err = CollectBakerFee(ctx, &common.GeneratePayoutsOptions{})
 	assert.Nil(err)
-
+	feesAmount := lo.Reduce(payoutCandidatesWithBondAmount, func(agg int64, v PayoutCandidateWithBondAmount, _ int) int64 {
+		if v.TxKind != enums.PAYOUT_TX_KIND_TEZ {
+			return agg
+		}
+		return agg + utils.GetZPortion(v.BondsAmount, feeRate).Int64()
+	}, int64(0))
+	assert.Equal(feesAmount, result.StageData.BakerFeesAmount.Int64())
 	for i, v := range result.StageData.PayoutCandidatesWithBondAmountAndFees {
 		if payoutCandidatesWithBondAmount[i].TxKind != enums.PAYOUT_TX_KIND_TEZ {
 			continue
@@ -94,7 +100,13 @@ func TestCollectBakerFees(t *testing.T) {
 	ctx.configuration.IncomeRecipients.DonateFees = donationRate
 	result, err = CollectBakerFee(ctx, &common.GeneratePayoutsOptions{})
 	assert.Nil(err)
-
+	donateAmount := lo.Reduce(payoutCandidatesWithBondAmount, func(agg int64, v PayoutCandidateWithBondAmount, _ int) int64 {
+		if v.TxKind != enums.PAYOUT_TX_KIND_TEZ {
+			return agg
+		}
+		return agg + utils.GetZPortion(utils.GetZPortion(v.BondsAmount, feeRate), donationRate).Int64()
+	}, int64(0))
+	assert.Equal(donateAmount, result.StageData.DonateFeesAmount.Int64())
 	for i, v := range result.StageData.PayoutCandidatesWithBondAmountAndFees {
 		if payoutCandidatesWithBondAmount[i].TxKind != enums.PAYOUT_TX_KIND_TEZ {
 			continue

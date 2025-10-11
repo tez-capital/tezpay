@@ -48,10 +48,7 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutPrepareCon
 
 	requiredbalance := lo.Reduce(data.Payouts, func(agg tezos.Z, recipe *common.AccumulatedPayoutRecipe, _ int) tezos.Z {
 		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ {
-			// we need to add all - amount, fee and tx costs
-			// fee for cases when baker forwards fees to different address
-			// baker bonds forwarding and donating is already included in recipes as separate recipes
-			return agg.Add(recipe.Amount).Add(recipe.Fee).Add64(recipe.GetTransactionFee())
+			return agg.Add(recipe.Amount).Add64(recipe.GetTransactionFee())
 		}
 		return agg
 	}, tezos.Zero)

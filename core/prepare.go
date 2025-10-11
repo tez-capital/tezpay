@@ -23,7 +23,7 @@ func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configura
 		prepare.CheckSufficientBalance,
 		prepare.CollectTransactionFees,
 		prepare.ValidatePreparedPayouts,
-		prepare.FinalizePayouts,
+		// prepare.FinalizePayouts,
 	).Unwrap()
 	if err != nil {
 		return nil, err
