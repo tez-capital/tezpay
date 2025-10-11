@@ -2,6 +2,7 @@ TODO:
 - [x] fix summary
 - [x] fix notification summary
 - [ ] revisit report invalid payouts - there is probably better way to enforce we do not get accumulated reports than panic
+- [ ] dangling balance in the summaries
 
 - [ ] test generate
 - [ ] test continual
