@@ -104,6 +104,12 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutReport) er
 	if len(invalid) == 0 {
 		return nil
 	}
+	for _, inv := range invalid {
+		if len(inv.Accumulated) > 0 {
+			panic("invalid payout report contains accumulated reports")
+		}
+	}
+
 	if engine.options.IsReadOnly {
 		return errors.New("reporter is in read-only mode")
 	}

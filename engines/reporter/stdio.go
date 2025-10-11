@@ -41,6 +41,11 @@ type InvalidPayoutsReport struct {
 }
 
 func (engine *StdioReporter) ReportInvalidPayouts(payouts []common.PayoutReport) error {
+	for _, inv := range payouts {
+		if len(inv.Accumulated) > 0 {
+			panic("invalid payout report contains accumulated reports")
+		}
+	}
 	slog.Info("REPORT", "invalid_payouts", payouts)
 	return nil
 }
