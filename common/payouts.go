@@ -405,10 +405,6 @@ type CyclePayoutBlueprint struct {
 	EarnedRewards            tezos.Z `json:"cycle_rewards"`
 	BondIncome               tezos.Z `json:"bond_income"`
 	DonatedBonds             tezos.Z `json:"donated_bonds"`
-	DonatedFees              tezos.Z `json:"donated_fees"`
-	DonatedTotal             tezos.Z `json:"donated_total"`
-	// Summary                              CyclePayoutSummary `json:"summary,omitempty"`
-	BatchMetadataDeserializationGasLimit int64 `json:"batch_metadata_deserialization_gas_limit,omitempty"`
 }
 
 type GeneratePayoutsEngineContext struct {
@@ -450,9 +446,7 @@ func (engines *GeneratePayoutsEngineContext) Validate() error {
 }
 
 type GeneratePayoutsOptions struct {
-	Cycle                    int64 `json:"cycle,omitempty"`
-	SkipBalanceCheck         bool  `json:"skip_balance_check,omitempty"`
-	WaitForSufficientBalance bool  `json:"wait_for_sufficient_balance,omitempty"`
+	Cycle int64 `json:"cycle,omitempty"`
 }
 
 type CyclePayoutBlueprints []*CyclePayoutBlueprint
@@ -526,14 +520,17 @@ func (engines *PreparePayoutsEngineContext) Validate() error {
 }
 
 type PreparePayoutsOptions struct {
-	Accumulate bool `json:"accumulate,omitempty"`
+	Accumulate               bool `json:"accumulate,omitempty"`
+	SkipBalanceCheck         bool `json:"skip_balance_check,omitempty"`
+	WaitForSufficientBalance bool `json:"wait_for_sufficient_balance,omitempty"`
 }
 
 type PreparePayoutsResult struct {
-	Blueprints                     []*CyclePayoutBlueprint    `json:"blueprint,omitempty"`
-	ValidPayouts                   []*AccumulatedPayoutRecipe `json:"payouts,omitempty"`
-	InvalidPayouts                 []PayoutRecipe             `json:"invalid_payouts,omitempty"`
-	ReportsOfPastSuccessfulPayouts []PayoutReport             `json:"reports_of_past_successful_payouts,omitempty"`
+	Blueprints                           []*CyclePayoutBlueprint    `json:"blueprint,omitempty"`
+	ValidPayouts                         []*AccumulatedPayoutRecipe `json:"payouts,omitempty"`
+	InvalidPayouts                       []PayoutRecipe             `json:"invalid_payouts,omitempty"`
+	ReportsOfPastSuccessfulPayouts       []PayoutReport             `json:"reports_of_past_successful_payouts,omitempty"`
+	BatchMetadataDeserializationGasLimit int64                      `json:"batch_metadata_deserialization_gas_limit,omitempty"`
 }
 
 func (result *PreparePayoutsResult) GetCycles() []int64 {

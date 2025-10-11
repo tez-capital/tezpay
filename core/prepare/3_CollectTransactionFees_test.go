@@ -56,7 +56,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	assert := assert.New(t)
 	ctx := &PayoutPrepareContext{
 		PreparePayoutsEngineContext: *common.NewPreparePayoutsEngineContext(collector, signer, nil, func(msg string) {}),
-		StageData:                   &StageData{AccumulatedValidPayouts: getRecipes()},
+		StageData:                   &StageData{AccumulatedPayouts: getRecipes()},
 		configuration:               &config,
 
 		logger: slog.Default(),
@@ -70,14 +70,14 @@ func TestCollectTransactionFees(t *testing.T) {
 	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.AccumulatedValidPayouts {
+	for i, v := range result.StageData.AccumulatedPayouts {
 		fmt.Println(collector.GetExpectedTxCosts())
 		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check allocation burn")
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
@@ -86,13 +86,13 @@ func TestCollectTransactionFees(t *testing.T) {
 	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.AccumulatedValidPayouts {
+	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check storage burn")
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
@@ -101,13 +101,13 @@ func TestCollectTransactionFees(t *testing.T) {
 	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.AccumulatedValidPayouts {
+	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check paying tx fee")
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	ctx.configuration.PayoutConfiguration.IsPayingTxFee = true
 	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -116,12 +116,12 @@ func TestCollectTransactionFees(t *testing.T) {
 		UsedMilliGas:   1000000,
 	})
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
-	for i, v := range result.StageData.AccumulatedValidPayouts {
+	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.Equal(v.Amount.Int64(), payoutRecipes[i].Amount.Int64()-1000 /*allocation fee*/)
 	}
 
 	t.Log("check not paying tx & allocation fee")
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	ctx.configuration.PayoutConfiguration.IsPayingTxFee = true
 	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = true
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -130,12 +130,12 @@ func TestCollectTransactionFees(t *testing.T) {
 		UsedMilliGas:   1000000,
 	})
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
-	for i, v := range result.StageData.AccumulatedValidPayouts {
+	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.Equal(v.Amount.Int64(), payoutRecipes[i].Amount.Int64())
 	}
 
 	t.Log("check per op estimate")
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	ctx.configuration.PayoutConfiguration.IsPayingTxFee = false
 	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -147,13 +147,13 @@ func TestCollectTransactionFees(t *testing.T) {
 	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.AccumulatedValidPayouts {
+	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check batching")
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	ctx.configuration.PayoutConfiguration.IsPayingTxFee = false
 	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -167,12 +167,12 @@ func TestCollectTransactionFees(t *testing.T) {
 		ops = append(ops, getRecipes()...)
 	}
 
-	ctx.StageData.AccumulatedValidPayouts = ops
+	ctx.StageData.AccumulatedPayouts = ops
 	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 	assert.Nil(err)
-	assert.Equal(len(ops), len(result.StageData.AccumulatedValidPayouts))
+	assert.Equal(len(ops), len(result.StageData.AccumulatedPayouts))
 
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 
 	t.Log("fail estimate")
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -182,9 +182,9 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:     true,
 		FailWithError:  errors.New("failed estimate"),
 	})
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
-	for _, v := range result.StageData.AccumulatedValidPayouts {
+	for _, v := range result.StageData.AccumulatedPayouts {
 		assert.Equal(v.IsValid, false)
 		assert.Equal(v.Note, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 	}
@@ -197,9 +197,9 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:           true,
 		FailWithReceiptError: errors.New("failed receipt"),
 	})
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
-	for _, v := range result.StageData.AccumulatedValidPayouts {
+	for _, v := range result.StageData.AccumulatedPayouts {
 		assert.Equal(v.IsValid, false)
 		assert.Equal(v.Note, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 	}
@@ -212,7 +212,7 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:       false,
 		ReturnOnlyNCosts: 1,
 	})
-	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.StageData.AccumulatedPayouts = getRecipes()
 	assert.Panics(func() {
 		_, err := CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 		t.Log(err)

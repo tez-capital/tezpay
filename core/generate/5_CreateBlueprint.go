@@ -30,10 +30,6 @@ func CreateBlueprint(ctx *PayoutGenerationContext, options *common.GeneratePayou
 		EarnedRewards:            stageData.CycleData.GetTotalDelegatedRewards(ctx.configuration.PayoutConfiguration.PayoutMode),
 		BondIncome:               stageData.BakerBondsAmount,
 		DonatedBonds:             stageData.DonateBondsAmount,
-		DonatedFees:              stageData.DonateFeesAmount,
-		DonatedTotal:             stageData.DonateFeesAmount.Add(stageData.DonateBondsAmount),
-
-		BatchMetadataDeserializationGasLimit: stageData.BatchMetadataDeserializationGasLimit,
 	}
 
 	err = ExecuteAfterPayoutsBlueprintGenerated(blueprint)

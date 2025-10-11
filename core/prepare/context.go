@@ -5,13 +5,16 @@ import (
 
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 type StageData struct {
-	ValidPayouts                  []common.PayoutRecipe
-	AccumulatedValidPayouts       []*common.AccumulatedPayoutRecipe
-	InvalidPayouts                []common.PayoutRecipe
+	Payouts                       []common.PayoutRecipe
+	AccumulatedPayouts            []*common.AccumulatedPayoutRecipe
+	InvalidRecipes                []common.PayoutRecipe
 	ReportsOfPastSuccesfulPayouts []common.PayoutReport
+	// protocol, signature etc.
+	BatchMetadataDeserializationGasLimit int64
 }
 
 type PayoutPrepareContext struct {
@@ -21,6 +24,8 @@ type PayoutPrepareContext struct {
 	StageData *StageData
 
 	PayoutBlueprints []*common.CyclePayoutBlueprint
+
+	PayoutKey tezos.Key
 
 	logger *slog.Logger
 }
@@ -41,6 +46,7 @@ func NewPayoutPreparationContext(blueprints []*common.CyclePayoutBlueprint, conf
 		StageData: &StageData{},
 
 		PayoutBlueprints: blueprints,
+		PayoutKey:        engineContext.GetSigner().GetKey(),
 
 		logger: slog.Default().With("stage", "prepare"),
 	}, nil

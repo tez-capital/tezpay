@@ -60,13 +60,9 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 	}
 	toBatch = append(toBatch, classicTezRecipes)
 
-	batchMetadataDeserializationGasLimit := lo.Reduce(ctx.PayoutBlueprints, func(agg int64, blueprint *common.CyclePayoutBlueprint, _ int) int64 {
-		return max(agg, blueprint.BatchMetadataDeserializationGasLimit)
-	}, 0)
-
 	stageBatches := make([]common.RecipeBatch, 0)
 	for _, batch := range toBatch {
-		batches, err := splitIntoBatches(batch, ctx.StageData.Limits, batchMetadataDeserializationGasLimit)
+		batches, err := splitIntoBatches(batch, ctx.StageData.Limits, ctx.BatchMetadataDeserializationGasLimit)
 		if err != nil {
 			return nil, err
 		}

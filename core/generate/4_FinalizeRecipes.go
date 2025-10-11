@@ -62,7 +62,7 @@ func getDistributionPayouts(logger *slog.Logger, kind enums.EPayoutKind, distrib
 }
 
 // injects bonds, fee and donation payments and finalizes Payouts
-func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
+func FinalizeRecipes(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	configuration := ctx.GetConfiguration()
 	logger := ctx.logger.With("phase", "finalize_payouts")
 	logger.Info("finalizing payouts")
@@ -77,22 +77,16 @@ func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	if err != nil {
 		return ctx, fmt.Errorf("invalid bonds distribution - %s", err.Error())
 	}
-
-	// fees
-	feesPayouts, err := getDistributionPayouts(logger, enums.PAYOUT_KIND_FEE_INCOME, configuration.IncomeRecipients.Fees, ctx.StageData.BakerFeesAmount, ctx, options)
-	if err != nil {
-		return ctx, fmt.Errorf("invalid fees distribution - %s", err.Error())
-	}
-
-	// donations
+	// bonds donations
 	donationDistributionDefinition := configuration.IncomeRecipients.Donations
-	if len(donationDistributionDefinition) == 0 && configuration.IncomeRecipients.DonateBonds+configuration.IncomeRecipients.DonateFees > 0 { // inject default destination
+
+	if len(donationDistributionDefinition) == 0 && configuration.IncomeRecipients.DonateBonds > 0 { // inject default destination
 		logger.Debug("no donation destination found, donating to tez.capital")
 		donationDistributionDefinition = map[string]float64{
 			constants.DEFAULT_DONATION_ADDRESS: 100,
 		}
 	}
-	donationPayouts, err := getDistributionPayouts(logger, enums.PAYOUT_KIND_DONATION, donationDistributionDefinition, ctx.StageData.DonateBondsAmount.Add(ctx.StageData.DonateFeesAmount), ctx, options)
+	donationPayouts, err := getDistributionPayouts(logger, enums.PAYOUT_KIND_DONATION, donationDistributionDefinition, ctx.StageData.DonateBondsAmount, ctx, options)
 	if err != nil {
 		return ctx, fmt.Errorf("invalid donation distribution - %s", err.Error())
 	}
@@ -100,7 +94,6 @@ func FinalizePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	payouts := make([]common.PayoutRecipe, 0)
 	payouts = append(payouts, delegatorPayouts...)
 	payouts = append(payouts, bondsPayouts...)
-	payouts = append(payouts, feesPayouts...)
 	payouts = append(payouts, donationPayouts...)
 
 	ctx.StageData.Payouts = payouts

@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	TOTAL_PAYOUTS = "Rewards"
-	TOTAL         = "Total"
+	TOTAL_PAYOUTS   = "Rewards"
+	INVALID_PAYOUTS = "Invalid"
+	TOTAL           = "Total"
 )
 
 func getColumnsByIndexes[T any](row []T, indexes []int) []T {
@@ -60,6 +61,11 @@ func sortPayouts(payouts []common.PayoutRecipe) {
 			} else if b.Amount.IsLess(a.Amount) {
 				return -1
 			} else {
+				if a.DelegatedBalance.IsLess(b.DelegatedBalance) {
+					return 1
+				} else if b.DelegatedBalance.IsLess(a.DelegatedBalance) {
+					return -1
+				}
 				return 0
 			}
 		}

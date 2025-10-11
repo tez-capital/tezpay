@@ -80,9 +80,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	slog.Info("===================== PROCESSING START =====================")
 	slog.Info("processing cycle", "cycle", cycleToProcess)
 
-	generationResult, err := generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{
-		WaitForSufficientBalance: true,
-	})
+	generationResult, err := generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{})
 	if err != nil {
 		if errors.Is(err, constants.ErrNoCycleDataAvailable) {
 			slog.Info("no data available for cycle, skipping", "cycle", cycleToProcess)
@@ -94,7 +92,9 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 
 	slog.Info("checking reports of past payouts")
 	preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
-		return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{})
+		return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
+			WaitForSufficientBalance: true,
+		})
 	}, EXIT_OPERTION_FAILED)
 
 	if len(preparationResult.ValidPayouts) == 0 {

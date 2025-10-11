@@ -11,24 +11,21 @@ import (
 )
 
 func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePayoutsOptions) (result *PayoutPrepareContext, err error) {
-	recipesAfterEstimate := ctx.StageData.AccumulatedValidPayouts
 	logger := ctx.logger.With("phase", "collect_transaction_fees")
 	logger.Info("collecting transaction fees")
 
-	payoutKey := ctx.GetSigner().GetKey()
 	estimateContext := &estimate.EstimationContext{
-		PayoutKey:     payoutKey,
-		Collector:     ctx.GetCollector(),
-		Configuration: ctx.configuration,
-		BatchMetadataDeserializationGasLimit: lo.Max(lo.Map(ctx.PayoutBlueprints, func(blueprint *common.CyclePayoutBlueprint, _ int) int64 {
-			return blueprint.BatchMetadataDeserializationGasLimit
-		})),
+		PayoutKey:                            ctx.PayoutKey,
+		Collector:                            ctx.GetCollector(),
+		Configuration:                        ctx.configuration,
+		BatchMetadataDeserializationGasLimit: ctx.StageData.BatchMetadataDeserializationGasLimit,
 	}
 
+	validAccumulatedRecipes := utils.OnlyValidAccumulatedPayouts(ctx.StageData.AccumulatedPayouts)
 	// get new estimates
-	recipesAfterEstimate = lo.Map(estimate.EstimateTransactionFees(recipesAfterEstimate, estimateContext), func(result estimate.EstimateResult[*common.AccumulatedPayoutRecipe], _ int) *common.AccumulatedPayoutRecipe {
+	recipesWithEstimate := lo.Map(estimate.EstimateTransactionFees(validAccumulatedRecipes, estimateContext), func(result estimate.EstimateResult[*common.AccumulatedPayoutRecipe], _ int) *common.AccumulatedPayoutRecipe {
 		if result.Error != nil {
-			slog.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", payoutKey.Address(), "amount", result.Transaction.Amount.Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
+			slog.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", ctx.PayoutKey.Address(), "amount", result.Transaction.Amount.Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
 			result.Transaction.IsValid = false
 			result.Transaction.Note = string(enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 			return result.Transaction
@@ -36,7 +33,9 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 
 		recipe := result.Transaction
 
-		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ {
+		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ &&
+			recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD { // only delegator rewards are subject to fee collection
+
 			isBakerPayingTxFee := ctx.configuration.PayoutConfiguration.IsPayingTxFee
 			isBakerPayingAllocationTxFee := ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee
 
@@ -73,13 +72,12 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 		return result.Transaction
 	})
 
-	validRecipes := utils.OnlyValidAccumulatedPayouts(recipesAfterEstimate)
-	invalidAccumulatedRecipes := utils.OnlyInvalidAccumulatedPayouts(recipesAfterEstimate)
-	invalidRecipes := lo.Map(invalidAccumulatedRecipes, func(recipe *common.AccumulatedPayoutRecipe, _ int) []common.PayoutRecipe {
-		return recipe.DisperseToInvalid()
-	})
+	ctx.StageData.AccumulatedPayouts = utils.OnlyValidAccumulatedPayouts(recipesWithEstimate) // overwrite with new only valid ones
 
-	ctx.StageData.AccumulatedValidPayouts = validRecipes
-	ctx.StageData.InvalidPayouts = append(ctx.StageData.InvalidPayouts, lo.Flatten(invalidRecipes)...)
+	newInvalidAccumulatedRecipes := utils.OnlyInvalidAccumulatedPayouts(recipesWithEstimate)
+	newInvalidRecipes := lo.Flatten(lo.Map(newInvalidAccumulatedRecipes, func(recipe *common.AccumulatedPayoutRecipe, _ int) []common.PayoutRecipe {
+		return recipe.DisperseToInvalid()
+	}))
+	ctx.StageData.InvalidRecipes = append(ctx.StageData.InvalidRecipes, newInvalidRecipes...)
 	return ctx, nil
 }

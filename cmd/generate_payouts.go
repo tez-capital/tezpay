@@ -42,9 +42,7 @@ var generatePayoutsCmd = &cobra.Command{
 			time.Sleep(time.Second * 5)
 		}
 		generationResults := assertRunWithErrorHandler(func() (common.CyclePayoutBlueprints, error) {
-			return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{
-				SkipBalanceCheck: skipBalanceCheck,
-			})
+			return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{})
 		}, handleGeneratePayoutsFailure)
 
 		targetFile, _ := cmd.Flags().GetString(TO_FILE_FLAG)
@@ -64,7 +62,8 @@ var generatePayoutsCmd = &cobra.Command{
 			})
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 				return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
-					Accumulate: true,
+					Accumulate:       true,
+					SkipBalanceCheck: skipBalanceCheck,
 				})
 			}, EXIT_OPERTION_FAILED)
 			PrintPreparationResults(preparationResult, cycles, &PrintPreparationResultsOptions{AutoMergeRecords: true})

@@ -18,12 +18,7 @@ type StageData struct {
 	Payouts           []common.PayoutRecipe
 	BakerBondsAmount  tezos.Z
 	DonateBondsAmount tezos.Z
-	BakerFeesAmount   tezos.Z
-	DonateFeesAmount  tezos.Z
 	// PaidDelegators    int
-
-	// protocol, signature etc.
-	BatchMetadataDeserializationGasLimit int64
 }
 
 type PayoutGenerationContext struct {

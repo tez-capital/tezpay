@@ -1,4 +1,4 @@
-package generate
+package prepare
 
 import (
 	"errors"
@@ -17,10 +17,10 @@ import (
 )
 
 type CheckBalanceHookData struct {
-	SkipTezCheck bool                                  `json:"skip_tez_check"`
-	IsSufficient bool                                  `json:"is_sufficient"`
-	Message      string                                `json:"message"`
-	Payouts      []PayoutCandidateWithBondAmountAndFee `json:"payouts"`
+	SkipTezCheck bool                              `json:"skip_tez_check"`
+	IsSufficient bool                              `json:"is_sufficient"`
+	Message      string                            `json:"message"`
+	Payouts      []*common.AccumulatedPayoutRecipe `json:"payouts"`
 }
 
 func checkBalanceWithHook(data *CheckBalanceHookData) error {
@@ -31,7 +31,7 @@ func checkBalanceWithHook(data *CheckBalanceHookData) error {
 	return nil
 }
 
-func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGenerationContext) error {
+func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutPrepareContext) error {
 	if data.SkipTezCheck { // skip tez check for cases when pervious hook already checked it
 		return nil
 	}
@@ -42,30 +42,21 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGeneration
 
 	configuration := ctx.GetConfiguration()
 
-	totalPayouts := len(lo.Filter(data.Payouts, func(candidate PayoutCandidateWithBondAmountAndFee, _ int) bool {
-		return !candidate.IsInvalid
-	}))
-
-	// calculate bonds and fees portion
-	bondsPortionToBeForwarded := lo.Sum(lo.Values(configuration.IncomeRecipients.Bonds))
-	feesPortionToBeForwarded := lo.Sum(lo.Values(configuration.IncomeRecipients.Fees))
-
+	totalPayouts := len(data.Payouts)
 	// add all bonds, fees and donations destinations
 	totalPayouts = totalPayouts + len(configuration.IncomeRecipients.Bonds) + len(configuration.IncomeRecipients.Fees) + utils.Max(len(configuration.IncomeRecipients.Donations), 1)
 
-	requiredbalance := lo.Reduce(data.Payouts, func(agg tezos.Z, candidate PayoutCandidateWithBondAmountAndFee, _ int) tezos.Z {
-		if candidate.TxKind == enums.PAYOUT_TX_KIND_TEZ {
-			return agg.Add(candidate.BondsAmount)
+	requiredbalance := lo.Reduce(data.Payouts, func(agg tezos.Z, recipe *common.AccumulatedPayoutRecipe, _ int) tezos.Z {
+		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ {
+			// we need to add all - amount, fee and tx costs
+			// fee for cases when baker forwards fees to different address
+			// baker bonds forwarding and donating is already included in recipes as separate recipes
+			return agg.Add(recipe.Amount).Add(recipe.Fee).Add64(recipe.GetTransactionFee())
 		}
 		return agg
 	}, tezos.Zero)
-	// bonds * bondsPortionToBeForwarded
-	bondsToBeForwarded := ctx.StageData.BakerBondsAmount.Mul64(int64(bondsPortionToBeForwarded * 1000000)).Div64(1000000)
-	// fees * feesPortionToBeForwarded
-	feesToBeForwarded := ctx.StageData.BakerFeesAmount.Mul64(int64(feesPortionToBeForwarded * 1000000)).Div64(1000000)
 
 	// add bonds,fees and donations to required balance
-	requiredbalance = requiredbalance.Add(bondsToBeForwarded).Add(feesToBeForwarded).Add(ctx.StageData.DonateBondsAmount)
 	requiredbalance = requiredbalance.Add(tezos.NewZ(constants.PAYOUT_FEE_BUFFER).Mul64(int64(totalPayouts)))
 
 	diff := payableBalance.Sub(requiredbalance)
@@ -76,7 +67,7 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutGeneration
 	return nil
 }
 
-func runBalanceCheck(ctx *PayoutGenerationContext, logger *slog.Logger, check func(*CheckBalanceHookData) error, data *CheckBalanceHookData, options *common.GeneratePayoutsOptions) error {
+func runBalanceCheck(ctx *PayoutPrepareContext, logger *slog.Logger, check func(*CheckBalanceHookData) error, data *CheckBalanceHookData, options *common.PreparePayoutsOptions) error {
 	notificatorTrigger := 0
 	for {
 		// we reset values before each check so we get relevant data for this check only
@@ -115,7 +106,7 @@ but because of potential changes of transaction fees (on-chain state changes) it
 So we just try to estimate with a buffer which should be enough for most cases.
 */
 
-func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
+func CheckSufficientBalance(ctx *PayoutPrepareContext, options *common.PreparePayoutsOptions) (*PayoutPrepareContext, error) {
 	logger := ctx.logger.With("phase", "check_sufficient_balance")
 	if options.SkipBalanceCheck { // skip
 		return ctx, nil
@@ -124,7 +115,7 @@ func CheckSufficientBalance(ctx *PayoutGenerationContext, options *common.Genera
 	logger.Debug("checking sufficient balance")
 	hookResponse := CheckBalanceHookData{
 		IsSufficient: true,
-		Payouts:      ctx.StageData.PayoutCandidatesWithBondAmountAndFees,
+		Payouts:      ctx.StageData.AccumulatedPayouts,
 	}
 
 	checks := []func(*CheckBalanceHookData) error{

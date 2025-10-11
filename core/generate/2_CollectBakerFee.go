@@ -19,7 +19,6 @@ func ExecuteOnFeesCollection(data *OnFeesCollectionHookData) error {
 }
 
 func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
-	configuration := ctx.GetConfiguration()
 	logger := ctx.logger.With("phase", "collect_baker_fee")
 	logger.Debug("collecting baker fee")
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
@@ -63,14 +62,6 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	}
 	candidatesWithBondsAndFees = hookData.Candidates
 
-	collectedFees := lo.Reduce(candidatesWithBondsAndFees, func(agg tezos.Z, candidateWithBondsAmountAndFee PayoutCandidateWithBondAmountAndFee, _ int) tezos.Z {
-		return agg.Add(candidateWithBondsAmountAndFee.Fee)
-	}, tezos.Zero)
-
-	feesDonate := utils.GetZPortion(collectedFees, configuration.IncomeRecipients.DonateFees)
-	ctx.StageData.BakerFeesAmount = collectedFees.Sub(feesDonate)
-	ctx.StageData.DonateFeesAmount = feesDonate
 	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = candidatesWithBondsAndFees
-
 	return ctx, nil
 }

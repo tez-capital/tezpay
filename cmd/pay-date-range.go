@@ -69,15 +69,14 @@ var payDateRangeCmd = &cobra.Command{
 
 		slog.Info("generating payouts for cycles in the date range", "date_range", fmt.Sprintf("%s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)), "cycles", cycles)
 		generationResults := assertRunWithErrorHandler(func() (common.CyclePayoutBlueprints, error) {
-			return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{
-				SkipBalanceCheck: skipBalanceCheck,
-			})
+			return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{})
 		}, handleGeneratePayoutsFailure)
 
 		slog.Info("checking reports of past payouts")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
-				Accumulate: true,
+				Accumulate:       true,
+				SkipBalanceCheck: skipBalanceCheck,
 			})
 		}, EXIT_OPERTION_FAILED)
 

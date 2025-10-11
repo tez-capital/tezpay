@@ -4,9 +4,10 @@ import (
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/utils"
+	"github.com/trilitech/tzgo/tezos"
 )
 
-func ValidatePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
+func ValidateRecipe(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (result *PayoutGenerationContext, err error) {
 	logger := ctx.logger.With("phase", "validate_simulated_payouts")
 	logger.Info("validating payout candidates")
 
@@ -19,8 +20,8 @@ func ValidatePayouts(ctx *PayoutGenerationContext, options *common.GeneratePayou
 
 		utils.AssertZAmountPositiveOrZero(candidate.BondsAmount)
 		if candidate.IsInvalid {
-			ctx.StageData.BakerFeesAmount = ctx.StageData.BakerFeesAmount.Add(candidate.BondsAmount)
 			candidate.Fee = candidate.Fee.Add(candidate.BondsAmount) // we need to add because we already collected fees from bonds in 2_CollectBakerFee.go
+			candidate.BondsAmount = tezos.Zero
 		}
 		return result
 	})

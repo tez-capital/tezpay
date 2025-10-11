@@ -27,6 +27,8 @@ type PayoutExecutionContext struct {
 	InvalidPayouts   []common.PayoutRecipe
 	PayoutBlueprints []*common.CyclePayoutBlueprint
 
+	BatchMetadataDeserializationGasLimit int64
+
 	logger *slog.Logger
 }
 
@@ -51,6 +53,8 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 		ValidPayouts:     preparationResult.ValidPayouts,
 		InvalidPayouts:   preparationResult.InvalidPayouts,
 		PayoutBlueprints: preparationResult.Blueprints,
+
+		BatchMetadataDeserializationGasLimit: preparationResult.BatchMetadataDeserializationGasLimit,
 
 		logger: slog.Default().With("stage", "execute"),
 	}, nil
