@@ -42,12 +42,7 @@ func GenerateHookSampleData() {
 		Cycle:      580,
 		Candidates: []generate.PayoutCandidateWithBondAmount{payoutCandidate.PayoutCandidateWithBondAmount},
 	}
-	acb := generate.CheckBalanceHookData{
-		SkipTezCheck: true,
-		Message:      "This message is used to carry errors from hook to the caller.",
-		IsSufficient: true,
-		Payouts:      []generate.PayoutCandidateWithBondAmountAndFee{payoutCandidate},
-	}
+
 	ofc := generate.OnFeesCollectionHookData{
 		580,
 		[]generate.PayoutCandidateWithBondAmountAndFee{payoutCandidate},
@@ -63,13 +58,20 @@ func GenerateHookSampleData() {
 		EarnedRewards:    tezos.NewZ(1000000000),
 		BondIncome:       tezos.NewZ(1000000000),
 		DonatedBonds:     tezos.NewZ(1000000000),
-		DonatedFees:      tezos.NewZ(1000000000),
-		DonatedTotal:     tezos.NewZ(1000000000),
+		// DonatedFees:      tezos.NewZ(1000000000),
+		// DonatedTotal:     tezos.NewZ(1000000000),
 	}
 
 	recipe := payoutCandidate.ToPayoutRecipe(tezos.ZeroAddress, 1, enums.PAYOUT_KIND_DELEGATOR_REWARD)
+
+	acb := prepare.CheckBalanceHookData{
+		SkipTezCheck: true,
+		Message:      "This message is used to carry errors from hook to the caller.",
+		IsSufficient: true,
+		Payouts:      []*common.AccumulatedPayoutRecipe{recipe.AsAccumulated()},
+	}
 	app := prepare.AfterPayoutsPreapered{
-		ValidPayouts: []common.PayoutRecipe{
+		Payouts: []common.PayoutRecipe{
 			recipe,
 		},
 		ReportsOfPastSuccesfulPayouts: common.NewSuccessBatchResult([]*common.AccumulatedPayoutRecipe{recipe.AsAccumulated()}, tezos.ZeroOpHash).ToReports(),

@@ -129,7 +129,6 @@ func FinalizePayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOp
 	}
 	for _, recipe := range donationPayouts {
 		existingDestination, found := lo.Find(ctx.StageData.AccumulatedPayouts, func(r *common.AccumulatedPayoutRecipe) bool {
-			fmt.Println(r.Kind, recipe.Kind, r.GetIdentifier(), recipe.GetIdentifier())
 			return r.GetIdentifier() == recipe.GetIdentifier()
 		})
 		if found {
