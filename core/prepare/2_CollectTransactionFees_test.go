@@ -2,10 +2,10 @@ package prepare
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"testing"
 
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/configuration"
@@ -16,38 +16,48 @@ import (
 )
 
 var (
-	payoutCandidatesWithBondAmountAndFees = []PayoutCandidateWithBondAmountAndFee{
+	payoutRecipes = []common.AccumulatedPayoutRecipe{
 		{
-			PayoutCandidateWithBondAmount: PayoutCandidateWithBondAmount{
-				PayoutCandidate: PayoutCandidate{
-					Source:    mock.GetRandomAddress(),
-					Recipient: mock.GetRandomAddress(),
-				},
-				BondsAmount: tezos.NewZ(10000000),
-				TxKind:      enums.PAYOUT_TX_KIND_TEZ,
+			PayoutRecipe: common.PayoutRecipe{
+				Delegator: mock.GetRandomAddress(),
+				Recipient: mock.GetRandomAddress(),
+				Amount:    tezos.NewZ(10000000),
+				TxKind:    enums.PAYOUT_TX_KIND_TEZ,
+				IsValid:   true,
 			},
 		},
 		{
-			PayoutCandidateWithBondAmount: PayoutCandidateWithBondAmount{
-				PayoutCandidate: PayoutCandidate{
-					Source:    mock.GetRandomAddress(),
-					Recipient: mock.GetRandomAddress(),
-				},
-				BondsAmount: tezos.NewZ(20000000),
-				TxKind:      enums.PAYOUT_TX_KIND_TEZ,
+			PayoutRecipe: common.PayoutRecipe{
+				Delegator: mock.GetRandomAddress(),
+				Recipient: mock.GetRandomAddress(),
+				Amount:    tezos.NewZ(20000000),
+				TxKind:    enums.PAYOUT_TX_KIND_TEZ,
+				IsValid:   true,
 			},
 		},
 	}
-	config    = configuration.GetDefaultRuntimeConfiguration()
-	collector = mock.InitSimpleColletor()
 )
 
+func getRecipes() []*common.AccumulatedPayoutRecipe {
+	result := []*common.AccumulatedPayoutRecipe{}
+	for _, recipe := range payoutRecipes {
+		result = append(result, &recipe)
+	}
+	return result
+}
+
 func TestCollectTransactionFees(t *testing.T) {
+	var result *PayoutPrepareContext
+	var err error
+	config := configuration.GetDefaultRuntimeConfiguration()
+	collector := mock.InitSimpleCollector()
+	signer := mock.InitSimpleSigner()
+
 	assert := assert.New(t)
-	ctx := &PayoutGenerationContext{
-		GeneratePayoutsEngineContext: *common.NewGeneratePayoutsEngines(collector, nil, nil),
-		StageData:                    &StageData{PayoutCandidatesWithBondAmountAndFees: payoutCandidatesWithBondAmountAndFees},
-		configuration:                &config,
+	ctx := &PayoutPrepareContext{
+		PreparePayoutsEngineContext: *common.NewPreparePayoutsEngineContext(collector, signer, nil, func(msg string) {}),
+		StageData:                   &StageData{AccumulatedValidPayouts: getRecipes()},
+		configuration:               &config,
 
 		logger: slog.Default(),
 	}
@@ -57,117 +67,112 @@ func TestCollectTransactionFees(t *testing.T) {
 		StorageBurn:    0,
 		UsedMilliGas:   2000000,
 	})
-	result, err := CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+	for i, v := range result.StageData.AccumulatedValidPayouts {
+		fmt.Println(collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check allocation burn")
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
 		UsedMilliGas:   2000000,
 	})
-	result, err = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+	for i, v := range result.StageData.AccumulatedValidPayouts {
+		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check storage burn")
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
 		UsedMilliGas:   1000000,
 	})
-	result, err = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+	for i, v := range result.StageData.AccumulatedValidPayouts {
+		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
-	t.Log("chech paying tx fee")
-
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = lo.Map(ctx.StageData.PayoutCandidatesWithBondAmountAndFees, func(v PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
-		v.IsBakerPayingTxFee = true
-		v.IsBakerPayingAllocationTxFee = false
-		return v
-	})
+	t.Log("check paying tx fee")
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = true
+	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
 		UsedMilliGas:   1000000,
 	})
-	result, _ = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
-	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.Equal(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-1000 /*allocation fee*/)
+	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
+	for i, v := range result.StageData.AccumulatedValidPayouts {
+		assert.Equal(v.Amount.Int64(), payoutRecipes[i].Amount.Int64()-1000 /*allocation fee*/)
 	}
 
-	t.Log("chech not paying tx & allocation fee")
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = lo.Map(ctx.StageData.PayoutCandidatesWithBondAmountAndFees, func(v PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
-		v.IsBakerPayingTxFee = true
-		v.IsBakerPayingAllocationTxFee = true
-		return v
-	})
+	t.Log("check not paying tx & allocation fee")
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = true
+	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = true
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
 		UsedMilliGas:   1000000,
 	})
-	result, _ = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
-	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.Equal(v.BondsAmount.Int64(), payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64())
+	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
+	for i, v := range result.StageData.AccumulatedValidPayouts {
+		assert.Equal(v.Amount.Int64(), payoutRecipes[i].Amount.Int64())
 	}
 
-	t.Log("chech per op estimate")
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = lo.Map(ctx.StageData.PayoutCandidatesWithBondAmountAndFees, func(v PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
-		v.IsBakerPayingTxFee = false
-		v.IsBakerPayingAllocationTxFee = false
-		return v
-	})
+	t.Log("check per op estimate")
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = false
+	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
 		UsedMilliGas:   1000000,
 		SingleOnly:     true,
 	})
-	result, err = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 
 	assert.Nil(err)
-	for i, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.LessOrEqual(v.BondsAmount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.BondsAmount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutCandidatesWithBondAmountAndFees[i].BondsAmount.Int64()-collector.GetExpectedTxCosts())
+	for i, v := range result.StageData.AccumulatedValidPayouts {
+		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check batching")
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = lo.Map(ctx.StageData.PayoutCandidatesWithBondAmountAndFees, func(v PayoutCandidateWithBondAmountAndFee, _ int) PayoutCandidateWithBondAmountAndFee {
-		v.IsBakerPayingTxFee = false
-		v.IsBakerPayingAllocationTxFee = false
-		return v
-	})
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	ctx.configuration.PayoutConfiguration.IsPayingTxFee = false
+	ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee = false
 	collector.SetOpts(&mock.SimpleCollectorOpts{
 		AllocationBurn: 1000,
 		StorageBurn:    0,
 		UsedMilliGas:   1000000,
 		SingleOnly:     true,
 	})
-	ops := []PayoutCandidateWithBondAmountAndFee{}
+	ops := []*common.AccumulatedPayoutRecipe{}
 	for len(ops) < constants.DEFAULT_SIMULATION_TX_BATCH_SIZE*2.5 {
-		ops = append(ops, payoutCandidatesWithBondAmountAndFees...)
+		ops = append(ops, getRecipes()...)
 	}
 
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = ops
-	result, _ = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
-	assert.Equal(len(result.StageData.PayoutCandidatesSimulated), len(ops))
+	ctx.StageData.AccumulatedValidPayouts = ops
+	result, err = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
+	assert.Nil(err)
+	assert.Equal(len(ops), len(result.StageData.AccumulatedValidPayouts))
 
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
 
 	t.Log("fail estimate")
 	collector.SetOpts(&mock.SimpleCollectorOpts{
@@ -177,11 +182,11 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:     true,
 		FailWithError:  errors.New("failed estimate"),
 	})
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
-	result, _ = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
-	for _, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.Equal(v.IsInvalid, true)
-		assert.Equal(v.InvalidBecause, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
+	for _, v := range result.StageData.AccumulatedValidPayouts {
+		assert.Equal(v.IsValid, false)
+		assert.Equal(v.Note, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 	}
 
 	t.Log("failed receipt")
@@ -192,11 +197,11 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:           true,
 		FailWithReceiptError: errors.New("failed receipt"),
 	})
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
-	result, _ = CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
-	for _, v := range result.StageData.PayoutCandidatesSimulated {
-		assert.Equal(v.IsInvalid, true)
-		assert.Equal(v.InvalidBecause, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
+	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
+	for _, v := range result.StageData.AccumulatedValidPayouts {
+		assert.Equal(v.IsValid, false)
+		assert.Equal(v.Note, enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 	}
 
 	t.Log("test partial panic")
@@ -207,9 +212,9 @@ func TestCollectTransactionFees(t *testing.T) {
 		SingleOnly:       false,
 		ReturnOnlyNCosts: 1,
 	})
-	ctx.StageData.PayoutCandidatesWithBondAmountAndFees = payoutCandidatesWithBondAmountAndFees
+	ctx.StageData.AccumulatedValidPayouts = getRecipes()
 	assert.Panics(func() {
-		_, err := CollectTransactionFees(ctx, &common.GeneratePayoutsOptions{})
+		_, err := CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 		t.Log(err)
 	})
 }

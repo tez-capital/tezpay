@@ -25,6 +25,10 @@ func AccumulatePayouts(ctx *PayoutPrepareContext, options *common.PreparePayouts
 	if ctx.PayoutBlueprints == nil {
 		return nil, constants.ErrMissingPayoutBlueprint
 	}
+	// copy valid payouts to accumulated in case we return early
+	ctx.StageData.AccumulatedValidPayouts = lo.Map(ctx.StageData.ValidPayouts, func(payout common.PayoutRecipe, _ int) *common.AccumulatedPayoutRecipe {
+		return payout.AsAccumulated()
+	})
 	if !options.Accumulate {
 		return ctx, nil
 	}

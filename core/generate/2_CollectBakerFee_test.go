@@ -44,7 +44,7 @@ var (
 			TxKind:      enums.PAYOUT_TX_KIND_FA1_2,
 		},
 	}
-	collector = mock.InitSimpleColletor()
+	collector = mock.InitSimpleCollector()
 	config    = configuration.GetDefaultRuntimeConfiguration()
 )
 

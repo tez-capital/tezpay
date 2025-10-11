@@ -28,7 +28,7 @@ type SimpleCollectorOpts struct {
 	SerializationGasLimit int64
 }
 
-func InitSimpleColletor() *SimpleColletor {
+func InitSimpleCollector() *SimpleColletor {
 	return &SimpleColletor{
 		opts: &SimpleCollectorOpts{
 			AllocationBurn:        1000,

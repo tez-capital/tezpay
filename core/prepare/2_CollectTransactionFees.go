@@ -31,6 +31,7 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 			slog.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", payoutKey.Address(), "amount", result.Transaction.Amount.Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
 			result.Transaction.IsValid = false
 			result.Transaction.Note = string(enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
+			return result.Transaction
 		}
 
 		recipe := result.Transaction
@@ -54,7 +55,6 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 
 			txFee := result.OpLimits.GetOperationFeesWithoutAllocation()
 			allocationFee := result.OpLimits.GetAllocationFee()
-
 			if !isBakerPayingTxFee {
 				recipe.Amount = recipe.Amount.Sub64(txFee)
 			}
