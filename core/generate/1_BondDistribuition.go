@@ -40,6 +40,18 @@ func getBakerBondsAmount(cycleData *common.BakersCycleData, effectiveDelegatorsD
 	return bakerDelegatedBondsAmount
 }
 
+func isDelegatorEligibleForBonds(candidate PayoutCandidate, configuration *configuration.RuntimeConfiguration) bool {
+	if candidate.IsInvalid {
+		if candidate.InvalidBecause == enums.INVALID_DELEGATOR_IGNORED {
+			return false
+		}
+		if configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination == enums.REWARD_DESTINATION_EVERYONE && candidate.InvalidBecause == enums.INVALID_DELEGATOR_LOW_BAlANCE {
+			return false
+		}
+	}
+	return true
+}
+
 func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
 	logger := ctx.logger.With("phase", "distribute_bonds")
@@ -49,13 +61,8 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	candidates := ctx.StageData.PayoutCandidates
 	totalDelegatorsDelegatedBalance := lo.Reduce(candidates, func(total tezos.Z, candidate PayoutCandidate, _ int) tezos.Z {
 		// of all delegators, including invalids, except ignored and possibly excluding bellow minimum balance
-		if candidate.IsInvalid {
-			if candidate.InvalidBecause == enums.INVALID_DELEGATOR_IGNORED {
-				return total
-			}
-			if ctx.configuration.Delegators.Requirements.BellowMinimumBalanceRewardDestination == enums.REWARD_DESTINATION_EVERYONE && candidate.InvalidBecause == enums.INVALID_DELEGATOR_LOW_BAlANCE {
-				return total
-			}
+		if !isDelegatorEligibleForBonds(candidate, configuration) {
+			return total
 		}
 		return total.Add(candidate.GetDelegatedBalance())
 	}, tezos.NewZ(0))
@@ -64,7 +71,7 @@ func DistributeBonds(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	availableRewards := ctx.StageData.CycleData.GetTotalDelegatedRewards(configuration.PayoutConfiguration.PayoutMode).Sub(bakerBonds)
 
 	ctx.StageData.PayoutCandidatesWithBondAmount = lo.Map(candidates, func(candidate PayoutCandidate, _ int) PayoutCandidateWithBondAmount {
-		if candidate.IsInvalid {
+		if !isDelegatorEligibleForBonds(candidate, configuration) {
 			return PayoutCandidateWithBondAmount{
 				PayoutCandidate: candidate,
 				BondsAmount:     tezos.Zero,

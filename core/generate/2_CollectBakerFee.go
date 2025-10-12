@@ -25,12 +25,6 @@ func CollectBakerFee(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	candidates := ctx.StageData.PayoutCandidatesWithBondAmount
 
 	candidatesWithBondsAndFees := lo.Map(candidates, func(candidateWithBondsAmount PayoutCandidateWithBondAmount, _ int) PayoutCandidateWithBondAmountAndFee {
-		if candidateWithBondsAmount.IsInvalid {
-			return PayoutCandidateWithBondAmountAndFee{
-				PayoutCandidateWithBondAmount: candidateWithBondsAmount,
-			}
-		}
-
 		if candidateWithBondsAmount.TxKind != enums.PAYOUT_TX_KIND_TEZ {
 			logger.Debug("skipping fee collection for non tezos payout", "delegate", candidateWithBondsAmount.Source, "tx_kind", candidateWithBondsAmount.TxKind)
 			return PayoutCandidateWithBondAmountAndFee{

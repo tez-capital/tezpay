@@ -32,6 +32,7 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 		}
 
 		recipe := result.Transaction
+		recipe.OpLimits = result.OpLimits
 
 		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ &&
 			recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD { // only delegator rewards are subject to fee collection
@@ -68,8 +69,7 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 			utils.AssertZAmountPositiveOrZero(recipe.Amount)
 		}
 
-		result.Transaction.OpLimits = result.OpLimits
-		return result.Transaction
+		return recipe
 	})
 
 	ctx.StageData.AccumulatedPayouts = utils.OnlyValidAccumulatedPayouts(recipesWithEstimate) // overwrite with new only valid ones

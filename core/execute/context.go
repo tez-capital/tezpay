@@ -23,7 +23,7 @@ type PayoutExecutionContext struct {
 	protectedSection *utils.ProtectedSection
 	StageData        *StageData
 
-	ValidPayouts     []*common.AccumulatedPayoutRecipe
+	Payouts          []*common.AccumulatedPayoutRecipe
 	InvalidPayouts   []common.PayoutRecipe
 	PayoutBlueprints []*common.CyclePayoutBlueprint
 
@@ -50,7 +50,7 @@ func NewPayoutExecutionContext(preparationResult *common.PreparePayoutsResult, c
 			ReportsOfPastSuccesfulPayouts: preparationResult.ReportsOfPastSuccessfulPayouts,
 		},
 
-		ValidPayouts:     preparationResult.ValidPayouts,
+		Payouts:          preparationResult.ValidPayouts,
 		InvalidPayouts:   preparationResult.InvalidPayouts,
 		PayoutBlueprints: preparationResult.Blueprints,
 

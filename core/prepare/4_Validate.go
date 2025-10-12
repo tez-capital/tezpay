@@ -5,7 +5,6 @@ import (
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/utils"
-	"github.com/trilitech/tzgo/tezos"
 )
 
 func ValidatePreparedPayouts(ctx *PayoutPrepareContext, options *common.PreparePayoutsOptions) (result *PayoutPrepareContext, err error) {
@@ -30,11 +29,6 @@ func ValidatePreparedPayouts(ctx *PayoutPrepareContext, options *common.PrepareP
 		).Unwrap()
 
 		utils.AssertZAmountPositiveOrZero(recipe.Amount)
-		if !result.IsValid {
-			result.Fee = result.Fee.Add(result.Amount).Add64(result.GetTxFee())
-			result.Amount = tezos.Zero
-			result.OpLimits = nil
-		}
 		return result
 	})
 

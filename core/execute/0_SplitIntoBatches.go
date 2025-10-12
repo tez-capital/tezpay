@@ -40,7 +40,7 @@ func SplitIntoBatches(ctx *PayoutExecutionContext, options *common.ExecutePayout
 	if err != nil {
 		return nil, errors.Join(constants.ErrGetChainLimitsFailed, err)
 	}
-	payouts := ctx.ValidPayouts
+	payouts := ctx.Payouts
 	payoutsWithoutFa := utils.RejectPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)
 
 	faRecipes := utils.FilterPayoutsByTxKind(payouts, enums.FA_OPERATION_KINDS)

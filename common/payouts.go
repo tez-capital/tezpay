@@ -110,7 +110,7 @@ func (recipe *PayoutRecipe) GetIdentifier() string {
 		TxKind:     recipe.TxKind,
 		FATokenId:  recipe.FATokenId,
 		FAContract: recipe.FAContract,
-		IsValid:    recipe.IsValid,
+		// IsValid:    recipe.IsValid,
 	}
 	k, err := identifier.ToJSON()
 	if err != nil {
@@ -125,9 +125,10 @@ func (recipe *PayoutRecipe) GetShortIdentifier() string {
 }
 
 func (recipe PayoutRecipe) AsAccumulated() *AccumulatedPayoutRecipe {
+	clone := recipe // make a copy to avoid issues with references
 	return &AccumulatedPayoutRecipe{
 		PayoutRecipe: recipe,
-		Accumulated:  []*PayoutRecipe{&recipe},
+		Accumulated:  []*PayoutRecipe{&clone},
 	}
 }
 
@@ -305,6 +306,7 @@ func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*Accumula
 
 func (recipe *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {
 	report := recipe.PayoutRecipe.ToPayoutReport()
+	report.TxFee = recipe.GetTxFee()
 	report.Accumulated = lo.Map(recipe.Accumulated, func(p *PayoutRecipe, _ int) *PayoutReport {
 		accumulated := p.ToPayoutReport()
 		return &accumulated
@@ -320,8 +322,6 @@ func (recipe *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {
 	return lo.Map(recipe.Accumulated, func(r *PayoutRecipe, _ int) PayoutRecipe {
 		r.IsValid = false
 		r.Note = recipe.Note
-		r.Fee = r.Fee.Add(recipe.Amount) // collect the whole bonds amount as fee if invalid
-		r.Amount = tezos.Zero
 		return *r
 	})
 }
@@ -339,14 +339,16 @@ type CyclePayoutSummary struct {
 	OwnDelegatedBalance      tezos.Z   `json:"own_delegated_balance"`
 	ExternalStakedBalance    tezos.Z   `json:"external_staked_balance"`
 	ExternalDelegatedBalance tezos.Z   `json:"external_delegated_balance"`
-	EarnedFees               tezos.Z   `json:"cycle_fees"`
-	EarnedRewards            tezos.Z   `json:"cycle_rewards"`
+	EarnedBlockFees          tezos.Z   `json:"cycle_earned_fees"`
+	EarnedRewards            tezos.Z   `json:"cycle_earned_rewards"`
+	EarnedTotal              tezos.Z   `json:"cycle_earned_total"`
 	DistributedRewards       tezos.Z   `json:"distributed_rewards"`
 	NotDistributedRewards    tezos.Z   `json:"not_distributed_rewards"`
 	BondIncome               tezos.Z   `json:"bond_income"`
 	FeeIncome                tezos.Z   `json:"fee_income"`
 	IncomeTotal              tezos.Z   `json:"total_income"`
-	TransactionFeesPaid      tezos.Z   `json:"transaction_fees_paid"`
+	TxFeesPaidForRewards     tezos.Z   `json:"tx_fees_paid_for_rewards"`
+	TxFeesPaid               tezos.Z   `json:"tx_fees_paid"`
 	DonatedBonds             tezos.Z   `json:"donated_bonds"`
 	DonatedFees              tezos.Z   `json:"donated_fees"`
 	DonatedTotal             tezos.Z   `json:"donated_total"`
@@ -382,14 +384,16 @@ func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutS
 	summary.OwnDelegatedBalance = summary.OwnDelegatedBalance.Add(another.OwnDelegatedBalance)
 	summary.ExternalStakedBalance = summary.ExternalStakedBalance.Add(another.ExternalStakedBalance)
 	summary.ExternalDelegatedBalance = summary.ExternalDelegatedBalance.Add(another.ExternalDelegatedBalance)
-	summary.EarnedFees = summary.EarnedFees.Add(another.EarnedFees)
+	summary.EarnedBlockFees = summary.EarnedBlockFees.Add(another.EarnedBlockFees)
 	summary.EarnedRewards = summary.EarnedRewards.Add(another.EarnedRewards)
+	summary.EarnedTotal = summary.EarnedTotal.Add(another.EarnedTotal)
 	summary.DistributedRewards = summary.DistributedRewards.Add(another.DistributedRewards)
 	summary.NotDistributedRewards = summary.NotDistributedRewards.Add(another.NotDistributedRewards)
 	summary.BondIncome = summary.BondIncome.Add(another.BondIncome)
 	summary.FeeIncome = summary.FeeIncome.Add(another.FeeIncome)
 	summary.IncomeTotal = summary.IncomeTotal.Add(another.IncomeTotal)
-	summary.TransactionFeesPaid = summary.TransactionFeesPaid.Add(another.TransactionFeesPaid)
+	summary.TxFeesPaid = summary.TxFeesPaid.Add(another.TxFeesPaid)
+	summary.TxFeesPaidForRewards = summary.TxFeesPaidForRewards.Add(another.TxFeesPaidForRewards)
 	summary.DonatedBonds = summary.DonatedBonds.Add(another.DonatedBonds)
 	summary.DonatedFees = summary.DonatedFees.Add(another.DonatedFees)
 	summary.DonatedTotal = summary.DonatedTotal.Add(another.DonatedTotal)
@@ -403,8 +407,9 @@ type CyclePayoutBlueprint struct {
 	OwnDelegatedBalance      tezos.Z   `json:"own_delegated_balance"`
 	ExternalStakedBalance    tezos.Z   `json:"external_staked_balance"`
 	ExternalDelegatedBalance tezos.Z   `json:"external_delegated_balance"`
-	EarnedFees               tezos.Z   `json:"cycle_fees"`
-	EarnedRewards            tezos.Z   `json:"cycle_rewards"`
+	EarnedBlockFees          tezos.Z   `json:"cycle_earned_fees"`
+	EarnedRewards            tezos.Z   `json:"cycle_earned_rewards"`
+	EarnedTotal              tezos.Z   `json:"cycle_earned_total"`
 	BondIncome               tezos.Z   `json:"bond_income"`
 	FeeIncome                tezos.Z   `json:"fee_income"`
 	IncomeTotal              tezos.Z   `json:"total_income"`
@@ -457,19 +462,6 @@ type GeneratePayoutsOptions struct {
 }
 
 type CyclePayoutBlueprints []*CyclePayoutBlueprint
-
-// func (results CyclePayoutBlueprints) GetSummary() *PayoutSummary {
-// 	summary := &PayoutSummary{
-// 		Cycles: make([]int64, 0, len(results)),
-// 	}
-// 	delegators := 0
-// 	for _, result := range results {
-// 		delegators += result.Summary.Delegators
-// 		summary = summary.AddCycleSummary(result.Cycle, &result.Summary)
-// 	}
-// 	summary.Delegators = delegators / len(results) // average
-// 	return summary
-// }
 
 func (results CyclePayoutBlueprints) GetCycles() []int64 {
 	return lo.Reduce(results, func(acc []int64, result *CyclePayoutBlueprint, _ int) []int64 {

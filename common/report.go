@@ -1,13 +1,44 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"strings"
 	"time"
 
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/base58"
 	"github.com/trilitech/tzgo/tezos"
 )
+
+type PayoutReportDestinationIdentifier struct {
+	Delegator  tezos.Address                `json:"delegator,omitempty"`
+	Recipient  tezos.Address                `json:"recipient,omitempty"`
+	Kind       enums.EPayoutKind            `json:"kind,omitempty"`
+	TxKind     enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId  tezos.Z                      `json:"fa_token_id,omitempty"`
+	FAContract tezos.Address                `json:"fa_contract,omitempty"`
+}
+
+func (identifier *PayoutReportDestinationIdentifier) ToJSON() ([]byte, error) {
+	return json.Marshal(identifier)
+}
+
+type PayoutReportIdentifier struct {
+	Delegator  tezos.Address                `json:"delegator,omitempty"`
+	Recipient  tezos.Address                `json:"recipient,omitempty"`
+	Kind       enums.EPayoutKind            `json:"kind,omitempty"`
+	TxKind     enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId  tezos.Z                      `json:"fa_token_id,omitempty"`
+	FAContract tezos.Address                `json:"fa_contract,omitempty"`
+	OpHash     tezos.OpHash                 `json:"op_hash,omitempty"`
+	IsSuccess  bool                         `json:"success,omitempty"`
+}
+
+func (identifier *PayoutReportIdentifier) ToJSON() ([]byte, error) {
+	return json.Marshal(identifier)
+}
 
 type PayoutReport struct {
 	Id               string                       `json:"id" csv:"id"`
@@ -49,6 +80,42 @@ func (pr PayoutReport) GetKind() enums.EPayoutKind {
 
 func (pr *PayoutReport) GetTxFee() int64 {
 	return pr.TxFee
+}
+
+func (pr PayoutReport) GetIdentifier() string {
+	identifier := PayoutReportIdentifier{
+		Delegator:  pr.Delegator,
+		Recipient:  pr.Recipient,
+		Kind:       pr.Kind,
+		TxKind:     pr.TxKind,
+		FATokenId:  pr.FATokenId,
+		FAContract: pr.FAContract,
+		IsSuccess:  pr.IsSuccess,
+		OpHash:     pr.OpHash,
+	}
+	k, err := identifier.ToJSON()
+	if err != nil {
+		return ""
+	}
+	hashBytes := sha256.Sum256(k)
+	return base58.Encode(hashBytes[:])
+}
+
+func (pr PayoutReport) GetDestinationIdentifier() string {
+	identifier := PayoutReportDestinationIdentifier{
+		Delegator:  pr.Delegator,
+		Recipient:  pr.Recipient,
+		Kind:       pr.Kind,
+		TxKind:     pr.TxKind,
+		FATokenId:  pr.FATokenId,
+		FAContract: pr.FAContract,
+	}
+	k, err := identifier.ToJSON()
+	if err != nil {
+		return ""
+	}
+	hashBytes := sha256.Sum256(k)
+	return base58.Encode(hashBytes[:])
 }
 
 func (pr *PayoutReport) ToTableRowData() []string {

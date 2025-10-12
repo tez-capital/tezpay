@@ -136,18 +136,14 @@ type payoutId struct {
 }
 
 func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.PayoutReport, collector common.CollectorEngine) ([]common.PayoutRecipe, []common.PayoutReport) {
-	paidOut := make(map[payoutId]common.PayoutReport)
+	paidOut := make(map[string]common.PayoutReport)
 	validOpHashes := make(map[string]bool)
 	if collector == nil {
 		slog.Debug("collector undefined filtering payout recipes only by succcess status from reports")
 	}
 
 	for _, report := range reports {
-		addr := report.Delegator.String()
-		if report.Delegator.Equal(tezos.ZeroAddress) {
-			addr = report.Recipient.String()
-		}
-		payoutId := payoutId{report.Kind, report.TxKind, report.FAContract.String(), report.FATokenId.String(), addr}
+		payoutId := report.GetDestinationIdentifier()
 		if collector != nil && !report.OpHash.Equal(tezos.ZeroOpHash) {
 			if _, ok := validOpHashes[report.OpHash.String()]; ok {
 				paidOut[payoutId] = report
@@ -175,11 +171,7 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 	}
 
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		addr := payout.Delegator.String()
-		if payout.Delegator.Equal(tezos.ZeroAddress) {
-			addr = payout.Recipient.String()
-		}
-		payoutId := payoutId{payout.Kind, payout.TxKind, payout.FAContract.String(), payout.FATokenId.String(), addr}
+		payoutId := payout.ToPayoutReport().GetDestinationIdentifier()
 		_, ok := paidOut[payoutId]
 		return !ok
 	}), lo.Values(paidOut)
@@ -203,8 +195,9 @@ func GeneratePayoutSummary(blueprints []*common.CyclePayoutBlueprint, reports []
 			OwnDelegatedBalance:      blueprint.OwnDelegatedBalance,
 			ExternalStakedBalance:    blueprint.ExternalStakedBalance,
 			ExternalDelegatedBalance: blueprint.ExternalDelegatedBalance,
-			EarnedFees:               blueprint.EarnedFees,
+			EarnedBlockFees:          blueprint.EarnedBlockFees,
 			EarnedRewards:            blueprint.EarnedRewards,
+			EarnedTotal:              blueprint.EarnedTotal,
 			BondIncome:               blueprint.BondIncome,
 			FeeIncome:                blueprint.FeeIncome,
 			IncomeTotal:              blueprint.IncomeTotal,
@@ -218,15 +211,22 @@ func GeneratePayoutSummary(blueprints []*common.CyclePayoutBlueprint, reports []
 
 		for _, report := range cycleReports {
 			cycleDelegators[report.Delegator.String()] = struct{}{}
-			if report.IsSuccess {
-				cycleSummary.DistributedRewards = cycleSummary.DistributedRewards.Add(report.Amount)
-				cycleSummary.TransactionFeesPaid = cycleSummary.TransactionFeesPaid.Add64(report.TxFee)
-				cyclePaidDelegators[report.Delegator.String()] = struct{}{}
-			} else {
-				cycleSummary.NotDistributedRewards = cycleSummary.NotDistributedRewards.Add(report.Amount)
+
+			switch report.Kind {
+			case enums.PAYOUT_KIND_DELEGATOR_REWARD:
+				if report.IsSuccess {
+					cycleSummary.DistributedRewards = cycleSummary.DistributedRewards.Add(report.Amount)
+					cycleSummary.TxFeesPaid = cycleSummary.TxFeesPaid.Add64(report.TxFee)
+					cycleSummary.TxFeesPaidForRewards = cycleSummary.TxFeesPaidForRewards.Add64(report.TxFee)
+					cyclePaidDelegators[report.Delegator.String()] = struct{}{}
+				} else {
+					cycleSummary.NotDistributedRewards = cycleSummary.NotDistributedRewards.Add(report.Amount)
+				}
+			default:
+				if report.IsSuccess {
+					cycleSummary.TxFeesPaid = cycleSummary.TxFeesPaid.Add64(report.TxFee)
+				}
 			}
-			cycleSummary.FeeIncome = cycleSummary.FeeIncome.Add(report.Fee)
-			cycleSummary.IncomeTotal = cycleSummary.IncomeTotal.Add(report.Fee)
 		}
 
 		cycleSummary.Delegators = len(cycleDelegators)

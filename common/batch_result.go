@@ -44,8 +44,10 @@ func (br *BatchResult) ToIndividualReports() []PayoutReport {
 			}
 			report := acc.ToPayoutReport()
 			if i == 0 {
-				// first entry is the main one, so we attach the tx fees to it
+				// first entry is the main one, so we have to copy state of the accumulated payout
 				report.TxFee = payout.GetTxFee()
+				// FIXME:
+				report.Amount = report.Amount.Sub64(report.TxFee)
 			}
 			report.OpHash = br.OpHash
 			report.IsSuccess = br.IsSuccess

@@ -24,6 +24,7 @@ var generatePayoutsCmd = &cobra.Command{
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
 		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
+		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 		config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
 
@@ -60,6 +61,7 @@ var generatePayoutsCmd = &cobra.Command{
 		default:
 			fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
 				IsReadOnly: true,
+				DryRun:     isDryRun,
 			})
 			preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 				return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
@@ -77,5 +79,6 @@ func init() {
 	generatePayoutsCmd.Flags().String(TO_FILE_FLAG, "", "saves generated payouts to specified file")
 	generatePayoutsCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
 	generatePayoutsCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
+	generatePayoutsCmd.Flags().Bool(DRY_RUN_FLAG, false, "Performs all actions except sending transactions. Reports are stored in 'reports/dry' folder")
 	RootCmd.AddCommand(generatePayoutsCmd)
 }

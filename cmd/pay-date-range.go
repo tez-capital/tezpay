@@ -137,7 +137,7 @@ var payDateRangeCmd = &cobra.Command{
 		case state.Global.GetWantsOutputJson():
 			slog.Info(constants.LOG_MESSAGE_PAYOUTS_EXECUTED, constants.LOG_FIELD_CYCLES, cycles, "phase", "result")
 		default:
-			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
+			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of %s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}
 		PrintPayoutWalletRemainingBalance(collector, signer)
 	},

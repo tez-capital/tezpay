@@ -40,6 +40,14 @@ func fillRow[T any](val T, headers []string) []any {
 	})
 }
 
+func replaceZeroValue[T comparable](item T, value T) T {
+	var zero T
+	if item == zero {
+		return value
+	}
+	return item
+}
+
 func replaceZeroFields[T comparable](items []T, value T, stopOnNonEmpty bool) []T {
 	var zero T
 	for i, item := range items {
@@ -293,19 +301,24 @@ func PrintCycleSummary(summary common.PayoutSummary, header string) {
 	summaryTable.SetOutputMirror(os.Stdout)
 	summaryTable.SetTitle(header)
 	summaryTable.Style().Title.Align = text.AlignCenter
-	summaryTable.AppendRow(table.Row{"Earned Fees", common.MutezToTezS(summary.EarnedFees.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Earned Rewards", common.MutezToTezS(summary.EarnedRewards.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Distributed Rewards", common.MutezToTezS(summary.DistributedRewards.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"NOT Distributed Rewards", common.MutezToTezS(summary.NotDistributedRewards.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Earned Delegation Rewards", replaceZeroValue(common.MutezToTezS(summary.EarnedRewards.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Earned Block Fees", replaceZeroValue(common.MutezToTezS(summary.EarnedBlockFees.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Earned Total", replaceZeroValue(common.MutezToTezS(summary.EarnedTotal.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Distributed Delegator Rewards", replaceZeroValue(common.MutezToTezS(summary.DistributedRewards.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"NOT Distributed Delegator Rewards", replaceZeroValue(common.MutezToTezS(summary.NotDistributedRewards.Int64()), "-")}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendSeparator()
-	summaryTable.AppendRow(table.Row{"Donated Bonds", common.MutezToTezS(summary.DonatedBonds.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Donated Fees", common.MutezToTezS(summary.DonatedFees.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Donated Total", common.MutezToTezS(summary.DonatedTotal.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Bonds", replaceZeroValue(common.MutezToTezS(summary.DonatedBonds.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Fees", replaceZeroValue(common.MutezToTezS(summary.DonatedFees.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Donated Total", replaceZeroValue(common.MutezToTezS(summary.DonatedTotal.Int64()), "-")}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendSeparator()
-	summaryTable.AppendRow(table.Row{"Bond Income", common.MutezToTezS(summary.BondIncome.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Fee Income", common.MutezToTezS(summary.FeeIncome.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Income Total", common.MutezToTezS(summary.IncomeTotal.Int64())}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendRow(table.Row{"Transaction Fees Paid", common.MutezToTezS(summary.TransactionFeesPaid.Int64())}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Bond Income", replaceZeroValue(common.MutezToTezS(summary.BondIncome.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Fee Income", replaceZeroValue(common.MutezToTezS(summary.FeeIncome.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Income Total", replaceZeroValue(common.MutezToTezS(summary.IncomeTotal.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Tx Fees Paid For Rewards", replaceZeroValue(common.MutezToTezS(summary.TxFeesPaidForRewards.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	summaryTable.AppendRow(table.Row{"Tx Fees Paid", replaceZeroValue(common.MutezToTezS(summary.TxFeesPaid.Int64()), "-")}, table.RowConfig{AutoMerge: false})
+	// summaryTable.AppendSeparator()
+	// total := summary.EarnedRewards.Int64() + summary.EarnedBlockFees.Int64() - summary.DistributedRewards.Int64() - summary.NotDistributedRewards.Int64() - summary.TxFeesPaidForRewards.Int64() - summary.DonatedTotal.Int64() - summary.IncomeTotal.Int64()
+	// summaryTable.AppendRow(table.Row{"NET", replaceZeroValue(common.MutezToTezS(total), "-")}, table.RowConfig{AutoMerge: false})
 	summaryTable.Render()
 }
 
