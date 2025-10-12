@@ -19,6 +19,7 @@ const (
 	DELEGATOR_REWARDS = "Delegator Rewards"
 	NOT_PAID          = "Invalid Not Paid"
 	TO_PAY            = "To Pay"
+	PAID_IN_PAST      = "Paid in Past"
 )
 
 func getColumnsByIndexes[T any](row []T, indexes []int) []T {
@@ -182,9 +183,9 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 	payoutTable.AppendSeparator()
 	payoutTable.AppendRow(fillRow(invalidHeader, headers), table.RowConfig{AutoMerge: true})
 	payoutTable.AppendSeparator()
-	payoutTable.AppendRow(columnsAsInterfaces(headers), table.RowConfig{AutoMerge: true})
-	payoutTable.AppendSeparator()
 	if len(invalid) > 0 {
+		payoutTable.AppendRow(columnsAsInterfaces(headers), table.RowConfig{AutoMerge: true})
+		payoutTable.AppendSeparator()
 		for _, inv := range invalid {
 			row := replaceZeroFields(inv.ToTableRowData(), "-", false)
 			payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
@@ -195,8 +196,9 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 
 	// already paid
 	reportsOfPastSuccessfulPayouts := preparationResult.ReportsOfPastSuccessfulPayouts
-	sortPayouts(reportsOfPastSuccessfulPayouts)
 	if len(reportsOfPastSuccessfulPayouts) > 0 {
+		sortPayouts(reportsOfPastSuccessfulPayouts)
+
 		payoutTable.AppendSeparator()
 		payoutTable.AppendRow(fillRow(alreadyPaidHeader, headers), table.RowConfig{AutoMerge: true})
 		payoutTable.AppendSeparator()
@@ -206,32 +208,45 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 			row := replaceZeroFields(rep.ToTableRowData(), "-", false)
 			payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 		}
+
+		payoutTable.AppendSeparator()
+		rewardsTotals, countOfRwards := common.GetFilteredReportsTotals(reportsOfPastSuccessfulPayouts, enums.PAYOUT_KIND_DELEGATOR_REWARD, true)
+		totalsRewards := replaceZeroFields(rewardsTotals, fmt.Sprintf("%s (%d)", DELEGATOR_REWARDS, countOfRwards), true)
+		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
+
+		payoutTable.AppendSeparator()
+		totals := replaceZeroFields(common.GetReportsTotals(reportsOfPastSuccessfulPayouts, false), fmt.Sprintf("%s (%d)", PAID_IN_PAST, len(reportsOfPastSuccessfulPayouts)), true)
+		totals = replaceZeroFields(totals, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
 	}
 
 	payoutTable.AppendSeparator()
 	payoutTable.AppendRow(fillRow(validHeader, headers), table.RowConfig{AutoMerge: true})
 	payoutTable.AppendSeparator()
-	payoutTable.AppendRow(columnsAsInterfaces(headers), table.RowConfig{AutoMerge: true})
-	payoutTable.AppendSeparator()
 	if len(payouts) > 0 {
+		payoutTable.AppendRow(columnsAsInterfaces(headers), table.RowConfig{AutoMerge: true})
+		payoutTable.AppendSeparator()
 		for _, p := range payouts {
 			row := replaceZeroFields(p.ToTableRowData(), "-", false)
 			payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 		}
 	} else {
-		payoutTable.AppendRow(fillRow("No payouts to be made", headers), table.RowConfig{AutoMerge: true})
+		payoutTable.AppendRow(fillRow("No Pending Payouts", headers), table.RowConfig{AutoMerge: true})
 	}
 
-	payoutTable.AppendSeparator()
-	rewardsTotals, countOfRwards := common.GetRecipesFilteredTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD, true)
-	totalsRewards := replaceZeroFields(rewardsTotals, fmt.Sprintf("%s (%d)", DELEGATOR_REWARDS, countOfRwards), true)
-	totalsRewards = replaceZeroFields(totalsRewards, "-", false)
-	payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
+	if len(payouts) > 0 {
+		payoutTable.AppendSeparator()
+		rewardsTotals, countOfRwards := common.GetRecipesFilteredTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD, true)
+		totalsRewards := replaceZeroFields(rewardsTotals, fmt.Sprintf("%s (%d)", DELEGATOR_REWARDS, countOfRwards), true)
+		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
 
-	payoutTable.AppendSeparator()
-	totals := replaceZeroFields(common.GetRecipesTotals(payouts, false), fmt.Sprintf("%s (%d)", TO_PAY, len(payouts)), true)
-	totals = replaceZeroFields(totals, "-", false)
-	payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
+		payoutTable.AppendSeparator()
+		totals := replaceZeroFields(common.GetRecipesTotals(payouts, false), fmt.Sprintf("%s (%d)", TO_PAY, len(payouts)), true)
+		totals = replaceZeroFields(totals, "-", false)
+		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
+	}
 
 	payoutTable.AppendSeparator()
 	invalidTotals, countOfInvalids := common.GetRecipesTotals(invalid, true), len(invalid)
@@ -263,59 +278,12 @@ func FormatCycleNumbers(cycles ...int64) string {
 	}
 }
 
-// // print invalid payouts
-// func PrintInvalidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
-// 	printPayouts(OnlyInvalidPayouts(payouts), fmt.Sprintf("Invalid - %s", FormatCycleNumbers(cycles)), false)
-// }
-
-// // print payable payouts
-// func PrintValidPayoutRecipes(payouts []common.PayoutRecipe, cycles []int64) {
-// 	printPayouts(OnlyValidPayouts(payouts), fmt.Sprintf("Valid - %s", FormatCycleNumbers(cycles)), true)
-// }
-
 func IsTty() bool {
 	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
 		return true
 	} else {
 		return false
 	}
-}
-
-func PrintReports(payouts []common.PayoutReport, header string, printTotals bool, autoMergeRecords bool) {
-	if len(payouts) == 0 {
-		return
-	}
-	payoutTable := table.NewWriter()
-	payoutTable.SetStyle(table.StyleLight)
-	payoutTable.SetColumnConfigs([]table.ColumnConfig{{Number: 1, Align: text.AlignLeft}, {Number: 2, Align: text.AlignLeft}})
-	payoutTable.SetOutputMirror(os.Stdout)
-	payoutTable.SetTitle(header)
-	payoutTable.Style().Title.Align = text.AlignCenter
-
-	headers := payouts[0].GetTableHeaders()
-	data := lo.Map(payouts, func(p common.PayoutReport, _ int) []string {
-		return p.ToTableRowData()
-	})
-	validIndexes := getNonEmptyIndexes(headers, data)
-
-	payoutTable.AppendHeader(columnsAsInterfaces(getColumnsByIndexes(headers, validIndexes)), table.RowConfig{AutoMerge: true})
-	for _, payout := range data {
-		row := replaceZeroFields(payout, "-", false)
-		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
-	}
-	if printTotals {
-		payoutTable.AppendSeparator()
-		rewardsTotals, countOfRwards := common.GetFilteredReportsTotals(payouts, enums.PAYOUT_KIND_DELEGATOR_REWARD)
-		totalsRewards := replaceZeroFields(rewardsTotals, fmt.Sprintf("%s (%d)", DELEGATOR_REWARDS, countOfRwards), true)
-		totalsRewards = replaceZeroFields(totalsRewards, "-", false)
-		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
-
-		payoutTable.AppendSeparator()
-		totals := replaceZeroFields(common.GetReportsTotals(payouts), fmt.Sprintf("%s (%d)", TO_PAY, len(payouts)), true)
-		totals = replaceZeroFields(totals, "-", false)
-		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
-	}
-	payoutTable.Render()
 }
 
 func PrintCycleSummary(summary common.PayoutSummary, header string) {

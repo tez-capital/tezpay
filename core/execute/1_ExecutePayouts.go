@@ -31,7 +31,7 @@ func druRunExecutePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, 
 	logger.Info("waiting for confirmation", "op_reference", utils.GetOpReference(opExecCtx.GetOpHash(), ctx.GetConfiguration().Network.Explorer), "op_hash", opExecCtx.GetOpHash(), "phase", "batch_waiting_for_confirmation")
 	time.Sleep(4 * time.Second)
 	logger.Info("batch successful", "phase", "batch_execution_finished")
-	return common.NewSuccessBatchResult(batch, tezos.ZeroOpHash)
+	return common.NewSuccessBatchResult(batch, tezos.NewOpHash([]byte{0x01}))
 }
 
 func executePayoutBatch(ctx *PayoutExecutionContext, logger *slog.Logger, batchId string, batch common.RecipeBatch) *common.BatchResult {

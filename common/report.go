@@ -1,6 +1,7 @@
 package common
 
 import (
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -51,6 +52,14 @@ func (pr *PayoutReport) GetTxFee() int64 {
 }
 
 func (pr *PayoutReport) ToTableRowData() []string {
+	note := pr.Note
+	if pr.OpHash != tezos.ZeroOpHash {
+		note = pr.OpHash.String()
+		if note != "" {
+			note = note + "; " + strings.TrimSpace(pr.Note)
+		}
+	}
+
 	return []string{
 		ShortenAddress(pr.Delegator),
 		ShortenAddress(pr.Recipient),
@@ -62,8 +71,7 @@ func (pr *PayoutReport) ToTableRowData() []string {
 		FloatToPercentage(pr.FeeRate),
 		MutezToTezS(pr.Fee.Int64()),
 		MutezToTezS(pr.GetTxFee()),
-		pr.OpHash.String(),
-		pr.Note,
+		note,
 	}
 }
 
@@ -98,12 +106,12 @@ func (pr *PayoutReport) GetTableHeaders() []string {
 		"Fee Rate",
 		"Fee",
 		"Transaction Fee",
-		"Op Hash",
+		// "Op Hash",
 		"Note",
 	}
 }
 
-func GetReportsTotals(reports []PayoutReport) []string {
+func GetReportsTotals(reports []PayoutReport, withFee bool) []string {
 	var totalAmount, totalFee, totalTxFee int64
 	for _, report := range reports {
 		if report.TxKind == enums.PAYOUT_TX_KIND_TEZ {
@@ -112,6 +120,11 @@ func GetReportsTotals(reports []PayoutReport) []string {
 		totalFee += report.Fee.Int64()
 		totalTxFee += report.GetTxFee()
 	}
+	fee := ""
+	if withFee {
+		fee = MutezToTezS(totalFee)
+	}
+
 	return []string{
 		"",
 		"",
@@ -121,7 +134,7 @@ func GetReportsTotals(reports []PayoutReport) []string {
 		"",
 		MutezToTezS(totalAmount),
 		"",
-		MutezToTezS(totalFee),
+		fee,
 		MutezToTezS(totalTxFee),
 		"",
 		"",
@@ -129,11 +142,11 @@ func GetReportsTotals(reports []PayoutReport) []string {
 }
 
 // returns total amounts and count of filtered reports
-func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind) ([]string, int) {
+func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind, withFee bool) ([]string, int) {
 	r := lo.Filter(reports, func(report PayoutReport, _ int) bool {
 		return report.Kind == kind
 	})
-	return GetReportsTotals(r), len(r)
+	return GetReportsTotals(r, withFee), len(r)
 }
 
 type PayoutCycleReport struct {
