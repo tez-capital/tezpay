@@ -104,7 +104,7 @@ var payCmd = &cobra.Command{
 				constants.LOG_FIELD_INVALID_PAYOUTS, preparationResult.InvalidPayouts,
 			)
 		default:
-			PrintPreparationResults(preparationResult, cycles, &PrintPreparationResultsOptions{AutoMergeRecords: true})
+			utils.PrintPreparePayoutsResult(preparationResult, &utils.PrintPreparePayoutsResultOptions{AutoMergeRecords: true})
 		}
 
 		if len(preparationResult.ValidPayouts) == 0 {

@@ -12,6 +12,7 @@ import (
 	reporter_engines "github.com/tez-capital/tezpay/engines/reporter"
 	"github.com/tez-capital/tezpay/extension"
 	"github.com/tez-capital/tezpay/state"
+	"github.com/tez-capital/tezpay/utils"
 )
 
 var generatePayoutsCmd = &cobra.Command{
@@ -66,7 +67,7 @@ var generatePayoutsCmd = &cobra.Command{
 					SkipBalanceCheck: skipBalanceCheck,
 				})
 			}, EXIT_OPERTION_FAILED)
-			PrintPreparationResults(preparationResult, cycles, &PrintPreparationResultsOptions{AutoMergeRecords: true})
+			utils.PrintPreparePayoutsResult(preparationResult, &utils.PrintPreparePayoutsResultOptions{AutoMergeRecords: true})
 		}
 	},
 }

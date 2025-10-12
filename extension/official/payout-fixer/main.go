@@ -59,7 +59,7 @@ func main() {
 
 	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_AFTER_PAYOUTS_PREPARED), func(ctx context.Context, params common.ExtensionHookData[prepare.AfterPayoutsPreapered]) (any, *rpc.Error) {
 		data := params.Data
-		newValidPayments := data.ValidPayouts
+		newValidPayments := data.Payouts
 		for _, report := range data.ReportsOfPastSuccesfulPayouts {
 			for _, recipe := range data.Recipes {
 				if recipe.Kind == enums.PAYOUT_KIND_DONATION {
@@ -76,7 +76,7 @@ func main() {
 			}
 		}
 
-		data.ValidPayouts = newValidPayments
+		data.Payouts = newValidPayments
 		return data, nil
 	})
 

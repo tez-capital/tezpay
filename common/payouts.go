@@ -53,16 +53,23 @@ type PayoutRecipe struct {
 	Amount           tezos.Z                      `json:"amount,omitempty"`
 	FeeRate          float64                      `json:"fee_rate,omitempty"`
 	Fee              tezos.Z                      `json:"fee,omitempty"`
-	OpLimits         *OpLimits                    `json:"op_limits,omitempty"`
 	Note             string                       `json:"note,omitempty"`
 	IsValid          bool                         `json:"valid,omitempty"`
+}
+
+func (candidate PayoutRecipe) GetKind() enums.EPayoutKind {
+	return candidate.Kind
+}
+
+func (candidate PayoutRecipe) GetDelegatedBalance() tezos.Z {
+	return candidate.DelegatedBalance
 }
 
 func (candidate *PayoutRecipe) GetDestination() tezos.Address {
 	return candidate.Recipient
 }
 
-func (candidate *PayoutRecipe) GetTxKind() enums.EPayoutTransactionKind {
+func (candidate PayoutRecipe) GetTxKind() enums.EPayoutTransactionKind {
 	return candidate.TxKind
 }
 
@@ -74,8 +81,12 @@ func (candidate *PayoutRecipe) GetFAContract() tezos.Address {
 	return candidate.FAContract
 }
 
-func (candidate *PayoutRecipe) GetAmount() tezos.Z {
+func (candidate PayoutRecipe) GetAmount() tezos.Z {
 	return candidate.Amount
+}
+
+func (candidate PayoutRecipe) GetFee() tezos.Z {
+	return candidate.Fee
 }
 
 type PayoutRecipeIdentifier struct {
@@ -122,11 +133,6 @@ func (recipe PayoutRecipe) AsAccumulated() *AccumulatedPayoutRecipe {
 }
 
 func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
-	txFee := int64(0)
-	if pr.OpLimits != nil {
-		txFee = pr.OpLimits.TransactionFee
-	}
-
 	return PayoutReport{
 		Id:               pr.GetShortIdentifier(),
 		Baker:            pr.Baker,
@@ -145,17 +151,14 @@ func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 		Amount:           pr.Amount,
 		FeeRate:          pr.FeeRate,
 		Fee:              pr.Fee,
-		TransactionFee:   txFee,
+		TransactionFee:   0,
 		OpHash:           tezos.ZeroOpHash,
 		IsSuccess:        false,
 		Note:             pr.Note,
 	}
 }
 
-func (pr *PayoutRecipe) GetTransactionFee() int64 {
-	if pr.OpLimits != nil {
-		return pr.OpLimits.TransactionFee
-	}
+func (pr PayoutRecipe) GetTxFee() int64 {
 	return 0
 }
 
@@ -170,7 +173,7 @@ func (pr *PayoutRecipe) ToTableRowData() []string {
 		FormatTokenAmount(pr.TxKind, pr.Amount.Int64(), pr.FAAlias, pr.FADecimals),
 		FloatToPercentage(pr.FeeRate),
 		MutezToTezS(pr.Fee.Int64()),
-		MutezToTezS(pr.GetTransactionFee()),
+		MutezToTezS(pr.GetTxFee()),
 		pr.Note,
 	}
 }
@@ -191,17 +194,32 @@ func (pr *PayoutRecipe) GetTableHeaders() []string {
 	}
 }
 
-func GetRecipesTotals(recipes []PayoutRecipe) []string {
+// returns totals and number of filtered recipes
+
+type foo interface {
+	GetKind() enums.EPayoutKind
+	GetTxKind() enums.EPayoutTransactionKind
+	GetAmount() tezos.Z
+	GetFee() tezos.Z
+	GetTxFee() int64
+}
+
+func GetRecipesTotals[T foo](recipes []T, withFee bool) []string {
 	totalAmount := int64(0)
 	totalFee := int64(0)
 	totalTx := int64(0)
 	for _, recipe := range recipes {
-		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ {
-			totalAmount += recipe.Amount.Int64()
+		if recipe.GetTxKind() == enums.PAYOUT_TX_KIND_TEZ {
+			totalAmount += recipe.GetAmount().Int64()
 		}
-		totalFee += recipe.Fee.Int64()
-		totalTx += recipe.GetTransactionFee()
+		totalFee += recipe.GetFee().Int64()
+		totalTx += recipe.GetTxFee()
 	}
+	fee := ""
+	if withFee {
+		fee = MutezToTezS(totalFee)
+	}
+
 	return []string{
 		"",
 		"",
@@ -211,23 +229,46 @@ func GetRecipesTotals(recipes []PayoutRecipe) []string {
 		"",
 		MutezToTezS(totalAmount),
 		"",
-		MutezToTezS(totalFee),
+		fee,
 		MutezToTezS(totalTx),
 		"",
 	}
 }
 
-// returns totals and number of filtered recipes
-func GetRecipesFilteredTotals(recipes []PayoutRecipe, kind enums.EPayoutKind) ([]string, int) {
-	r := lo.Filter(recipes, func(recipe PayoutRecipe, _ int) bool {
-		return recipe.Kind == kind
+func GetRecipesFilteredTotals[T foo](recipes []T, kind enums.EPayoutKind, withFee bool) ([]string, int) {
+	r := lo.Filter(recipes, func(recipe T, _ int) bool {
+		return recipe.GetKind() == kind
 	})
-	return GetRecipesTotals(r), len(r)
+	return GetRecipesTotals(r, withFee), len(r)
 }
 
 type AccumulatedPayoutRecipe struct {
 	PayoutRecipe
+	OpLimits    *OpLimits       `json:"op_limits,omitempty"`
 	Accumulated []*PayoutRecipe `json:"-"`
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetTxFee() int64 {
+	if recipe.OpLimits != nil {
+		return recipe.OpLimits.TransactionFee
+	}
+	return 0
+}
+
+func (recipe *AccumulatedPayoutRecipe) ToTableRowData() []string {
+	return []string{
+		ShortenAddress(recipe.Delegator),
+		ShortenAddress(recipe.Recipient),
+		MutezToTezS(recipe.DelegatedBalance.Int64()),
+		string(recipe.Kind),
+		ShortenAddress(recipe.FAContract),
+		ToStringEmptyIfZero(recipe.FATokenId.Int64()),
+		FormatTokenAmount(recipe.TxKind, recipe.Amount.Int64(), recipe.FAAlias, recipe.FADecimals),
+		FloatToPercentage(recipe.FeeRate),
+		MutezToTezS(recipe.Fee.Int64()),
+		MutezToTezS(recipe.GetTxFee()),
+		recipe.Note,
+	}
 }
 
 func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*AccumulatedPayoutRecipe, error) {
@@ -252,24 +293,11 @@ func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*Accumula
 	if recipe.IsValid != otherRecipe.IsValid {
 		return nil, errors.New("cannot add different validities")
 	}
-	if (recipe.OpLimits == nil || otherRecipe.OpLimits == nil) && recipe.IsValid {
-		return nil, errors.New("cannot add valid recipes with missing op limits")
-	}
 
 	recipe.DelegatedBalance = recipe.DelegatedBalance.Add(otherRecipe.DelegatedBalance).Div64(2)
 	recipe.StakedBalance = recipe.StakedBalance.Add(otherRecipe.StakedBalance).Div64(2)
 	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
 	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
-	if recipe.IsValid { // only accumulate op limits if valid recipes
-		recipe.OpLimits = &OpLimits{
-			StorageBurn:             recipe.OpLimits.StorageBurn + otherRecipe.OpLimits.StorageBurn,
-			AllocationBurn:          recipe.OpLimits.AllocationBurn + otherRecipe.OpLimits.AllocationBurn,
-			TransactionFee:          recipe.OpLimits.TransactionFee + otherRecipe.OpLimits.TransactionFee,
-			StorageLimit:            recipe.OpLimits.StorageLimit + otherRecipe.OpLimits.StorageLimit,
-			GasLimit:                recipe.OpLimits.GasLimit + otherRecipe.OpLimits.GasLimit,
-			DeserializationGasLimit: recipe.OpLimits.DeserializationGasLimit + otherRecipe.OpLimits.DeserializationGasLimit,
-		}
-	}
 
 	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
 	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
@@ -277,16 +305,16 @@ func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*Accumula
 	return recipe, nil
 }
 
-func (pr *AccumulatedPayoutRecipe) GetAccumulatedIdentifier() string {
-	return fmt.Sprintf("%s #%d", pr.GetShortIdentifier(), pr.Cycle)
+func (recipe *AccumulatedPayoutRecipe) GetAccumulatedIdentifier() string {
+	return fmt.Sprintf("%s #%d", recipe.GetShortIdentifier(), recipe.Cycle)
 }
 
-func (pr *AccumulatedPayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
-	if pr.Kind != enums.PAYOUT_KIND_ACCUMULATED {
+func (recipe *AccumulatedPayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
+	if recipe.Kind != enums.PAYOUT_KIND_ACCUMULATED {
 		return false, "", 0
 	}
-	if len(pr.Note) > 0 {
-		_, err := fmt.Sscanf(pr.Note, "%s_%d", &id, &cycle)
+	if len(recipe.Note) > 0 {
+		_, err := fmt.Sscanf(recipe.Note, "%s_%d", &id, &cycle)
 		if err == nil {
 			return true, id, cycle
 		}
@@ -295,24 +323,24 @@ func (pr *AccumulatedPayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated
 	return false, "", 0
 }
 
-func (pr *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {
-	report := pr.PayoutRecipe.ToPayoutReport()
-	report.Accumulated = lo.Map(pr.Accumulated, func(p *PayoutRecipe, _ int) *PayoutReport {
+func (recipe *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {
+	report := recipe.PayoutRecipe.ToPayoutReport()
+	report.Accumulated = lo.Map(recipe.Accumulated, func(p *PayoutRecipe, _ int) *PayoutReport {
 		accumulated := p.ToPayoutReport()
 		return &accumulated
 	})
 	return report
 }
 
-func (pr *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {
-	if pr.IsValid {
+func (recipe *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {
+	if recipe.IsValid {
 		panic("THIS SHOULD NEVER HAPPEN: cannot disperse valid accumulated payout")
 	}
 
-	return lo.Map(pr.Accumulated, func(r *PayoutRecipe, _ int) PayoutRecipe {
+	return lo.Map(recipe.Accumulated, func(r *PayoutRecipe, _ int) PayoutRecipe {
 		r.IsValid = false
-		r.Note = pr.Note
-		r.Fee = r.Fee.Add(pr.Amount) // collect the whole bonds amount as fee if invalid
+		r.Note = recipe.Note
+		r.Fee = r.Fee.Add(recipe.Amount) // collect the whole bonds amount as fee if invalid
 		r.Amount = tezos.Zero
 		return *r
 	})
@@ -320,8 +348,8 @@ func (pr *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {
 
 // AsRecipe returns the PayoutRecipe representation of the AccumulatedPayoutRecipe.
 // This is useful only for printing and reporting purposes. Do not use it for execution.
-func (pr *AccumulatedPayoutRecipe) AsRecipe() PayoutRecipe {
-	return pr.PayoutRecipe
+func (recipe *AccumulatedPayoutRecipe) AsRecipe() PayoutRecipe {
+	return recipe.PayoutRecipe
 }
 
 type CyclePayoutSummary struct {

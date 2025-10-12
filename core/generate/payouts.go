@@ -92,7 +92,6 @@ func (candidate *PayoutCandidateWithBondAmountAndFee) ToValidationContext(ctx *P
 func (payout *PayoutCandidateWithBondAmountAndFee) ToPayoutRecipe(baker tezos.Address, cycle int64, kind enums.EPayoutKind) common.PayoutRecipe {
 	note := ""
 	if payout.IsInvalid {
-		kind = enums.PAYOUT_KIND_INVALID
 		note = string(payout.InvalidBecause)
 	}
 
@@ -112,7 +111,6 @@ func (payout *PayoutCandidateWithBondAmountAndFee) ToPayoutRecipe(baker tezos.Ad
 		Amount:           payout.BondsAmount,
 		FeeRate:          payout.FeeRate,
 		Fee:              payout.Fee,
-		OpLimits:         nil,
 		Note:             note,
 		IsValid:          !payout.IsInvalid,
 	}

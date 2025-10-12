@@ -34,7 +34,7 @@ type PayoutReport struct {
 	Accumulated []*PayoutReport `json:"-" csv:"-"` // just for internal linking of accumulated payouts
 }
 
-func (pr *PayoutReport) GetTransactionFee() int64 {
+func (pr *PayoutReport) GetTxFee() int64 {
 	return pr.TransactionFee
 }
 
@@ -49,7 +49,7 @@ func (pr *PayoutReport) ToTableRowData() []string {
 		FormatTokenAmount(pr.TxKind, pr.Amount.Int64(), pr.FAAlias, pr.FADecimals),
 		FloatToPercentage(pr.FeeRate),
 		MutezToTezS(pr.Fee.Int64()),
-		MutezToTezS(pr.GetTransactionFee()),
+		MutezToTezS(pr.GetTxFee()),
 		pr.OpHash.String(),
 		pr.Note,
 	}
@@ -98,7 +98,7 @@ func GetReportsTotals(reports []PayoutReport) []string {
 			totalAmount += report.Amount.Int64()
 		}
 		totalFee += report.Fee.Int64()
-		totalTxFee += report.GetTransactionFee()
+		totalTxFee += report.GetTxFee()
 	}
 	return []string{
 		"",

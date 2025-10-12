@@ -31,7 +31,7 @@ func ValidatePreparedPayouts(ctx *PayoutPrepareContext, options *common.PrepareP
 
 		utils.AssertZAmountPositiveOrZero(recipe.Amount)
 		if !result.IsValid {
-			result.Fee = result.Fee.Add(result.Amount).Add64(result.GetTransactionFee())
+			result.Fee = result.Fee.Add(result.Amount).Add64(result.GetTxFee())
 			result.Amount = tezos.Zero
 			result.OpLimits = nil
 		}
