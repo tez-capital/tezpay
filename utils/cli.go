@@ -17,8 +17,8 @@ import (
 
 const (
 	DELEGATOR_REWARDS = "Delegator Rewards"
-	NOT_PAID          = "Not Paid"
-	TO_TRANSFER       = "To Transfer"
+	NOT_PAID          = "Invalid Not Paid"
+	TO_PAY            = "To Pay"
 )
 
 func getColumnsByIndexes[T any](row []T, indexes []int) []T {
@@ -154,7 +154,7 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 	mainHeader := fmt.Sprintf("Payouts - %s", cyclesAsString)
 	alreadyPaidHeader := fmt.Sprintf("Already Paid - %s", cyclesAsString)
 	invalidHeader := fmt.Sprintf("Invalid - %s", cyclesAsString)
-	validHeader := fmt.Sprintf("To Transfer - %s", cyclesAsString)
+	validHeader := fmt.Sprintf("To Pay - %s", cyclesAsString)
 
 	payoutTable := table.NewWriter()
 	payoutTable.SetStyle(table.StyleLight)
@@ -226,7 +226,7 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 	payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
 
 	payoutTable.AppendSeparator()
-	totals := replaceZeroFields(common.GetRecipesTotals(payouts, false), fmt.Sprintf("%s (%d)", TO_TRANSFER, len(payouts)), true)
+	totals := replaceZeroFields(common.GetRecipesTotals(payouts, false), fmt.Sprintf("%s (%d)", TO_PAY, len(payouts)), true)
 	totals = replaceZeroFields(totals, "-", false)
 	payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
 
@@ -308,7 +308,7 @@ func PrintReports(payouts []common.PayoutReport, header string, printTotals bool
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totalsRewards, validIndexes)), table.RowConfig{AutoMerge: true})
 
 		payoutTable.AppendSeparator()
-		totals := replaceZeroFields(common.GetReportsTotals(payouts), fmt.Sprintf("%s (%d)", TO_TRANSFER, len(payouts)), true)
+		totals := replaceZeroFields(common.GetReportsTotals(payouts), fmt.Sprintf("%s (%d)", TO_PAY, len(payouts)), true)
 		totals = replaceZeroFields(totals, "-", false)
 		payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(totals, validIndexes)), table.RowConfig{AutoMerge: true})
 	}
