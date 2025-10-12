@@ -55,9 +55,6 @@ func (engine *FsReporter) GetExistingReports(cycle int64) ([]common.PayoutReport
 }
 
 func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
-	payouts = append(payouts, lo.Flatten(lo.Map(payouts, func(pr common.PayoutReport, _ int) []common.PayoutReport {
-		return lo.Map(pr.Accumulated, func(p *common.PayoutReport, _ int) common.PayoutReport { return *p })
-	}))...)
 	if len(payouts) == 0 {
 		return nil
 	}

@@ -74,7 +74,7 @@ func GenerateHookSampleData() {
 		Payouts: []common.PayoutRecipe{
 			recipe,
 		},
-		ReportsOfPastSuccesfulPayouts: common.NewSuccessBatchResult([]*common.AccumulatedPayoutRecipe{recipe.AsAccumulated()}, tezos.ZeroOpHash).ToReports(),
+		ReportsOfPastSuccesfulPayouts: common.NewSuccessBatchResult([]*common.AccumulatedPayoutRecipe{recipe.AsAccumulated()}, tezos.ZeroOpHash).ToIndividualReports(),
 	}
 
 	result := "\n"

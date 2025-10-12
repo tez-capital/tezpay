@@ -299,28 +299,9 @@ func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*Accumula
 	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
 	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
 
-	otherRecipe.Kind = enums.PAYOUT_KIND_ACCUMULATED
 	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
 	recipe.Accumulated = append(recipe.Accumulated, otherRecipe)
 	return recipe, nil
-}
-
-func (recipe *AccumulatedPayoutRecipe) GetAccumulatedIdentifier() string {
-	return fmt.Sprintf("%s #%d", recipe.GetShortIdentifier(), recipe.Cycle)
-}
-
-func (recipe *AccumulatedPayoutRecipe) GetAccumulatedPayoutDetails() (wasAccumulated bool, id string, cycle int64) {
-	if recipe.Kind != enums.PAYOUT_KIND_ACCUMULATED {
-		return false, "", 0
-	}
-	if len(recipe.Note) > 0 {
-		_, err := fmt.Sscanf(recipe.Note, "%s_%d", &id, &cycle)
-		if err == nil {
-			return true, id, cycle
-		}
-	}
-
-	return false, "", 0
 }
 
 func (recipe *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {

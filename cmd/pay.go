@@ -67,7 +67,8 @@ var payCmd = &cobra.Command{
 				cycle = lastCompletedCycle + cycle
 			}
 
-			cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycle, payoutPeriod)
+			var isEndOfThePeriod bool
+			cycles, isEndOfThePeriod = getCyclesInCompletedPeriod(cycle, payoutPeriod)
 			if !isEndOfThePeriod {
 				slog.Error("cycle is not at the end of the specified payout period", "cycle", cycle, "payout_period", payoutPeriod)
 				os.Exit(EXIT_OPERTION_FAILED)

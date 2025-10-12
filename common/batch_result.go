@@ -34,24 +34,26 @@ func NewSuccessBatchResult(payouts []*AccumulatedPayoutRecipe, opHash tezos.OpHa
 	}
 }
 
-func (br *BatchResult) ToReports() []PayoutReport {
-	result := make([]PayoutReport, len(br.Payouts))
-	for i, payout := range br.Payouts {
-		note := payout.Note
-		if !br.IsSuccess {
-			note = br.Err.Error()
+func (br *BatchResult) ToIndividualReports() []PayoutReport {
+	result := make([]PayoutReport, 0, len(br.Payouts))
+	for _, payout := range br.Payouts {
+		for _, acc := range payout.Accumulated {
+			note := acc.Note
+			if !br.IsSuccess {
+				note = br.Err.Error()
+			}
+			report := acc.ToPayoutReport()
+			report.OpHash = br.OpHash
+			report.IsSuccess = br.IsSuccess
+			report.Note = note
+			result = append(result, report)
 		}
-		payout.Note = note
-
-		result[i] = payout.ToPayoutReport()
-		result[i].OpHash = br.OpHash
-		result[i].IsSuccess = br.IsSuccess
 	}
 	return result
 }
 
 type BatchResults []BatchResult
 
-func (brs BatchResults) ToReports() []PayoutReport {
-	return lo.Flatten(lo.Map(brs, func(br BatchResult, _ int) []PayoutReport { return br.ToReports() }))
+func (brs BatchResults) ToIndividualReports() []PayoutReport {
+	return lo.Flatten(lo.Map(brs, func(br BatchResult, _ int) []PayoutReport { return br.ToIndividualReports() }))
 }

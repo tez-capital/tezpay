@@ -34,6 +34,18 @@ type PayoutReport struct {
 	Accumulated []*PayoutReport `json:"-" csv:"-"` // just for internal linking of accumulated payouts
 }
 
+func (pr PayoutReport) GetAmount() tezos.Z {
+	return pr.Amount
+}
+
+func (pr PayoutReport) GetDelegatedBalance() tezos.Z {
+	return pr.DelegatedBalance
+}
+
+func (pr PayoutReport) GetKind() enums.EPayoutKind {
+	return pr.Kind
+}
+
 func (pr *PayoutReport) GetTxFee() int64 {
 	return pr.TransactionFee
 }

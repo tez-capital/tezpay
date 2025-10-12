@@ -55,7 +55,7 @@ func getNonEmptyIndexes[T comparable](headers []string, data [][]T) []int {
 	var zero T
 	return lo.Filter(lo.Range(len(headers)), func(c int, i int) bool {
 		return lo.SomeBy(data, func(d []T) bool {
-			return d[i] != zero
+			return len(d) > i && d[i] != zero
 		})
 	})
 }
@@ -163,7 +163,8 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 	payoutTable.SetTitle(mainHeader)
 	payoutTable.Style().Title.Align = text.AlignCenter
 
-	headers := payouts[0].GetTableHeaders()
+	var emptyReport common.PayoutReport
+	headers := emptyReport.GetTableHeaders()
 
 	data := lo.Map(payouts, func(p *common.AccumulatedPayoutRecipe, _ int) []string {
 		return p.ToTableRowData()
@@ -189,17 +190,19 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 			payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 		}
 	} else {
-		payoutTable.AppendRow(table.Row{"No invalid payouts"}, table.RowConfig{AutoMerge: true})
+		payoutTable.AppendRow(fillRow("No invalid payouts", headers), table.RowConfig{AutoMerge: true})
 	}
 
 	// already paid
-	if len(preparationResult.ReportsOfPastSuccessfulPayouts) > 0 {
+	reportsOfPastSuccessfulPayouts := preparationResult.ReportsOfPastSuccessfulPayouts
+	sortPayouts(reportsOfPastSuccessfulPayouts)
+	if len(reportsOfPastSuccessfulPayouts) > 0 {
 		payoutTable.AppendSeparator()
 		payoutTable.AppendRow(fillRow(alreadyPaidHeader, headers), table.RowConfig{AutoMerge: true})
 		payoutTable.AppendSeparator()
 		payoutTable.AppendRow(columnsAsInterfaces(headers), table.RowConfig{AutoMerge: true})
 		payoutTable.AppendSeparator()
-		for _, rep := range preparationResult.ReportsOfPastSuccessfulPayouts {
+		for _, rep := range reportsOfPastSuccessfulPayouts {
 			row := replaceZeroFields(rep.ToTableRowData(), "-", false)
 			payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 		}
@@ -216,7 +219,7 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 			payoutTable.AppendRow(columnsAsInterfaces(getColumnsByIndexes(row, validIndexes)), table.RowConfig{AutoMerge: false})
 		}
 	} else {
-		payoutTable.AppendRow(table.Row{"No payouts to be made"}, table.RowConfig{AutoMerge: true})
+		payoutTable.AppendRow(fillRow("No payouts to be made", headers), table.RowConfig{AutoMerge: true})
 	}
 
 	payoutTable.AppendSeparator()
