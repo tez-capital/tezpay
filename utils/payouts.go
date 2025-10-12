@@ -198,7 +198,6 @@ func GeneratePayoutSummary(blueprints []*common.CyclePayoutBlueprint, reports []
 		cycle := blueprint.Cycle
 
 		cycleReports := FilterPayoutsByCycle(allReports, cycle)
-
 		cycleSummary := common.CyclePayoutSummary{
 			OwnStakedBalance:         blueprint.OwnStakedBalance,
 			OwnDelegatedBalance:      blueprint.OwnDelegatedBalance,
@@ -220,12 +219,14 @@ func GeneratePayoutSummary(blueprints []*common.CyclePayoutBlueprint, reports []
 		for _, report := range cycleReports {
 			cycleDelegators[report.Delegator.String()] = struct{}{}
 			if report.IsSuccess {
-				cycleSummary.DistributedRewards.Add(report.Amount)
-				cycleSummary.TransactionFeesPaid.Add64(report.TransactionFee)
+				cycleSummary.DistributedRewards = cycleSummary.DistributedRewards.Add(report.Amount)
+				cycleSummary.TransactionFeesPaid = cycleSummary.TransactionFeesPaid.Add64(report.TxFee)
 				cyclePaidDelegators[report.Delegator.String()] = struct{}{}
+			} else {
+				cycleSummary.NotDistributedRewards = cycleSummary.NotDistributedRewards.Add(report.Amount)
 			}
-			cycleSummary.FeeIncome.Add(report.Fee)
-			cycleSummary.IncomeTotal.Add(report.Fee)
+			cycleSummary.FeeIncome = cycleSummary.FeeIncome.Add(report.Fee)
+			cycleSummary.IncomeTotal = cycleSummary.IncomeTotal.Add(report.Fee)
 		}
 
 		cycleSummary.Delegators = len(cycleDelegators)

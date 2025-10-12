@@ -43,6 +43,8 @@ const (
 	// periodic payouts
 	MINIMUM_PAYOUT_PERIOD_CYCLES = int64(1)
 	MAXIMUM_PAYOUT_PERIOD_CYCLES = int64(365)
+
+	DRY_RUN_NOTE = "[DRY RUN]"
 )
 
 var (

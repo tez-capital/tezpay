@@ -18,12 +18,15 @@ var statisticsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		n, _ := cmd.Flags().GetInt(CYCLES_FLAG)
 		lastCycle, _ := cmd.Flags().GetInt64(LAST_CYCLE_FLAG)
+		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
 		config, collector, _, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		if lastCycle == 0 {
 			lastCycle = assertRunWithResult(collector.GetLastCompletedCycle, EXIT_OPERTION_FAILED)
 		}
-		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{})
+		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
+			DryRun: isDryRun,
+		})
 
 		var total common.PayoutSummary
 		ok := 0
@@ -34,7 +37,7 @@ var statisticsCmd = &cobra.Command{
 				slog.Warn("failed to read report", "cycle", cycle, "error", err.Error())
 				continue
 			}
-			total = *total.AddCycleSummary(cycle, summary)
+			total.AddCycleSummary(cycle, summary)
 			ok++
 		}
 
@@ -55,5 +58,6 @@ var statisticsCmd = &cobra.Command{
 func init() {
 	statisticsCmd.Flags().Int(CYCLES_FLAG, 10, "number of cycles to collect statistics from")
 	statisticsCmd.Flags().Int64(LAST_CYCLE_FLAG, 0, "last cycle to collect statistics from (has priority over --cycles)")
+	statisticsCmd.Flags().Bool(DRY_RUN_FLAG, false, "Performs all actions except sending transactions. Reports are stored in 'reports/dry' folder")
 	RootCmd.AddCommand(statisticsCmd)
 }

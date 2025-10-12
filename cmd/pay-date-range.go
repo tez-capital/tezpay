@@ -105,7 +105,7 @@ var payDateRangeCmd = &cobra.Command{
 		if !confirmed {
 			msg := "Do you want to pay out above VALID payouts?"
 			if isDryRun {
-				msg = msg + " (dry-run)"
+				msg = msg + " " + constants.DRY_RUN_NOTE
 			}
 			assertRequireConfirmation(msg)
 		}

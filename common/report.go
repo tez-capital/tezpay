@@ -27,7 +27,7 @@ type PayoutReport struct {
 	Amount           tezos.Z                      `json:"amount,omitempty" csv:"amount"`
 	FeeRate          float64                      `json:"fee_rate,omitempty" csv:"fee_rate"`
 	Fee              tezos.Z                      `json:"fee,omitempty" csv:"fee"`
-	TransactionFee   int64                        `json:"tx_fee,omitempty" csv:"tx_fee"`
+	TxFee            int64                        `json:"tx_fee,omitempty" csv:"tx_fee"`
 	OpHash           tezos.OpHash                 `json:"op_hash,omitempty" csv:"op_hash"`
 	IsSuccess        bool                         `json:"success" csv:"success"`
 	Note             string                       `json:"note,omitempty" csv:"note"`
@@ -48,7 +48,7 @@ func (pr PayoutReport) GetKind() enums.EPayoutKind {
 }
 
 func (pr *PayoutReport) GetTxFee() int64 {
-	return pr.TransactionFee
+	return pr.TxFee
 }
 
 func (pr *PayoutReport) ToTableRowData() []string {

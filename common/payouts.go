@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"time"
 
@@ -151,7 +150,7 @@ func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
 		Amount:           pr.Amount,
 		FeeRate:          pr.FeeRate,
 		Fee:              pr.Fee,
-		TransactionFee:   0,
+		TxFee:            0,
 		OpHash:           tezos.ZeroOpHash,
 		IsSuccess:        false,
 		Note:             pr.Note,
@@ -343,6 +342,7 @@ type CyclePayoutSummary struct {
 	EarnedFees               tezos.Z   `json:"cycle_fees"`
 	EarnedRewards            tezos.Z   `json:"cycle_rewards"`
 	DistributedRewards       tezos.Z   `json:"distributed_rewards"`
+	NotDistributedRewards    tezos.Z   `json:"not_distributed_rewards"`
 	BondIncome               tezos.Z   `json:"bond_income"`
 	FeeIncome                tezos.Z   `json:"fee_income"`
 	IncomeTotal              tezos.Z   `json:"total_income"`
@@ -367,39 +367,32 @@ func (summary *PayoutSummary) GetTotalDelegatedBalance() tezos.Z {
 	return summary.OwnDelegatedBalance.Add(summary.ExternalDelegatedBalance)
 }
 
-func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutSummary) *PayoutSummary {
+func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutSummary) {
 	if summary.CycleSummaries == nil {
 		summary.CycleSummaries = make(map[int64]CyclePayoutSummary)
 	}
 	if _, ok := summary.CycleSummaries[cycle]; ok {
 		panic("cannot add the same cycle summary twice")
 	}
-	cycles := append(summary.Cycles, cycle)
-	cycles = lo.Uniq(cycles)
+	summary.Cycles = append(summary.Cycles, cycle)
+	slices.Sort(summary.Cycles)
+	summary.CycleSummaries[cycle] = *another
 
-	cycleSummaries := maps.Clone(summary.CycleSummaries)
-	cycleSummaries[cycle] = *another
-
-	return &PayoutSummary{
-		Cycles: cycles,
-		CyclePayoutSummary: CyclePayoutSummary{
-			OwnStakedBalance:         summary.OwnStakedBalance.Add(another.OwnStakedBalance),
-			OwnDelegatedBalance:      summary.OwnDelegatedBalance.Add(another.OwnDelegatedBalance),
-			ExternalStakedBalance:    summary.ExternalStakedBalance.Add(another.ExternalStakedBalance),
-			ExternalDelegatedBalance: summary.ExternalDelegatedBalance.Add(another.ExternalDelegatedBalance),
-			EarnedFees:               summary.EarnedFees.Add(another.EarnedFees),
-			EarnedRewards:            summary.EarnedRewards.Add(another.EarnedRewards),
-			DistributedRewards:       summary.DistributedRewards.Add(another.DistributedRewards),
-			BondIncome:               summary.BondIncome.Add(another.BondIncome),
-			FeeIncome:                summary.FeeIncome.Add(another.FeeIncome),
-			IncomeTotal:              summary.IncomeTotal.Add(another.IncomeTotal),
-			TransactionFeesPaid:      summary.TransactionFeesPaid.Add(another.TransactionFeesPaid),
-			DonatedBonds:             summary.DonatedBonds.Add(another.DonatedBonds),
-			DonatedFees:              summary.DonatedFees.Add(another.DonatedFees),
-			DonatedTotal:             summary.DonatedTotal.Add(another.DonatedTotal),
-		},
-		CycleSummaries: cycleSummaries,
-	}
+	summary.OwnStakedBalance = summary.OwnStakedBalance.Add(another.OwnStakedBalance)
+	summary.OwnDelegatedBalance = summary.OwnDelegatedBalance.Add(another.OwnDelegatedBalance)
+	summary.ExternalStakedBalance = summary.ExternalStakedBalance.Add(another.ExternalStakedBalance)
+	summary.ExternalDelegatedBalance = summary.ExternalDelegatedBalance.Add(another.ExternalDelegatedBalance)
+	summary.EarnedFees = summary.EarnedFees.Add(another.EarnedFees)
+	summary.EarnedRewards = summary.EarnedRewards.Add(another.EarnedRewards)
+	summary.DistributedRewards = summary.DistributedRewards.Add(another.DistributedRewards)
+	summary.NotDistributedRewards = summary.NotDistributedRewards.Add(another.NotDistributedRewards)
+	summary.BondIncome = summary.BondIncome.Add(another.BondIncome)
+	summary.FeeIncome = summary.FeeIncome.Add(another.FeeIncome)
+	summary.IncomeTotal = summary.IncomeTotal.Add(another.IncomeTotal)
+	summary.TransactionFeesPaid = summary.TransactionFeesPaid.Add(another.TransactionFeesPaid)
+	summary.DonatedBonds = summary.DonatedBonds.Add(another.DonatedBonds)
+	summary.DonatedFees = summary.DonatedFees.Add(another.DonatedFees)
+	summary.DonatedTotal = summary.DonatedTotal.Add(another.DonatedTotal)
 }
 
 type CyclePayoutBlueprint struct {

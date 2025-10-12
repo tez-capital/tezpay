@@ -2,7 +2,6 @@ package prepare
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"testing"
 
@@ -73,7 +72,6 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.AccumulatedPayouts {
-		fmt.Println(collector.GetExpectedTxCosts())
 		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
 	}
