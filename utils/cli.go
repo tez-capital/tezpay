@@ -316,9 +316,10 @@ func PrintCycleSummary(summary common.PayoutSummary, header string) {
 	summaryTable.AppendRow(table.Row{"Income Total", replaceZeroValue(common.MutezToTezS(summary.IncomeTotal.Int64()), "-")}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendRow(table.Row{"Tx Fees Paid For Rewards", replaceZeroValue(common.MutezToTezS(summary.TxFeesPaidForRewards.Int64()), "-")}, table.RowConfig{AutoMerge: false})
 	summaryTable.AppendRow(table.Row{"Tx Fees Paid", replaceZeroValue(common.MutezToTezS(summary.TxFeesPaid.Int64()), "-")}, table.RowConfig{AutoMerge: false})
-	summaryTable.AppendSeparator()
-	total := summary.EarnedRewards.Int64() + summary.EarnedBlockFees.Int64() - summary.DistributedRewards.Int64() - summary.NotDistributedRewards.Int64() - summary.TxFeesPaidForRewards.Int64() - summary.DonatedTotal.Int64() - summary.IncomeTotal.Int64()
-	summaryTable.AppendRow(table.Row{"NET", replaceZeroValue(common.MutezToTezS(total), "-")}, table.RowConfig{AutoMerge: false})
+	// next 3 lines used verify totals during testing
+	// summaryTable.AppendSeparator()
+	// total := summary.EarnedRewards.Int64() + summary.EarnedBlockFees.Int64() - summary.DistributedRewards.Int64() - summary.NotDistributedRewards.Int64() - summary.TxFeesPaidForRewards.Int64() - summary.DonatedTotal.Int64() - summary.IncomeTotal.Int64()
+	// summaryTable.AppendRow(table.Row{"NET", replaceZeroValue(common.MutezToTezS(total), "-")}, table.RowConfig{AutoMerge: false})
 	summaryTable.Render()
 }
 

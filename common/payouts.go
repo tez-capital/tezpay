@@ -287,8 +287,8 @@ func (recipe *AccumulatedPayoutRecipe) Sum() PayoutRecipe {
 		result.StakedBalance = result.StakedBalance.Add(r.StakedBalance).Div64(2)
 		result.Amount = result.Amount.Add(r.Amount)
 		result.Fee = result.Fee.Add(r.Fee)
+		result.TxFee = result.TxFee + r.TxFee
 	}
-	result.TxFee = recipe.GetTxFee() // add the tx fee
 	return result
 }
 
@@ -343,7 +343,16 @@ func (recipe *AccumulatedPayoutRecipe) GetAmount() tezos.Z {
 	}, tezos.Zero)
 }
 
-func (recipe *AccumulatedPayoutRecipe) ChargeTxFee(amount tezos.Z) {
+func (recipe *AccumulatedPayoutRecipe) AddTxFee(amount tezos.Z, charge bool) {
+	if len(recipe.Recipes) == 0 {
+		panic("THIS SHOULD NEVER HAPPEN: cannot add tx fee to empty accumulated payout")
+	}
+
+	if !charge {
+		recipe.Recipes[0].TxFee = recipe.Recipes[0].TxFee + amount.Int64()
+		return
+	}
+	// charge
 	remainder := amount
 	for _, r := range recipe.Recipes {
 		if r.Amount.IsLessEqual(remainder) {
@@ -358,8 +367,8 @@ func (recipe *AccumulatedPayoutRecipe) ChargeTxFee(amount tezos.Z) {
 	}
 }
 
-func (recipe *AccumulatedPayoutRecipe) ChargeTxFee64(amount int64) {
-	recipe.ChargeTxFee(tezos.NewZ(amount))
+func (recipe *AccumulatedPayoutRecipe) AddTxFee64(amount int64, charge bool) {
+	recipe.AddTxFee(tezos.NewZ(amount), charge)
 }
 
 func (recipe *AccumulatedPayoutRecipe) GetFee() tezos.Z {
@@ -393,16 +402,6 @@ func (recipe *AccumulatedPayoutRecipe) GetDelegatedBalance() tezos.Z {
 		return tezos.Zero
 	}
 	return recipe.Recipes[0].DelegatedBalance
-}
-
-func (recipe *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {
-	report := recipe.Sum().ToPayoutReport()
-	report.TxFee = recipe.GetTxFee()
-	report.Accumulated = lo.Map(recipe.Recipes, func(p *PayoutRecipe, _ int) *PayoutReport {
-		accumulated := p.ToPayoutReport()
-		return &accumulated
-	})
-	return report
 }
 
 func (recipe *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {

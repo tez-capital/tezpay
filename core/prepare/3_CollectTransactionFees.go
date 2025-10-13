@@ -34,41 +34,33 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 		recipe := result.Transaction
 		recipe.OpLimits = result.OpLimits
 
-		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ &&
-			recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD { // only delegator rewards are subject to fee collection
+		isBakerPayingTxFee := ctx.configuration.PayoutConfiguration.IsPayingTxFee
+		isBakerPayingAllocationTxFee := ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee
 
-			isBakerPayingTxFee := ctx.configuration.PayoutConfiguration.IsPayingTxFee
-			isBakerPayingAllocationTxFee := ctx.configuration.PayoutConfiguration.IsPayingAllocationTxFee
-
-			delegatorOverrides := ctx.configuration.Delegators.Overrides
-			if delegatorOverride, ok := delegatorOverrides[recipe.Delegator.String()]; ok {
-				if delegatorOverride.IsBakerPayingTxFee != nil {
-					isBakerPayingTxFee = *delegatorOverride.IsBakerPayingTxFee
-				}
-				if delegatorOverride.IsBakerPayingAllocationTxFee != nil {
-					isBakerPayingAllocationTxFee = *delegatorOverride.IsBakerPayingAllocationTxFee
-				}
+		delegatorOverrides := ctx.configuration.Delegators.Overrides
+		if delegatorOverride, ok := delegatorOverrides[recipe.Delegator.String()]; ok {
+			if delegatorOverride.IsBakerPayingTxFee != nil {
+				isBakerPayingTxFee = *delegatorOverride.IsBakerPayingTxFee
 			}
-
-			bondsAmountBeforeFees := recipe.GetAmount()
-			utils.AssertZAmountPositiveOrZero(bondsAmountBeforeFees)
-
-			txFee := result.OpLimits.GetOperationFeesWithoutAllocation()
-			allocationFee := result.OpLimits.GetAllocationFee()
-			if !isBakerPayingTxFee {
-				recipe.ChargeTxFee64(txFee)
+			if delegatorOverride.IsBakerPayingAllocationTxFee != nil {
+				isBakerPayingAllocationTxFee = *delegatorOverride.IsBakerPayingAllocationTxFee
 			}
-			if !isBakerPayingAllocationTxFee {
-				recipe.ChargeTxFee64(allocationFee)
-			}
-
-			if recipe.GetAmount().IsNeg() || recipe.GetAmount().IsZero() {
-				recipe.IsValid = false
-				recipe.Note = string(enums.INVALID_NOT_ENOUGH_BONDS_FOR_TX_FEES)
-			}
-			utils.AssertZAmountPositiveOrZero(recipe.GetAmount())
 		}
 
+		bondsAmountBeforeFees := recipe.GetAmount()
+		utils.AssertZAmountPositiveOrZero(bondsAmountBeforeFees)
+
+		txFee := result.OpLimits.GetOperationFeesWithoutAllocation()
+		allocationFee := result.OpLimits.GetAllocationFee()
+
+		// only tez delegator rewards are subject to fee collection
+		recipe.AddTxFee64(txFee, recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ && recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD && !isBakerPayingTxFee)
+		recipe.AddTxFee64(allocationFee, recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ && recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD && !isBakerPayingAllocationTxFee)
+		if recipe.GetAmount().IsNeg() || recipe.GetAmount().IsZero() {
+			recipe.IsValid = false
+			recipe.Note = string(enums.INVALID_NOT_ENOUGH_BONDS_FOR_TX_FEES)
+		}
+		utils.AssertZAmountPositiveOrZero(recipe.GetAmount())
 		return recipe
 	})
 
