@@ -52,6 +52,7 @@ type PayoutRecipe struct {
 	Amount           tezos.Z                      `json:"amount,omitempty"`
 	FeeRate          float64                      `json:"fee_rate,omitempty"`
 	Fee              tezos.Z                      `json:"fee,omitempty"`
+	TxFee            int64                        `json:"tx_fee,omitempty"` // calculated during fee estimation
 	Note             string                       `json:"note,omitempty"`
 	IsValid          bool                         `json:"valid,omitempty"`
 }
@@ -158,7 +159,7 @@ func (pr PayoutRecipe) ToPayoutReport() PayoutReport {
 		Amount:           pr.Amount,
 		FeeRate:          pr.FeeRate,
 		Fee:              pr.Fee,
-		TxFee:            0,
+		TxFee:            pr.TxFee,
 		OpHash:           tezos.ZeroOpHash,
 		IsSuccess:        false,
 		Note:             pr.Note,
@@ -341,21 +342,23 @@ func (recipe *AccumulatedPayoutRecipe) GetAmount() tezos.Z {
 	}, tezos.Zero)
 }
 
-func (recipe *AccumulatedPayoutRecipe) SubtractAmount(amount tezos.Z) {
+func (recipe *AccumulatedPayoutRecipe) ChargeTxFee(amount tezos.Z) {
 	remainder := amount
 	for _, r := range recipe.Recipes {
 		if r.Amount.IsLessEqual(remainder) {
 			remainder = remainder.Sub(r.Amount)
+			r.TxFee = r.TxFee + r.Amount.Int64()
 			r.Amount = tezos.Zero
 			continue
 		}
 		r.Amount = r.Amount.Sub(remainder)
+		r.TxFee = r.TxFee + remainder.Int64()
 		break
 	}
 }
 
-func (recipe *AccumulatedPayoutRecipe) SubtractAmount64(amount int64) {
-	recipe.SubtractAmount(tezos.NewZ(amount))
+func (recipe *AccumulatedPayoutRecipe) ChargeTxFee64(amount int64) {
+	recipe.ChargeTxFee(tezos.NewZ(amount))
 }
 
 func (recipe *AccumulatedPayoutRecipe) GetFee() tezos.Z {

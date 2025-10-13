@@ -56,10 +56,10 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 			txFee := result.OpLimits.GetOperationFeesWithoutAllocation()
 			allocationFee := result.OpLimits.GetAllocationFee()
 			if !isBakerPayingTxFee {
-				recipe.SubtractAmount64(txFee)
+				recipe.ChargeTxFee64(txFee)
 			}
 			if !isBakerPayingAllocationTxFee {
-				recipe.SubtractAmount64(allocationFee)
+				recipe.ChargeTxFee64(allocationFee)
 			}
 
 			if recipe.GetAmount().IsNeg() || recipe.GetAmount().IsZero() {
