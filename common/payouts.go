@@ -167,7 +167,7 @@ func (pr PayoutRecipe) ToPayoutReport() PayoutReport {
 }
 
 func (pr PayoutRecipe) GetTxFee() int64 {
-	return 0
+	return pr.TxFee
 }
 
 func (pr *PayoutRecipe) ToTableRowData() []string {
@@ -288,6 +288,7 @@ func (recipe *AccumulatedPayoutRecipe) Sum() PayoutRecipe {
 		result.Amount = result.Amount.Add(r.Amount)
 		result.Fee = result.Fee.Add(r.Fee)
 	}
+	result.TxFee = recipe.GetTxFee() // add the tx fee
 	return result
 }
 
