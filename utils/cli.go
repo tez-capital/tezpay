@@ -75,7 +75,7 @@ type sortablePayout interface {
 	GetAmount() tezos.Z
 }
 
-func sortPayouts[T sortablePayout](payouts []T) {
+func SortPayouts[T sortablePayout](payouts []T) {
 	slices.SortFunc(payouts, func(a, b T) int {
 		if a.GetKind() == b.GetKind() {
 			if a.GetAmount().IsLess(b.GetAmount()) {
@@ -156,8 +156,8 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 		invalid = mergePayouts(invalid)
 	}
 
-	sortPayouts(payouts)
-	sortPayouts(invalid)
+	SortPayouts(payouts)
+	SortPayouts(invalid)
 
 	cyclesAsString := FormatCycleNumbers(cycles...)
 	mainHeader := fmt.Sprintf("Payouts - %s", cyclesAsString)
@@ -205,7 +205,7 @@ func PrintPreparePayoutsResult(preparationResult *common.PreparePayoutsResult, o
 	// already paid
 	reportsOfPastSuccessfulPayouts := preparationResult.ReportsOfPastSuccessfulPayouts
 	if len(reportsOfPastSuccessfulPayouts) > 0 {
-		sortPayouts(reportsOfPastSuccessfulPayouts)
+		SortPayouts(reportsOfPastSuccessfulPayouts)
 
 		payoutTable.AppendSeparator()
 		payoutTable.AppendRow(fillRow(alreadyPaidHeader, headers), table.RowConfig{AutoMerge: true})

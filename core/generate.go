@@ -26,7 +26,6 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.SendAnalytics,
 		generate.CheckConditionsAndPrepare,
 		generate.GeneratePayoutCandidates,
-		// hooks
 		generate.DistributeBonds,
 		generate.CollectBakerFee,
 		generate.ValidateRecipe,
