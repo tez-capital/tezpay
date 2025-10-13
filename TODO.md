@@ -2,12 +2,12 @@ TODO:
 - [x] fix summary
 - [x] fix notification summary
 - [ ] revisit report invalid payouts - there is probably better way to enforce we do not get accumulated reports than panic
-- [ ] dangling balance in the summaries
+- [x] dangling balance in the summaries
 
-- [ ] test generate
-- [ ] test continual
-- [ ] test pay
-- [ ] test pay date range
+- [x] test generate
+- [x] test continual
+- [x] test pay
+- [-] test pay date range
 
 Notes:
 - invalid payouts are no longer included in the fee

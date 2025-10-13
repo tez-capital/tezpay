@@ -69,8 +69,8 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 		return retry()
 	}
 
-	slog.Info("acquiring lock", "cycle", cycleToProcess, "phase", "acquiring_lock")
-	unlock, err := lockCyclesWithTimeout(time.Minute*10, cycleToProcess)
+	slog.Info("acquiring lock", "cycles", cycles, "phase", "acquiring_lock")
+	unlock, err := lockCyclesWithTimeout(time.Minute*10, cycles...)
 	if err != nil {
 		slog.Error("failed to acquire lock", "error", err.Error())
 		return retry()
@@ -78,7 +78,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	defer unlock()
 
 	slog.Info("===================== PROCESSING START =====================")
-	slog.Info("processing cycle", "cycle", cycleToProcess)
+	slog.Info("processing cycles", "cycles", cycles)
 
 	generationResult, err := generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{})
 	if err != nil {
@@ -94,6 +94,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 		return core.PreparePayouts(generationResult, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
 			WaitForSufficientBalance: true,
+			Accumulate:               true,
 		})
 	}, EXIT_OPERTION_FAILED)
 
@@ -250,7 +251,7 @@ var continualCmd = &cobra.Command{
 func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Int64P(END_CYCLE_FLAG, "e", 0, "end cycle")
-	continualCmd.Flags().Uint(PAYOUT_PERIOD_FLAG, 1, "payout period")
+	continualCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")
