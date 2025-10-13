@@ -111,7 +111,6 @@ func (recipe *PayoutRecipe) GetIdentifier() string {
 		TxKind:     recipe.TxKind,
 		FATokenId:  recipe.FATokenId,
 		FAContract: recipe.FAContract,
-		// IsValid:    recipe.IsValid,
 	}
 	k, err := identifier.ToJSON()
 	if err != nil {
@@ -137,6 +136,7 @@ func (recipe PayoutRecipe) AsAccumulated() *AccumulatedPayoutRecipe {
 		FAContract: clone.FAContract,
 		IsValid:    clone.IsValid,
 		Recipes:    []*PayoutRecipe{&clone},
+		Note:       clone.Note,
 	}
 }
 
@@ -267,10 +267,9 @@ type AccumulatedPayoutRecipe struct {
 }
 
 func (recipe *AccumulatedPayoutRecipe) GetTxFee() int64 {
-	if recipe.OpLimits != nil {
-		return recipe.OpLimits.TransactionFee
-	}
-	return 0
+	return lo.Reduce(recipe.Recipes, func(agg int64, recipe *PayoutRecipe, _ int) int64 {
+		return agg + recipe.TxFee
+	}, 0)
 }
 
 func (recipe *AccumulatedPayoutRecipe) Sum() PayoutRecipe {
@@ -322,14 +321,14 @@ func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*Accumula
 	if recipe.TxKind != otherRecipe.TxKind {
 		return nil, errors.New("cannot add different tx kinds")
 	}
-	if !recipe.FATokenId.Equal(otherRecipe.FATokenId) {
-		return nil, errors.New("cannot add different FA token ids")
-	}
 	if !recipe.FAContract.Equal(otherRecipe.FAContract) {
 		return nil, errors.New("cannot add different FA contracts")
 	}
+	if !recipe.FATokenId.Equal(otherRecipe.FATokenId) {
+		return nil, errors.New("cannot add different FA token ids")
+	}
 	if recipe.IsValid != otherRecipe.IsValid {
-		return nil, errors.New("cannot add different validities")
+		return nil, errors.New("cannot add different validity states")
 	}
 
 	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
