@@ -84,6 +84,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.Equal(v.OpLimits.GetOperationTotalFees(), v.GetTxFee())
 	}
 
 	t.Log("check allocation burn")
@@ -99,6 +100,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.Equal(v.OpLimits.GetOperationTotalFees(), v.GetTxFee())
 	}
 
 	t.Log("check storage burn")
@@ -114,6 +116,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.Equal(v.OpLimits.GetOperationTotalFees(), v.GetTxFee())
 	}
 
 	t.Log("check paying tx fee")
@@ -128,6 +131,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.Equal(v.GetAmount().Int64(), payoutRecipes[i].GetAmount().Int64()-1000 /*allocation fee*/)
+		assert.Equal(v.OpLimits.GetOperationTotalFees(), v.GetTxFee())
 	}
 
 	t.Log("check not paying tx & allocation fee")
@@ -142,6 +146,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.Equal(v.GetAmount().Int64(), payoutRecipes[i].GetAmount().Int64())
+		assert.Equal(v.OpLimits.GetOperationTotalFees(), v.GetTxFee())
 	}
 
 	t.Log("check per op estimate")
@@ -160,6 +165,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	for i, v := range result.StageData.AccumulatedPayouts {
 		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.Equal(v.OpLimits.GetOperationTotalFees(), v.GetTxFee())
 	}
 
 	t.Log("check batching")
