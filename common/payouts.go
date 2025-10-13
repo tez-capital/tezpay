@@ -443,6 +443,26 @@ func (recipe *AccumulatedPayoutRecipe) AsRecipe() PayoutRecipe {
 	return recipe.Sum()
 }
 
+func (recipe *AccumulatedPayoutRecipe) DeepClone() *AccumulatedPayoutRecipe {
+	clonedRecipes := lo.Map(recipe.Recipes, func(r *PayoutRecipe, _ int) *PayoutRecipe {
+		clone := *r
+		return &clone
+	})
+	return &AccumulatedPayoutRecipe{
+		Delegator:  recipe.Delegator,
+		Cycle:      recipe.Cycle,
+		Recipient:  recipe.Recipient,
+		Kind:       recipe.Kind,
+		TxKind:     recipe.TxKind,
+		FATokenId:  recipe.FATokenId,
+		FAContract: recipe.FAContract,
+		IsValid:    recipe.IsValid,
+		Note:       recipe.Note,
+		OpLimits:   recipe.OpLimits, // shallow copy is fine
+		Recipes:    clonedRecipes,
+	}
+}
+
 type CyclePayoutSummary struct {
 	Delegators               int       `json:"delegators"`
 	PaidDelegators           int       `json:"paid_delegators"`

@@ -32,6 +32,7 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 		}
 
 		recipe := result.Transaction
+		backup := recipe.DeepClone()
 		recipe.OpLimits = result.OpLimits
 
 		isBakerPayingTxFee := ctx.configuration.PayoutConfiguration.IsPayingTxFee
@@ -57,6 +58,7 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 		recipe.AddTxFee64(txFee, recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ && recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD && !isBakerPayingTxFee)
 		recipe.AddTxFee64(allocationFee, recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ && recipe.Kind == enums.PAYOUT_KIND_DELEGATOR_REWARD && !isBakerPayingAllocationTxFee)
 		if recipe.GetAmount().IsNeg() || recipe.GetAmount().IsZero() {
+			recipe = backup // restore as we wont charge fees if we are invalid
 			recipe.IsValid = false
 			recipe.Note = string(enums.INVALID_NOT_ENOUGH_BONDS_FOR_TX_FEES)
 		}
