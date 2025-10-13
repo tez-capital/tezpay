@@ -114,7 +114,7 @@ func main() {
 				continue
 			}
 
-			if candidate.Amount.IsLessEqual(tezos.Zero) {
+			if candidate.GetAmount().IsLessEqual(tezos.Zero) {
 				continue
 			}
 

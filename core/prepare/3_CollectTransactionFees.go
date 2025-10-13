@@ -25,7 +25,7 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 	// get new estimates
 	recipesWithEstimate := lo.Map(estimate.EstimateTransactionFees(validAccumulatedRecipes, estimateContext), func(result estimate.EstimateResult[*common.AccumulatedPayoutRecipe], _ int) *common.AccumulatedPayoutRecipe {
 		if result.Error != nil {
-			slog.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", ctx.PayoutKey.Address(), "amount", result.Transaction.Amount.Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
+			slog.Warn("failed to estimate tx costs", "recipient", result.Transaction.Recipient, "delegator", ctx.PayoutKey.Address(), "amount", result.Transaction.GetAmount().Int64(), "kind", result.Transaction.TxKind, "error", result.Error)
 			result.Transaction.IsValid = false
 			result.Transaction.Note = string(enums.INVALID_FAILED_TO_ESTIMATE_TX_COSTS)
 			return result.Transaction
@@ -50,23 +50,23 @@ func CollectTransactionFees(ctx *PayoutPrepareContext, options *common.PreparePa
 				}
 			}
 
-			bondsAmountBeforeFees := recipe.Amount
+			bondsAmountBeforeFees := recipe.GetAmount()
 			utils.AssertZAmountPositiveOrZero(bondsAmountBeforeFees)
 
 			txFee := result.OpLimits.GetOperationFeesWithoutAllocation()
 			allocationFee := result.OpLimits.GetAllocationFee()
 			if !isBakerPayingTxFee {
-				recipe.Amount = recipe.Amount.Sub64(txFee)
+				recipe.SubtractAmount64(txFee)
 			}
 			if !isBakerPayingAllocationTxFee {
-				recipe.Amount = recipe.Amount.Sub64(allocationFee)
+				recipe.SubtractAmount64(allocationFee)
 			}
 
-			if recipe.Amount.IsNeg() || recipe.Amount.IsZero() {
+			if recipe.GetAmount().IsNeg() || recipe.GetAmount().IsZero() {
 				recipe.IsValid = false
 				recipe.Note = string(enums.INVALID_NOT_ENOUGH_BONDS_FOR_TX_FEES)
 			}
-			utils.AssertZAmountPositiveOrZero(recipe.Amount)
+			utils.AssertZAmountPositiveOrZero(recipe.GetAmount())
 		}
 
 		return recipe

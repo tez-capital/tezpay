@@ -28,7 +28,7 @@ func ValidatePreparedPayouts(ctx *PayoutPrepareContext, options *common.PrepareP
 			MinumumAmountValidator,
 		).Unwrap()
 
-		utils.AssertZAmountPositiveOrZero(recipe.Amount)
+		utils.AssertZAmountPositiveOrZero(recipe.GetAmount())
 		return result
 	})
 

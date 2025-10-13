@@ -17,23 +17,37 @@ import (
 var (
 	payoutRecipes = []common.AccumulatedPayoutRecipe{
 		{
-			PayoutRecipe: common.PayoutRecipe{
-				Delegator: mock.GetRandomAddress(),
-				Recipient: mock.GetRandomAddress(),
-				Amount:    tezos.NewZ(10000000),
-				Kind:      enums.PAYOUT_KIND_DELEGATOR_REWARD,
-				TxKind:    enums.PAYOUT_TX_KIND_TEZ,
-				IsValid:   true,
+			Delegator: mock.GetRandomAddress(),
+			Recipient: mock.GetRandomAddress(),
+			Kind:      enums.PAYOUT_KIND_DELEGATOR_REWARD,
+			TxKind:    enums.PAYOUT_TX_KIND_TEZ,
+			IsValid:   true,
+			Recipes: []*common.PayoutRecipe{
+				{
+					Delegator: mock.GetRandomAddress(),
+					Recipient: mock.GetRandomAddress(),
+					Amount:    tezos.NewZ(10000000),
+					Kind:      enums.PAYOUT_KIND_DELEGATOR_REWARD,
+					TxKind:    enums.PAYOUT_TX_KIND_TEZ,
+					IsValid:   true,
+				},
 			},
 		},
 		{
-			PayoutRecipe: common.PayoutRecipe{
-				Delegator: mock.GetRandomAddress(),
-				Recipient: mock.GetRandomAddress(),
-				Amount:    tezos.NewZ(20000000),
-				Kind:      enums.PAYOUT_KIND_DELEGATOR_REWARD,
-				TxKind:    enums.PAYOUT_TX_KIND_TEZ,
-				IsValid:   true,
+			Delegator: mock.GetRandomAddress(),
+			Recipient: mock.GetRandomAddress(),
+			Kind:      enums.PAYOUT_KIND_DELEGATOR_REWARD,
+			TxKind:    enums.PAYOUT_TX_KIND_TEZ,
+			IsValid:   true,
+			Recipes: []*common.PayoutRecipe{
+				{
+					Delegator: mock.GetRandomAddress(),
+					Recipient: mock.GetRandomAddress(),
+					Amount:    tezos.NewZ(20000000),
+					Kind:      enums.PAYOUT_KIND_DELEGATOR_REWARD,
+					TxKind:    enums.PAYOUT_TX_KIND_TEZ,
+					IsValid:   true,
+				},
 			},
 		},
 	}
@@ -72,8 +86,8 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.AccumulatedPayouts {
-		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check allocation burn")
@@ -87,8 +101,8 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.AccumulatedPayouts {
-		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check storage burn")
@@ -102,8 +116,8 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.AccumulatedPayouts {
-		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check paying tx fee")
@@ -117,7 +131,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	})
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 	for i, v := range result.StageData.AccumulatedPayouts {
-		assert.Equal(v.Amount.Int64(), payoutRecipes[i].Amount.Int64()-1000 /*allocation fee*/)
+		assert.Equal(v.GetAmount().Int64(), payoutRecipes[i].GetAmount().Int64()-1000 /*allocation fee*/)
 	}
 
 	t.Log("check not paying tx & allocation fee")
@@ -131,7 +145,7 @@ func TestCollectTransactionFees(t *testing.T) {
 	})
 	result, _ = CollectTransactionFees(ctx, &common.PreparePayoutsOptions{})
 	for i, v := range result.StageData.AccumulatedPayouts {
-		assert.Equal(v.Amount.Int64(), payoutRecipes[i].Amount.Int64())
+		assert.Equal(v.GetAmount().Int64(), payoutRecipes[i].GetAmount().Int64())
 	}
 
 	t.Log("check per op estimate")
@@ -148,8 +162,8 @@ func TestCollectTransactionFees(t *testing.T) {
 
 	assert.Nil(err)
 	for i, v := range result.StageData.AccumulatedPayouts {
-		assert.LessOrEqual(v.Amount.Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
-		assert.GreaterOrEqual(v.Amount.Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].Amount.Int64()-collector.GetExpectedTxCosts())
+		assert.LessOrEqual(v.GetAmount().Int64()-constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
+		assert.GreaterOrEqual(v.GetAmount().Int64()+constants.TEST_MUTEZ_DEVIATION_TOLERANCE, payoutRecipes[i].GetAmount().Int64()-collector.GetExpectedTxCosts())
 	}
 
 	t.Log("check batching")

@@ -127,12 +127,19 @@ func (recipe *PayoutRecipe) GetShortIdentifier() string {
 func (recipe PayoutRecipe) AsAccumulated() *AccumulatedPayoutRecipe {
 	clone := recipe // make a copy to avoid issues with references
 	return &AccumulatedPayoutRecipe{
-		PayoutRecipe: recipe,
-		Accumulated:  []*PayoutRecipe{&clone},
+		Delegator:  clone.Delegator,
+		Cycle:      clone.Cycle,
+		Recipient:  clone.Recipient,
+		Kind:       clone.Kind,
+		TxKind:     clone.TxKind,
+		FATokenId:  clone.FATokenId,
+		FAContract: clone.FAContract,
+		IsValid:    clone.IsValid,
+		Recipes:    []*PayoutRecipe{&clone},
 	}
 }
 
-func (pr *PayoutRecipe) ToPayoutReport() PayoutReport {
+func (pr PayoutRecipe) ToPayoutReport() PayoutReport {
 	return PayoutReport{
 		Id:               pr.GetShortIdentifier(),
 		Baker:            pr.Baker,
@@ -243,9 +250,19 @@ func GetRecipesFilteredTotals[T foo](recipes []T, kind enums.EPayoutKind, withFe
 }
 
 type AccumulatedPayoutRecipe struct {
-	PayoutRecipe
-	OpLimits    *OpLimits       `json:"op_limits,omitempty"`
-	Accumulated []*PayoutRecipe `json:"-"`
+	// PayoutRecipe
+	Delegator  tezos.Address                `json:"delegator,omitempty"`
+	Cycle      int64                        `json:"cycle,omitempty"`
+	Recipient  tezos.Address                `json:"recipient,omitempty"`
+	Kind       enums.EPayoutKind            `json:"kind,omitempty"`
+	TxKind     enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId  tezos.Z                      `json:"fa_token_id,omitempty"`
+	FAContract tezos.Address                `json:"fa_contract,omitempty"`
+	IsValid    bool                         `json:"valid,omitempty"`
+	Note       string                       `json:"note,omitempty"`
+
+	OpLimits *OpLimits       `json:"op_limits,omitempty"`
+	Recipes  []*PayoutRecipe `json:"-"`
 }
 
 func (recipe *AccumulatedPayoutRecipe) GetTxFee() int64 {
@@ -255,7 +272,26 @@ func (recipe *AccumulatedPayoutRecipe) GetTxFee() int64 {
 	return 0
 }
 
-func (recipe *AccumulatedPayoutRecipe) ToTableRowData() []string {
+func (recipe *AccumulatedPayoutRecipe) Sum() PayoutRecipe {
+	if len(recipe.Recipes) == 0 {
+		return PayoutRecipe{}
+	}
+	if len(recipe.Recipes) == 1 {
+		return *recipe.Recipes[0]
+	}
+
+	result := *recipe.Recipes[0]
+	for _, r := range recipe.Recipes[1:] {
+		result.DelegatedBalance = result.DelegatedBalance.Add(r.DelegatedBalance).Div64(2)
+		result.StakedBalance = result.StakedBalance.Add(r.StakedBalance).Div64(2)
+		result.Amount = result.Amount.Add(r.Amount)
+		result.Fee = result.Fee.Add(r.Fee)
+	}
+	return result
+}
+
+func (r *AccumulatedPayoutRecipe) ToTableRowData() []string {
+	recipe := r.Sum()
 	return []string{
 		ShortenAddress(recipe.Delegator),
 		ShortenAddress(recipe.Recipient),
@@ -294,20 +330,71 @@ func (recipe *AccumulatedPayoutRecipe) Add(otherRecipe *PayoutRecipe) (*Accumula
 		return nil, errors.New("cannot add different validities")
 	}
 
-	recipe.DelegatedBalance = recipe.DelegatedBalance.Add(otherRecipe.DelegatedBalance).Div64(2)
-	recipe.StakedBalance = recipe.StakedBalance.Add(otherRecipe.StakedBalance).Div64(2)
-	recipe.Amount = recipe.Amount.Add(otherRecipe.Amount)
-	recipe.Fee = recipe.Fee.Add(otherRecipe.Fee)
-
 	otherRecipe.Note = fmt.Sprintf("%s_%d", recipe.GetShortIdentifier(), recipe.Cycle)
-	recipe.Accumulated = append(recipe.Accumulated, otherRecipe)
+	recipe.Recipes = append(recipe.Recipes, otherRecipe)
 	return recipe, nil
 }
 
+func (recipe *AccumulatedPayoutRecipe) GetAmount() tezos.Z {
+	return lo.Reduce(recipe.Recipes, func(agg tezos.Z, recipe *PayoutRecipe, _ int) tezos.Z {
+		return agg.Add(recipe.Amount)
+	}, tezos.Zero)
+}
+
+func (recipe *AccumulatedPayoutRecipe) SubtractAmount(amount tezos.Z) {
+	remainder := amount
+	for _, r := range recipe.Recipes {
+		if r.Amount.IsLessEqual(remainder) {
+			remainder = remainder.Sub(r.Amount)
+			r.Amount = tezos.Zero
+			continue
+		}
+		r.Amount = r.Amount.Sub(remainder)
+		break
+	}
+}
+
+func (recipe *AccumulatedPayoutRecipe) SubtractAmount64(amount int64) {
+	recipe.SubtractAmount(tezos.NewZ(amount))
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetFee() tezos.Z {
+	return lo.Reduce(recipe.Recipes, func(agg tezos.Z, recipe *PayoutRecipe, _ int) tezos.Z {
+		return agg.Add(recipe.Fee)
+	}, tezos.Zero)
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetKind() enums.EPayoutKind {
+	return recipe.Kind
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetTxKind() enums.EPayoutTransactionKind {
+	return recipe.TxKind
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetFAContract() tezos.Address {
+	return recipe.FAContract
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetFATokenId() tezos.Z {
+	return recipe.FATokenId
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetDestination() tezos.Address {
+	return recipe.Recipient
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetDelegatedBalance() tezos.Z {
+	if len(recipe.Recipes) == 0 {
+		return tezos.Zero
+	}
+	return recipe.Recipes[0].DelegatedBalance
+}
+
 func (recipe *AccumulatedPayoutRecipe) ToPayoutReport() PayoutReport {
-	report := recipe.PayoutRecipe.ToPayoutReport()
+	report := recipe.Sum().ToPayoutReport()
 	report.TxFee = recipe.GetTxFee()
-	report.Accumulated = lo.Map(recipe.Accumulated, func(p *PayoutRecipe, _ int) *PayoutReport {
+	report.Accumulated = lo.Map(recipe.Recipes, func(p *PayoutRecipe, _ int) *PayoutReport {
 		accumulated := p.ToPayoutReport()
 		return &accumulated
 	})
@@ -319,17 +406,38 @@ func (recipe *AccumulatedPayoutRecipe) DisperseToInvalid() []PayoutRecipe {
 		panic("THIS SHOULD NEVER HAPPEN: cannot disperse valid accumulated payout")
 	}
 
-	return lo.Map(recipe.Accumulated, func(r *PayoutRecipe, _ int) PayoutRecipe {
+	return lo.Map(recipe.Recipes, func(r *PayoutRecipe, _ int) PayoutRecipe {
 		r.IsValid = false
 		r.Note = recipe.Note
 		return *r
 	})
 }
+func (recipe *AccumulatedPayoutRecipe) GetIdentifier() string {
+	identifier := PayoutRecipeIdentifier{
+		Delegator:  recipe.Delegator,
+		Recipient:  recipe.Recipient,
+		Kind:       recipe.Kind,
+		TxKind:     recipe.TxKind,
+		FATokenId:  recipe.FATokenId,
+		FAContract: recipe.FAContract,
+		// IsValid:    recipe.IsValid,
+	}
+	k, err := identifier.ToJSON()
+	if err != nil {
+		return ""
+	}
+	hashBytes := sha256.Sum256(k)
+	return base58.Encode(hashBytes[:])
+}
+
+func (recipe *AccumulatedPayoutRecipe) GetShortIdentifier() string {
+	return recipe.GetIdentifier()[:16]
+}
 
 // AsRecipe returns the PayoutRecipe representation of the AccumulatedPayoutRecipe.
 // This is useful only for printing and reporting purposes. Do not use it for execution.
 func (recipe *AccumulatedPayoutRecipe) AsRecipe() PayoutRecipe {
-	return recipe.PayoutRecipe
+	return recipe.Sum()
 }
 
 type CyclePayoutSummary struct {

@@ -60,7 +60,7 @@ func ValidateMinumumAmount(candidate *common.AccumulatedPayoutRecipe, configurat
 	if treshhold.IsNeg() || candidate.TxKind != enums.PAYOUT_TX_KIND_TEZ { // if payout is not tezos we respect anything above 0
 		treshhold = tezos.Zero
 	}
-	diff := candidate.Amount.Sub(treshhold)
+	diff := candidate.GetAmount().Sub(treshhold)
 	if diff.IsNeg() || diff.IsZero() {
 		candidate.IsValid = false
 		candidate.Note = string(enums.INVALID_PAYOUT_BELLOW_MINIMUM)

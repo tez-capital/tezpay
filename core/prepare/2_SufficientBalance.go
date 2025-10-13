@@ -48,7 +48,7 @@ func checkBalanceWithCollector(data *CheckBalanceHookData, ctx *PayoutPrepareCon
 
 	requiredbalance := lo.Reduce(data.Payouts, func(agg tezos.Z, recipe *common.AccumulatedPayoutRecipe, _ int) tezos.Z {
 		if recipe.TxKind == enums.PAYOUT_TX_KIND_TEZ {
-			return agg.Add(recipe.Amount).Add64(recipe.GetTxFee())
+			return agg.Add(recipe.GetAmount()).Add64(recipe.GetTxFee())
 		}
 		return agg
 	}, tezos.Zero)

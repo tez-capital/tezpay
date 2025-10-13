@@ -37,17 +37,15 @@ func NewSuccessBatchResult(payouts []*AccumulatedPayoutRecipe, opHash tezos.OpHa
 func (br *BatchResult) ToIndividualReports() []PayoutReport {
 	result := make([]PayoutReport, 0, len(br.Payouts))
 	for _, payout := range br.Payouts {
-		for i, acc := range payout.Accumulated {
+		for i, acc := range payout.Recipes {
 			note := acc.Note
 			if !br.IsSuccess {
 				note = br.Err.Error()
 			}
 			report := acc.ToPayoutReport()
 			if i == 0 {
-				// first entry is the main one, so we have to copy state of the accumulated payout
+				// first entry is the main one, so we attach tx fee to it too
 				report.TxFee = payout.GetTxFee()
-				// FIXME:
-				report.Amount = report.Amount.Sub64(report.TxFee)
 			}
 			report.OpHash = br.OpHash
 			report.IsSuccess = br.IsSuccess
