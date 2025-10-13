@@ -15,7 +15,11 @@ import (
 )
 
 var (
-	payoutRecipes = []common.AccumulatedPayoutRecipe{
+	payoutRecipes = getRecipes()
+)
+
+func getRecipes() []*common.AccumulatedPayoutRecipe {
+	return []*common.AccumulatedPayoutRecipe{
 		{
 			Delegator: mock.GetRandomAddress(),
 			Recipient: mock.GetRandomAddress(),
@@ -51,14 +55,6 @@ var (
 			},
 		},
 	}
-)
-
-func getRecipes() []*common.AccumulatedPayoutRecipe {
-	result := []*common.AccumulatedPayoutRecipe{}
-	for _, recipe := range payoutRecipes {
-		result = append(result, &recipe)
-	}
-	return result
 }
 
 func TestCollectTransactionFees(t *testing.T) {
