@@ -530,7 +530,7 @@ func (summary *PayoutSummary) AddCycleSummary(cycle int64, another *CyclePayoutS
 }
 
 type CyclePayoutBlueprint struct {
-	Cycle   int64          `json:"cycles,omitempty"`
+	Cycle   int64          `json:"cycle,omitempty"`
 	Payouts []PayoutRecipe `json:"payouts,omitempty"`
 
 	OwnStakedBalance         tezos.Z   `json:"own_staked_balance"`
