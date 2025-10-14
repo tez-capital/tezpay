@@ -16,8 +16,6 @@ This hook is capable of mutating data.
       "delegated_balance": "1000000000",
       "is_invalid": true,
       "is_emptied": true,
-      "is_baker_paying_tx_fee": true,
-      "is_baker_paying_allocation_tx_fee": true,
       "invalid_because": "reason"
     }
   ]
@@ -39,8 +37,6 @@ This hook is capable of mutating data.
       "delegated_balance": "1000000000",
       "is_invalid": true,
       "is_emptied": true,
-      "is_baker_paying_tx_fee": true,
-      "is_baker_paying_allocation_tx_fee": true,
       "invalid_because": "reason",
       "bonds_amount": "1000000000",
       "tx_kind": "fa1",
@@ -61,21 +57,14 @@ This hook is NOT capable of mutating data.
   "message": "This message is used to carry errors from hook to the caller.",
   "payouts": [
     {
-      "source": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
+      "cycle": 1,
       "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "fee_rate": 5,
-      "staked_balance": "1000000000",
-      "delegated_balance": "1000000000",
-      "is_invalid": true,
-      "is_emptied": true,
-      "is_baker_paying_tx_fee": true,
-      "is_baker_paying_allocation_tx_fee": true,
-      "invalid_because": "reason",
-      "bonds_amount": "1000000000",
+      "kind": "delegator reward",
       "tx_kind": "fa1",
       "fa_token_id": "10",
       "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
-      "fee": "1000000000"
+      "note": "reason"
     }
   ]
 }
@@ -96,8 +85,6 @@ This hook is capable of mutating data.
       "delegated_balance": "1000000000",
       "is_invalid": true,
       "is_emptied": true,
-      "is_baker_paying_tx_fee": true,
-      "is_baker_paying_allocation_tx_fee": true,
       "invalid_because": "reason",
       "bonds_amount": "1000000000",
       "tx_kind": "fa1",
@@ -114,52 +101,39 @@ This hook is capable of mutating data.
 This hook is NOT capable of mutating data *currently*.
 ```json
 {
-  "cycles": 1,
+  "cycle": 1,
   "payouts": [
     {
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
       "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
       "cycle": 1,
       "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "kind": "invalid",
+      "kind": "delegator reward",
       "tx_kind": "fa1",
       "fa_token_id": "10",
       "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
       "delegator_balance": "1000000000",
+      "staked_balance": "1000000000",
       "amount": "1000000000",
       "fee_rate": 5,
       "fee": "1000000000",
-      "op_limits": {
-        "transaction_fee": 1,
-        "storage_limit": 1,
-        "gas_limit": 1,
-        "deserialization_gas_limit": 1,
-        "allocation_burn": 1,
-        "storage_burn": 1
-      },
       "note": "reason"
     }
   ],
-  "summary": {
-    "cycle": 1,
-    "delegators": 2,
-    "paid_delegators": 1,
-    "own_staked_balance": "1000000000",
-    "own_delegated_balance": "0",
-    "external_staked_balance": "0",
-    "external_delegated_balance": "0",
-    "cycle_fees": "1000000000",
-    "cycle_rewards": "1000000000",
-    "distributed_rewards": "1000000000",
-    "bond_income": "1000000000",
-    "fee_income": "1000000000",
-    "total_income": "1000000000",
-    "transaction_fees_paid": "0",
-    "donated_bonds": "1000000000",
-    "donated_fees": "1000000000",
-    "donated_total": "1000000000",
-    "timestamp": "2023-01-01T00:00:00Z"
-  }
+  "own_staked_balance": "1000000000",
+  "own_delegated_balance": "0",
+  "external_staked_balance": "0",
+  "external_delegated_balance": "0",
+  "cycle_earned_fees": "1000000000",
+  "cycle_earned_rewards": "1000000000",
+  "cycle_earned_total": "2000000000",
+  "bond_income": "1000000000",
+  "fee_income": "0",
+  "total_income": "0",
+  "donated_bonds": "1000000000",
+  "donated_fees": "0",
+  "donated_total": "0",
+  "timestamp": "0001-01-01T00:00:00Z"
 }
 ```
 
@@ -175,43 +149,36 @@ This hook is capable of mutating data *currently*.
       "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
       "cycle": 1,
       "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "kind": "invalid",
+      "kind": "delegator reward",
       "tx_kind": "fa1",
       "fa_token_id": "10",
       "fa_contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
       "delegator_balance": "1000000000",
+      "staked_balance": "1000000000",
       "amount": "1000000000",
       "fee_rate": 5,
       "fee": "1000000000",
-      "op_limits": {
-        "transaction_fee": 1,
-        "storage_limit": 1,
-        "gas_limit": 1,
-        "deserialization_gas_limit": 1,
-        "allocation_burn": 1,
-        "storage_burn": 1
-      },
       "note": "reason"
     }
   ],
   "invalid_payouts": null,
   "reports_of_past_succesful_payouts": [
     {
-      "id": "fd8d0230c9d70458",
+      "id": "7c7E1tgHsd48EmiM",
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2025-09-12T19:39:22.760846497Z",
+      "timestamp": "2025-10-14T21:00:19.514585978Z",
       "cycle": 1,
-      "kind": "invalid",
+      "kind": "delegator reward",
       "tx_kind": "fa1",
       "contract": "KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT",
       "token_id": "10",
       "delegator": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
       "delegator_balance": "1000000000",
+      "staked_balance": "1000000000",
       "recipient": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
       "amount": "1000000000",
       "fee_rate": 5,
       "fee": "1000000000",
-      "tx_fee": 1,
       "op_hash": "oneDGhZacw99EEFaYDTtWfz5QEhUW3PPVFsHa7GShnLPuDn7gSd",
       "success": true,
       "note": "reason"
