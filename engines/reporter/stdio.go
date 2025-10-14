@@ -32,10 +32,6 @@ func (engine *StdioReporter) ReportPayouts(payouts []common.PayoutReport) error 
 	return nil
 }
 
-type InvalidPayoutsReport struct {
-	InvalidPayouts []common.PayoutRecipe `json:"invalid_payouts"`
-}
-
 func (engine *StdioReporter) ReportInvalidPayouts(payouts []common.PayoutReport) error {
 	for _, inv := range payouts {
 		if len(inv.Accumulated) > 0 {

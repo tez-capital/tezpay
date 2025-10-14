@@ -37,7 +37,3 @@ func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configura
 		BatchMetadataDeserializationGasLimit: ctx.StageData.BatchMetadataDeserializationGasLimit,
 	}, nil
 }
-
-func PrepareCyclePayouts(blueprint *common.CyclePayoutBlueprint, config *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*common.PreparePayoutsResult, error) {
-	return PreparePayouts([]*common.CyclePayoutBlueprint{blueprint}, config, engineContext, options)
-}
