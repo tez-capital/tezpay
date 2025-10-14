@@ -36,6 +36,55 @@ func (engine *mockGenerateCollector) GetCycleStakingData(baker tezos.Address, cy
 	return &cycleData, err
 }
 
+func assertBlueprintsEqual(assert *assert.Assertions, expected, actual *common.CyclePayoutBlueprint) {
+	assert.Equal(len(expected.Payouts), len(actual.Payouts))
+	assert.Equal(expected.Cycle, actual.Cycle)
+	assert.Equal(expected.OwnStakedBalance, actual.OwnStakedBalance)
+	assert.Equal(expected.OwnDelegatedBalance, actual.OwnDelegatedBalance)
+	assert.Equal(expected.ExternalStakedBalance, actual.ExternalStakedBalance)
+	assert.Equal(expected.ExternalDelegatedBalance, actual.ExternalDelegatedBalance)
+	assert.Equal(expected.EarnedBlockFees, actual.EarnedBlockFees)
+	assert.Equal(expected.EarnedRewards, actual.EarnedRewards)
+	assert.Equal(expected.EarnedTotal, actual.EarnedTotal)
+	assert.Equal(expected.BondIncome, actual.BondIncome)
+	assert.Equal(expected.FeeIncome, actual.FeeIncome)
+	assert.Equal(expected.IncomeTotal, actual.IncomeTotal)
+	assert.Equal(expected.DonatedBonds, actual.DonatedBonds)
+	assert.Equal(expected.DonatedFees, actual.DonatedFees)
+	assert.Equal(expected.DonatedTotal, actual.DonatedTotal)
+
+	utils.SortPayouts(expected.Payouts)
+	utils.SortPayouts(actual.Payouts)
+	for i, payout := range expected.Payouts {
+		if payout.Recipient == tezos.MustParseAddress("tz1X7U9XxVz6NDxL4DSZhijME61PW45bYUJE") {
+			// skip address which was used to generate test data
+			// this address was used to generate test data, we do not use it in tests
+			// so if it is delegated to baker it would appear in result as RECIPIENT_TARGETS_PAYOUT
+			// which can not be replicated in test data as we use a random payout address for tests
+			continue
+		}
+
+		assert.Equal(expected.Payouts[i].Baker, actual.Payouts[i].Baker)
+		assert.Equal(expected.Payouts[i].Delegator, actual.Payouts[i].Delegator)
+		assert.Equal(expected.Payouts[i].Cycle, actual.Payouts[i].Cycle)
+		assert.Equal(expected.Payouts[i].Recipient, actual.Payouts[i].Recipient)
+		assert.Equal(expected.Payouts[i].Kind, actual.Payouts[i].Kind)
+		assert.Equal(expected.Payouts[i].TxKind, actual.Payouts[i].TxKind)
+		assert.Equal(expected.Payouts[i].FATokenId, actual.Payouts[i].FATokenId)
+		assert.Equal(expected.Payouts[i].FAContract, actual.Payouts[i].FAContract)
+		assert.Equal(expected.Payouts[i].FAAlias, actual.Payouts[i].FAAlias)
+		assert.Equal(expected.Payouts[i].FADecimals, actual.Payouts[i].FADecimals)
+		assert.Equal(expected.Payouts[i].DelegatedBalance, actual.Payouts[i].DelegatedBalance)
+		assert.Equal(expected.Payouts[i].StakedBalance, actual.Payouts[i].StakedBalance)
+		assert.Equal(expected.Payouts[i].Amount, actual.Payouts[i].Amount)
+		assert.Equal(expected.Payouts[i].FeeRate, actual.Payouts[i].FeeRate)
+		assert.Equal(expected.Payouts[i].Fee, actual.Payouts[i].Fee)
+		assert.Equal(expected.Payouts[i].TxFee, actual.Payouts[i].TxFee)
+		assert.Equal(expected.Payouts[i].Note, actual.Payouts[i].Note)
+		assert.Equal(expected.Payouts[i].IsValid, actual.Payouts[i].IsValid)
+	}
+}
+
 func Test_Generate(t *testing.T) {
 	var err error
 	assert := assert.New(t)
