@@ -1,12 +1,44 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/constants/enums"
+	"github.com/trilitech/tzgo/base58"
 	"github.com/trilitech/tzgo/tezos"
 )
+
+type PayoutReportDestinationIdentifier struct {
+	Delegator  tezos.Address                `json:"delegator,omitempty"`
+	Recipient  tezos.Address                `json:"recipient,omitempty"`
+	Kind       enums.EPayoutKind            `json:"kind,omitempty"`
+	TxKind     enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId  tezos.Z                      `json:"fa_token_id,omitempty"`
+	FAContract tezos.Address                `json:"fa_contract,omitempty"`
+}
+
+func (identifier *PayoutReportDestinationIdentifier) ToJSON() ([]byte, error) {
+	return json.Marshal(identifier)
+}
+
+type PayoutReportIdentifier struct {
+	Delegator  tezos.Address                `json:"delegator,omitempty"`
+	Recipient  tezos.Address                `json:"recipient,omitempty"`
+	Kind       enums.EPayoutKind            `json:"kind,omitempty"`
+	TxKind     enums.EPayoutTransactionKind `json:"tx_kind,omitempty"`
+	FATokenId  tezos.Z                      `json:"fa_token_id,omitempty"`
+	FAContract tezos.Address                `json:"fa_contract,omitempty"`
+	OpHash     tezos.OpHash                 `json:"op_hash,omitempty"`
+	IsSuccess  bool                         `json:"success,omitempty"`
+}
+
+func (identifier *PayoutReportIdentifier) ToJSON() ([]byte, error) {
+	return json.Marshal(identifier)
+}
 
 type PayoutReport struct {
 	Id               string                       `json:"id" csv:"id"`
@@ -21,22 +53,80 @@ type PayoutReport struct {
 	FADecimals       int                          `json:"fa_decimals,omitempty" csv:"fa_decimals"`
 	Delegator        tezos.Address                `json:"delegator,omitempty" csv:"delegator"`
 	DelegatedBalance tezos.Z                      `json:"delegator_balance,omitempty" csv:"delegator_balance"`
-	StakedBalance    tezos.Z                      `json:"-" csv:"-"` // enable when relevant
+	StakedBalance    tezos.Z                      `json:"staked_balance,omitempty" csv:"staked_balance"`
 	Recipient        tezos.Address                `json:"recipient,omitempty" csv:"recipient"`
 	Amount           tezos.Z                      `json:"amount,omitempty" csv:"amount"`
 	FeeRate          float64                      `json:"fee_rate,omitempty" csv:"fee_rate"`
 	Fee              tezos.Z                      `json:"fee,omitempty" csv:"fee"`
-	TransactionFee   int64                        `json:"tx_fee,omitempty" csv:"tx_fee"`
+	TxFee            int64                        `json:"tx_fee,omitempty" csv:"tx_fee"`
 	OpHash           tezos.OpHash                 `json:"op_hash,omitempty" csv:"op_hash"`
 	IsSuccess        bool                         `json:"success" csv:"success"`
 	Note             string                       `json:"note,omitempty" csv:"note"`
+
+	Accumulated []*PayoutReport `json:"-" csv:"-"` // just for internal linking of accumulated payouts
 }
 
-func (pr *PayoutReport) GetTransactionFee() int64 {
-	return pr.TransactionFee
+func (pr PayoutReport) GetAmount() tezos.Z {
+	return pr.Amount
+}
+
+func (pr PayoutReport) GetDelegatedBalance() tezos.Z {
+	return pr.DelegatedBalance
+}
+
+func (pr PayoutReport) GetKind() enums.EPayoutKind {
+	return pr.Kind
+}
+
+func (pr *PayoutReport) GetTxFee() int64 {
+	return pr.TxFee
+}
+
+func (pr PayoutReport) GetIdentifier() string {
+	identifier := PayoutReportIdentifier{
+		Delegator:  pr.Delegator,
+		Recipient:  pr.Recipient,
+		Kind:       pr.Kind,
+		TxKind:     pr.TxKind,
+		FATokenId:  pr.FATokenId,
+		FAContract: pr.FAContract,
+		IsSuccess:  pr.IsSuccess,
+		OpHash:     pr.OpHash,
+	}
+	k, err := identifier.ToJSON()
+	if err != nil {
+		return ""
+	}
+	hashBytes := sha256.Sum256(k)
+	return base58.Encode(hashBytes[:])
+}
+
+func (pr PayoutReport) GetDestinationIdentifier() string {
+	identifier := PayoutReportDestinationIdentifier{
+		Delegator:  pr.Delegator,
+		Recipient:  pr.Recipient,
+		Kind:       pr.Kind,
+		TxKind:     pr.TxKind,
+		FATokenId:  pr.FATokenId,
+		FAContract: pr.FAContract,
+	}
+	k, err := identifier.ToJSON()
+	if err != nil {
+		return ""
+	}
+	hashBytes := sha256.Sum256(k)
+	return base58.Encode(hashBytes[:])
 }
 
 func (pr *PayoutReport) ToTableRowData() []string {
+	note := pr.Note
+	if pr.OpHash != tezos.ZeroOpHash {
+		note = pr.OpHash.String()
+		if note != "" {
+			note = note + "; " + strings.TrimSpace(pr.Note)
+		}
+	}
+
 	return []string{
 		ShortenAddress(pr.Delegator),
 		ShortenAddress(pr.Recipient),
@@ -47,10 +137,28 @@ func (pr *PayoutReport) ToTableRowData() []string {
 		FormatTokenAmount(pr.TxKind, pr.Amount.Int64(), pr.FAAlias, pr.FADecimals),
 		FloatToPercentage(pr.FeeRate),
 		MutezToTezS(pr.Fee.Int64()),
-		MutezToTezS(pr.GetTransactionFee()),
-		pr.OpHash.String(),
-		pr.Note,
+		MutezToTezS(pr.GetTxFee()),
+		note,
 	}
+}
+
+func (pr *PayoutReport) Disperse() []PayoutReport {
+	if len(pr.Accumulated) == 0 {
+		return []PayoutReport{*pr}
+	}
+
+	dispersed := make([]PayoutReport, 0, len(pr.Accumulated)+1)
+	dispersed = append(dispersed, *pr)
+
+	for _, acc := range pr.Accumulated {
+		if acc.Id == pr.Id { // avoid duplicates if first accumulated is the same as parent
+			continue
+		}
+		acc.OpHash = pr.OpHash
+		acc.IsSuccess = pr.IsSuccess
+		dispersed = append(dispersed, *acc)
+	}
+	return dispersed
 }
 
 func (pr *PayoutReport) GetTableHeaders() []string {
@@ -65,20 +173,25 @@ func (pr *PayoutReport) GetTableHeaders() []string {
 		"Fee Rate",
 		"Fee",
 		"Transaction Fee",
-		"Op Hash",
+		// "Op Hash",
 		"Note",
 	}
 }
 
-func GetReportsTotals(reports []PayoutReport) []string {
+func GetReportsTotals(reports []PayoutReport, withFee bool) []string {
 	var totalAmount, totalFee, totalTxFee int64
 	for _, report := range reports {
 		if report.TxKind == enums.PAYOUT_TX_KIND_TEZ {
 			totalAmount += report.Amount.Int64()
 		}
 		totalFee += report.Fee.Int64()
-		totalTxFee += report.GetTransactionFee()
+		totalTxFee += report.GetTxFee()
 	}
+	fee := ""
+	if withFee {
+		fee = MutezToTezS(totalFee)
+	}
+
 	return []string{
 		"",
 		"",
@@ -88,7 +201,7 @@ func GetReportsTotals(reports []PayoutReport) []string {
 		"",
 		MutezToTezS(totalAmount),
 		"",
-		MutezToTezS(totalFee),
+		fee,
 		MutezToTezS(totalTxFee),
 		"",
 		"",
@@ -96,16 +209,16 @@ func GetReportsTotals(reports []PayoutReport) []string {
 }
 
 // returns total amounts and count of filtered reports
-func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind) ([]string, int) {
+func GetFilteredReportsTotals(reports []PayoutReport, kind enums.EPayoutKind, withFee bool) ([]string, int) {
 	r := lo.Filter(reports, func(report PayoutReport, _ int) bool {
 		return report.Kind == kind
 	})
-	return GetReportsTotals(r), len(r)
+	return GetReportsTotals(r, withFee), len(r)
 }
 
 type PayoutCycleReport struct {
-	Cycle   int64               `json:"cycle"`
-	Invalid []PayoutRecipe      `json:"invalid,omitempty"`
-	Payouts []PayoutReport      `json:"payouts"`
-	Sumary  *CyclePayoutSummary `json:"summary"`
+	Cycle   int64          `json:"cycle"`
+	Invalid []PayoutRecipe `json:"invalid,omitempty"`
+	Payouts []PayoutReport `json:"payouts"`
+	Sumary  *PayoutSummary `json:"summary"`
 }

@@ -26,13 +26,10 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.SendAnalytics,
 		generate.CheckConditionsAndPrepare,
 		generate.GeneratePayoutCandidates,
-		// hooks
 		generate.DistributeBonds,
 		generate.CollectBakerFee,
-		generate.CheckSufficientBalance,
-		generate.CollectTransactionFees,
-		generate.ValidateSimulatedPayouts,
-		generate.FinalizePayouts,
+		generate.ValidateRecipe,
+		generate.FinalizeRecipes,
 		generate.CreateBlueprint).Unwrap()
 	if err != nil {
 		return nil, err

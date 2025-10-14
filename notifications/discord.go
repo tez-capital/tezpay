@@ -29,7 +29,7 @@ type DiscordNotificator struct {
 }
 
 const (
-	DEFAULT_DISCORD_MESSAGE_TEMPLATE = "Report of cycle #<Cycle>"
+	DEFAULT_DISCORD_MESSAGE_TEMPLATE = "Report of cycle/s <Cycles>"
 	// https://github.com/discordjs/discord.js/blob/aec44a0c93f620b22242f35e626d817e831fc8cb/packages/discord.js/src/util/Util.js#L517
 	DISCORD_WEBHOOK_REGEX = `https?:\/\/(?:ptb\.|canary\.)?discord\.com\/api(?:\/v\d{1,2})?\/webhooks\/(\d{17,19})\/([\w-]{68})`
 )
@@ -112,7 +112,7 @@ func ValidateDiscordConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+func (dn *DiscordNotificator) PayoutSummaryNotify(summary *common.PayoutSummary, additionalData map[string]string) error {
 
 	_, err := dn.session.WebhookExecute(dn.id, dn.token, true, &discordgo.WebhookParams{
 		Embeds: []*discordgo.MessageEmbed{

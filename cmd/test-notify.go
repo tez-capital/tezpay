@@ -33,25 +33,27 @@ var notificationTestCmd = &cobra.Command{
 
 			switch {
 			case wantsPayoutSummary:
-				err = notificator.PayoutSummaryNotify(&common.CyclePayoutSummary{
-					Cycle:                    1,
-					Delegators:               60,
-					PaidDelegators:           27,
-					OwnStakedBalance:         tezos.NewZ(11041500351),
-					OwnDelegatedBalance:      tezos.NewZ(3659574532),
-					ExternalStakedBalance:    tezos.NewZ(23868693294),
-					ExternalDelegatedBalance: tezos.NewZ(78248642581),
-					EarnedFees:               tezos.NewZ(49075),
-					EarnedRewards:            tezos.NewZ(30287160),
-					DistributedRewards:       tezos.NewZ(25538039),
-					BondIncome:               tezos.NewZ(1339668),
-					FeeIncome:                tezos.NewZ(3356503),
-					IncomeTotal:              tezos.NewZ(4696171),
-					TransactionFeesPaid:      tezos.NewZ(68564),
-					DonatedBonds:             tezos.NewZ(13531),
-					DonatedFees:              tezos.NewZ(33904),
-					DonatedTotal:             tezos.NewZ(47435),
-					Timestamp:                time.Now(),
+				err = notificator.PayoutSummaryNotify(&common.PayoutSummary{
+					Cycles: []int64{123, 124, 125},
+					CyclePayoutSummary: common.CyclePayoutSummary{
+						Delegators:               60,
+						PaidDelegators:           27,
+						OwnStakedBalance:         tezos.NewZ(11041500351),
+						OwnDelegatedBalance:      tezos.NewZ(3659574532),
+						ExternalStakedBalance:    tezos.NewZ(23868693294),
+						ExternalDelegatedBalance: tezos.NewZ(78248642581),
+						EarnedBlockFees:          tezos.NewZ(49075),
+						EarnedRewards:            tezos.NewZ(30287160),
+						DistributedRewards:       tezos.NewZ(25538039),
+						BondIncome:               tezos.NewZ(1339668),
+						FeeIncome:                tezos.NewZ(3356503),
+						IncomeTotal:              tezos.NewZ(4696171),
+						TxFeesPaid:               tezos.NewZ(68564),
+						DonatedBonds:             tezos.NewZ(13531),
+						DonatedFees:              tezos.NewZ(33904),
+						DonatedTotal:             tezos.NewZ(47435),
+						Timestamp:                time.Now(),
+					},
 				}, map[string]string{})
 				if err != nil {
 					slog.Warn("failed to send notification", "error", err.Error())

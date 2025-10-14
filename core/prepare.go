@@ -19,20 +19,21 @@ func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configura
 
 	ctx, err = WrapContext[*prepare.PayoutPrepareContext, *common.PreparePayoutsOptions](ctx).ExecuteStages(options,
 		prepare.PreparePayouts,
-		prepare.AccumulatePayouts).Unwrap()
+		prepare.AccumulatePayouts,
+		prepare.CheckSufficientBalance,
+		prepare.CollectTransactionFees,
+		prepare.ValidatePreparedPayouts,
+		// prepare.FinalizePayouts,
+	).Unwrap()
 	if err != nil {
 		return nil, err
 	}
 
 	return &common.PreparePayoutsResult{
-		Blueprints:                     ctx.PayoutBlueprints,
-		ValidPayouts:                   ctx.StageData.ValidPayouts,
-		AccumulatedPayouts:             ctx.StageData.AccumulatedPayouts,
-		InvalidPayouts:                 ctx.StageData.InvalidPayouts,
-		ReportsOfPastSuccessfulPayouts: ctx.StageData.ReportsOfPastSuccesfulPayouts,
+		Blueprints:                           ctx.PayoutBlueprints,
+		ValidPayouts:                         ctx.StageData.AccumulatedPayouts,
+		InvalidPayouts:                       ctx.StageData.InvalidRecipes,
+		ReportsOfPastSuccessfulPayouts:       ctx.StageData.ReportsOfPastSuccesfulPayouts,
+		BatchMetadataDeserializationGasLimit: ctx.StageData.BatchMetadataDeserializationGasLimit,
 	}, nil
-}
-
-func PrepareCyclePayouts(blueprint *common.CyclePayoutBlueprint, config *configuration.RuntimeConfiguration, engineContext *common.PreparePayoutsEngineContext, options *common.PreparePayoutsOptions) (*common.PreparePayoutsResult, error) {
-	return PreparePayouts([]*common.CyclePayoutBlueprint{blueprint}, config, engineContext, options)
 }

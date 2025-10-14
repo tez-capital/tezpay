@@ -7,6 +7,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/tez-capital/tezpay/common"
+	"github.com/tez-capital/tezpay/configuration"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/test/mock"
 	"github.com/tez-capital/tezpay/utils"
@@ -43,6 +44,8 @@ var (
 			TxKind:      enums.PAYOUT_TX_KIND_FA1_2,
 		},
 	}
+	collector = mock.InitSimpleCollector()
+	config    = configuration.GetDefaultRuntimeConfiguration()
 )
 
 func adjustFee(ctx *PayoutGenerationContext, fee float64) {

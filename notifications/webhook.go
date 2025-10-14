@@ -95,7 +95,7 @@ func (wn *WebhookNotificator) post(data any) error {
 	return nil
 }
 
-func (wn *WebhookNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+func (wn *WebhookNotificator) PayoutSummaryNotify(summary *common.PayoutSummary, additionalData map[string]string) error {
 	return wn.post(summary)
 }
 
@@ -104,5 +104,5 @@ func (wn *WebhookNotificator) AdminNotify(msg string) error {
 }
 
 func (wn *WebhookNotificator) TestNotify() error {
-	return wn.post(common.CyclePayoutSummary{})
+	return wn.post(common.PayoutSummary{})
 }

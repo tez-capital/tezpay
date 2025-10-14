@@ -58,7 +58,7 @@ type TransactorEngine interface {
 }
 
 type NotificatorEngine interface {
-	PayoutSummaryNotify(summary *CyclePayoutSummary, additionalData map[string]string) error
+	PayoutSummaryNotify(summary *PayoutSummary, additionalData map[string]string) error
 	AdminNotify(msg string) error
 	TestNotify() error
 }
@@ -72,13 +72,14 @@ type CycleMonitor interface {
 }
 
 type ReporterEngineOptions struct {
-	DryRun bool
+	DryRun     bool
+	IsReadOnly bool
 }
 
 type ReporterEngine interface {
 	GetExistingReports(cycle int64) ([]PayoutReport, error)
 	ReportPayouts(reports []PayoutReport) error
-	ReportInvalidPayouts(reports []PayoutRecipe) error
-	ReportCycleSummary(summary CyclePayoutSummary) error
+	ReportInvalidPayouts(reports []PayoutReport) error
+	ReportCycleSummary(cycle int64, summary CyclePayoutSummary) error
 	GetExistingCycleSummary(cycle int64) (*CyclePayoutSummary, error)
 }

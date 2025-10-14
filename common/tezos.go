@@ -13,21 +13,21 @@ type Delegator struct {
 }
 
 type BakersCycleData struct {
-	OwnDelegatedBalance              tezos.Z
-	ExternalDelegatedBalance         tezos.Z
-	BlockDelegatedRewards            tezos.Z
-	IdealBlockDelegatedRewards       tezos.Z
-	EndorsementDelegatedRewards      tezos.Z
-	IdealEndorsementDelegatedRewards tezos.Z
-	DalDelegatedRewards              tezos.Z
-	IdealDalDelegatedRewards         tezos.Z
-	BlockDelegatedFees               tezos.Z
-	DelegatorsCount                  int32
+	OwnDelegatedBalance               tezos.Z
+	ExternalDelegatedBalance          tezos.Z
+	BlockDelegatedRewards             tezos.Z
+	IdealBlockDelegatedRewards        tezos.Z
+	AttestationsDelegatedRewards      tezos.Z
+	IdealAttestationsDelegatedRewards tezos.Z
+	DalDelegatedRewards               tezos.Z
+	IdealDalDelegatedRewards          tezos.Z
+	BlockDelegatedFees                tezos.Z
+	DelegatorsCount                   int32
 
 	OwnStakedBalance              tezos.Z
 	ExternalStakedBalance         tezos.Z
 	BlockStakingRewardsEdge       tezos.Z
-	EndorsementStakingRewardsEdge tezos.Z
+	AttestationStakingRewardsEdge tezos.Z
 	BlockStakingFees              tezos.Z
 	StakersCount                  int32
 
@@ -41,11 +41,11 @@ type ShareInfo struct {
 }
 
 func (cycleData *BakersCycleData) getActualDelegatedRewards() tezos.Z {
-	return cycleData.BlockDelegatedFees.Add(cycleData.BlockDelegatedRewards).Add(cycleData.EndorsementDelegatedRewards).Add(cycleData.DalDelegatedRewards)
+	return cycleData.BlockDelegatedRewards.Add(cycleData.AttestationsDelegatedRewards).Add(cycleData.DalDelegatedRewards).Add(cycleData.BlockDelegatedFees)
 }
 
 func (cycleData *BakersCycleData) getIdealDelegatedRewards() tezos.Z {
-	return cycleData.IdealBlockDelegatedRewards.Add(cycleData.IdealEndorsementDelegatedRewards).Add(cycleData.IdealDalDelegatedRewards).Add(cycleData.BlockDelegatedFees)
+	return cycleData.IdealBlockDelegatedRewards.Add(cycleData.IdealAttestationsDelegatedRewards).Add(cycleData.IdealDalDelegatedRewards).Add(cycleData.BlockDelegatedFees)
 }
 
 // GetTotalDelegatedRewards returns the total rewards for the cycle based on payout mode

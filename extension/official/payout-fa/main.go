@@ -11,6 +11,7 @@ import (
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/core/generate"
+	"github.com/tez-capital/tezpay/core/prepare"
 	"github.com/tez-capital/tezpay/extension"
 	"github.com/trilitech/tzgo/tezos"
 )
@@ -94,7 +95,7 @@ func main() {
 		return params.Data, nil
 	})
 
-	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_CHECK_BALANCE), func(ctx context.Context, params common.ExtensionHookData[generate.CheckBalanceHookData]) (*generate.CheckBalanceHookData, *rpc.Error) {
+	extension.RegisterEndpointMethod(endpoint, string(enums.EXTENSION_HOOK_CHECK_BALANCE), func(ctx context.Context, params common.ExtensionHookData[prepare.CheckBalanceHookData]) (*prepare.CheckBalanceHookData, *rpc.Error) {
 		total := tezos.Zero
 
 		balance, err := runtimeContext.Contract.GetBalance(ctx)
@@ -113,7 +114,7 @@ func main() {
 				continue
 			}
 
-			if candidate.BondsAmount.IsLessEqual(tezos.Zero) {
+			if candidate.GetAmount().IsLessEqual(tezos.Zero) {
 				continue
 			}
 

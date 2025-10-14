@@ -29,8 +29,8 @@ type BlueskyNotificator struct {
 }
 
 const (
-	DEFAULT_BLUESKY_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle <Cycle> to <Delegators> delegators and donated <DonatedTotal> using #tezpay on the #tezos blockchain."
-	BLUESKY_API_URL                 = "https://bsky.social/xrpc"
+	DEFAULT_BLUESKY_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle/s <Cycles> to <Delegators> delegators and donated <DonatedTotal> using #tezpay on the #tezos blockchain."
+	BLUESKY_API_URL                  = "https://bsky.social/xrpc"
 )
 
 func InitBlueskyNotificator(configurationBytes []byte) (*BlueskyNotificator, error) {
@@ -121,7 +121,7 @@ func ValidateBlueskyConfiguration(configurationBytes []byte) error {
 func (bn *BlueskyNotificator) createPost(text string) error {
 	data := map[string]interface{}{
 		"collection": "app.bsky.feed.post",
-		"repo":      bn.handle,
+		"repo":       bn.handle,
 		"record": map[string]interface{}{
 			"text":      text,
 			"createdAt": time.Now().Format(time.RFC3339),
@@ -162,7 +162,7 @@ func (bn *BlueskyNotificator) createPost(text string) error {
 	return nil
 }
 
-func (bn *BlueskyNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
+func (bn *BlueskyNotificator) PayoutSummaryNotify(summary *common.PayoutSummary, additionalData map[string]string) error {
 	text := PopulateMessageTemplate(bn.messageTemplate, summary, additionalData)
 	return bn.createPost(text)
 }

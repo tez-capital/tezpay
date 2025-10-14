@@ -59,8 +59,6 @@ const (
 	PAYOUT_KIND_BAKER_REWARD     EPayoutKind = "baker reward"
 	PAYOUT_KIND_DONATION         EPayoutKind = "donation"
 	PAYOUT_KIND_FEE_INCOME       EPayoutKind = "fee income"
-	PAYOUT_KIND_ACCUMULATED      EPayoutKind = "accumulated"
-	PAYOUT_KIND_INVALID          EPayoutKind = "invalid"
 )
 
 func (kind EPayoutKind) ToPriority() int {
@@ -74,10 +72,6 @@ func (kind EPayoutKind) ToPriority() int {
 		return 8
 	case PAYOUT_KIND_FEE_INCOME:
 		return 7
-	case PAYOUT_KIND_ACCUMULATED:
-		return 6
-	case PAYOUT_KIND_INVALID:
-		return 5
 	default:
 		return 0
 	}

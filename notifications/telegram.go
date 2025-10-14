@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/nikoksr/notify/service/telegram"
+	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"golang.org/x/exp/slog"
@@ -25,7 +27,7 @@ type TelegramNotificator struct {
 }
 
 const (
-	DEFAULT_TELEGRAM_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle <Cycle> to <Delegators> delegators and donated <DonatedTotal> using #tezpay on the #tezos blockchain."
+	DEFAULT_TELEGRAM_MESSAGE_TEMPLATE = "A total of <DistributedRewards> was distributed for cycle/s <Cycles> to <Delegators> delegators and donated <DonatedTotal> using #tezpay on the #tezos blockchain."
 )
 
 func InitTelegramNotificator(configurationBytes []byte) (*TelegramNotificator, error) {
@@ -70,8 +72,15 @@ func ValidateTelegramConfiguration(configurationBytes []byte) error {
 	return nil
 }
 
-func (tn *TelegramNotificator) PayoutSummaryNotify(summary *common.CyclePayoutSummary, additionalData map[string]string) error {
-	return tn.session.Send(context.Background(), fmt.Sprintf("Report of cycle #%d", summary.Cycle), PopulateMessageTemplate(tn.messageTemplate, summary, additionalData))
+func (tn *TelegramNotificator) PayoutSummaryNotify(summary *common.PayoutSummary, additionalData map[string]string) error {
+	subject := fmt.Sprintf("Payout Summary for cycles %s", strings.Join(lo.Map(summary.Cycles, func(c int64, _ int) string {
+		return fmt.Sprintf("#%d", c)
+	}), ", "))
+	if len(summary.Cycles) == 1 {
+		subject = fmt.Sprintf("Payout Summary for cycle %d", summary.Cycles[0])
+	}
+
+	return tn.session.Send(context.Background(), subject, PopulateMessageTemplate(tn.messageTemplate, summary, additionalData))
 }
 
 func (tn *TelegramNotificator) AdminNotify(msg string) error {

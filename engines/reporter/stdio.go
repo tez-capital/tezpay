@@ -32,21 +32,23 @@ func (engine *StdioReporter) ReportPayouts(payouts []common.PayoutReport) error 
 	return nil
 }
 
-type InvalidPayoutsReport struct {
-	InvalidPayouts []common.PayoutRecipe `json:"invalid_payouts"`
-}
-
-func (engine *StdioReporter) ReportInvalidPayouts(reports []common.PayoutRecipe) error {
-	slog.Info("REPORT", "invalid_payouts", reports)
+func (engine *StdioReporter) ReportInvalidPayouts(payouts []common.PayoutReport) error {
+	for _, inv := range payouts {
+		if len(inv.Accumulated) > 0 {
+			panic("invalid payout report contains accumulated reports")
+		}
+	}
+	slog.Info("REPORT", "invalid_payouts", payouts)
 	return nil
 }
 
 type CycleSummaryReport struct {
+	Cycle        int64                     `json:"cycle"`
 	CycleSummary common.CyclePayoutSummary `json:"cycle_summary"`
 }
 
-func (engine *StdioReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
-	data, err := json.Marshal(CycleSummaryReport{CycleSummary: summary})
+func (engine *StdioReporter) ReportCycleSummary(cycle int64, summary common.CyclePayoutSummary) error {
+	data, err := json.Marshal(CycleSummaryReport{Cycle: cycle, CycleSummary: summary})
 	if err != nil {
 		return err
 	}

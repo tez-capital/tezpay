@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/trilitech/tzgo/tezos"
 )
@@ -30,7 +31,7 @@ const (
 	BLUESKY_NOTIFICATOR  NotificatorKind = "bluesky"
 )
 
-func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayoutSummary, additionalData map[string]string) string {
+func PopulateMessageTemplate(messageTempalte string, summary *common.PayoutSummary, additionalData map[string]string) string {
 	v := reflect.ValueOf(*summary)
 	typeOfS := v.Type()
 
@@ -39,7 +40,15 @@ func PopulateMessageTemplate(messageTempalte string, summary *common.CyclePayout
 		if typeOfS.Field(i).Type.Name() == "Z" && strings.Contains(typeOfS.Field(i).Type.PkgPath(), "tzgo/tezos") {
 			val = fmt.Sprintf("%v", common.MutezToTezS(v.Field(i).Interface().(tezos.Z).Int64()))
 		}
+		if typeOfS.Field(i).Name == "Cycles" {
+			val = strings.Join(lo.Map(summary.Cycles, func(c int64, _ int) string {
+				return fmt.Sprintf("#%d", c)
+			}), ", ")
+		}
 		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", typeOfS.Field(i).Name), val)
+		if typeOfS.Field(i).Name == "Cycles" { // backward compatibility
+			messageTempalte = strings.ReplaceAll(messageTempalte, "<Cycle>", val)
+		}
 	}
 
 	for k, v := range additionalData {

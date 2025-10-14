@@ -2,6 +2,7 @@ package reporter_engines
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -57,6 +58,10 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 	if len(payouts) == 0 {
 		return nil
 	}
+	if engine.options.IsReadOnly {
+		return errors.New("reporter is in read-only mode")
+	}
+
 	cyclesToBeWritten := lo.Uniq(lo.Map(payouts, func(pr common.PayoutReport, _ int) int64 {
 		return pr.Cycle
 	}))
@@ -91,16 +96,21 @@ func (engine *FsReporter) ReportPayouts(payouts []common.PayoutReport) error {
 	return nil
 }
 
-func mapPayoutRecipeToPayoutReport(pr common.PayoutRecipe, _ int) common.PayoutReport {
-	return pr.ToPayoutReport()
-}
-
-func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) error {
-	invalid := utils.OnlyInvalidPayouts(payouts)
+func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutReport) error {
+	invalid := utils.OnlyFailedOrInvalidPayouts(payouts)
 	if len(invalid) == 0 {
 		return nil
 	}
-	cyclesToBeWritten := lo.Uniq(lo.Map(invalid, func(pr common.PayoutRecipe, _ int) int64 {
+	for _, inv := range invalid {
+		if len(inv.Accumulated) > 0 {
+			panic("invalid payout report contains accumulated reports")
+		}
+	}
+
+	if engine.options.IsReadOnly {
+		return errors.New("reporter is in read-only mode")
+	}
+	cyclesToBeWritten := lo.Uniq(lo.Map(invalid, func(pr common.PayoutReport, _ int) int64 {
 		return pr.Cycle
 	}))
 
@@ -114,7 +124,7 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 		if err != nil {
 			return err
 		}
-		reports := lo.Map(utils.FilterPayoutsByCycle(invalid, cycle), mapPayoutRecipeToPayoutReport)
+		reports := utils.FilterPayoutsByCycle(invalid, cycle)
 		csv, err := gocsv.MarshalBytes(reports)
 		if err != nil {
 			return err
@@ -127,12 +137,15 @@ func (engine *FsReporter) ReportInvalidPayouts(payouts []common.PayoutRecipe) er
 	return nil
 }
 
-func (engine *FsReporter) ReportCycleSummary(summary common.CyclePayoutSummary) error {
+func (engine *FsReporter) ReportCycleSummary(cycle int64, summary common.CyclePayoutSummary) error {
+	if engine.options.IsReadOnly {
+		return errors.New("reporter is in read-only mode")
+	}
 	reportsDirectory, err := engine.getReportsDirectory()
 	if err != nil {
 		return err
 	}
-	targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", summary.Cycle), constants.REPORT_SUMMARY_FILE_NAME)
+	targetFile := path.Join(reportsDirectory, fmt.Sprintf("%d", cycle), constants.REPORT_SUMMARY_FILE_NAME)
 	data, err := json.MarshalIndent(summary, "", "\t")
 	if err != nil {
 		return err

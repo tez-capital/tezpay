@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -69,40 +68,15 @@ var payDateRangeCmd = &cobra.Command{
 		defer unlock()
 
 		slog.Info("generating payouts for cycles in the date range", "date_range", fmt.Sprintf("%s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339)), "cycles", cycles)
-		generationResults := make(common.CyclePayoutBlueprints, 0, len(cycles))
-
-		channels := make([]chan *common.CyclePayoutBlueprint, 0, len(cycles))
-
-		for _, cycle := range cycles {
-			ch := make(chan *common.CyclePayoutBlueprint)
-			channels = append(channels, ch)
-			go func() {
-				generationResult, err := core.GeneratePayouts(config, common.NewGeneratePayoutsEngines(collector, signer, notifyAdminFactory(config)),
-					&common.GeneratePayoutsOptions{
-						Cycle:            cycle,
-						SkipBalanceCheck: skipBalanceCheck,
-					})
-				switch {
-				case errors.Is(err, constants.ErrNoCycleDataAvailable):
-					slog.Info("no data available for cycle, skipping", "cycle", cycle)
-					return
-				case err != nil:
-					handleGeneratePayoutsFailure(err)
-				}
-				ch <- generationResult
-			}()
-		}
-		for _, ch := range channels {
-			generationResult := <-ch
-			if generationResult != nil {
-				generationResults = append(generationResults, generationResult)
-			}
-		}
+		generationResults := assertRunWithErrorHandler(func() (common.CyclePayoutBlueprints, error) {
+			return generatePayoutsForCycles(cycles, config, collector, signer, &common.GeneratePayoutsOptions{})
+		}, handleGeneratePayoutsFailure)
 
 		slog.Info("checking reports of past payouts")
 		preparationResult := assertRunWithResult(func() (*common.PreparePayoutsResult, error) {
 			return core.PreparePayouts(generationResults, config, common.NewPreparePayoutsEngineContext(collector, signer, fsReporter, notifyAdminFactory(config)), &common.PreparePayoutsOptions{
-				Accumulate: true,
+				Accumulate:       true,
+				SkipBalanceCheck: skipBalanceCheck,
 			})
 		}, EXIT_OPERTION_FAILED)
 
@@ -111,19 +85,19 @@ var payDateRangeCmd = &cobra.Command{
 			slog.Info(constants.LOG_MESSAGE_PREPAYOUT_SUMMARY,
 				constants.LOG_FIELD_CYCLES, cycles,
 				constants.LOG_FIELD_REPORTS_OF_PAST_PAYOUTS, preparationResult.ReportsOfPastSuccessfulPayouts,
-				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.AccumulatedPayouts,
+				constants.LOG_FIELD_ACCUMULATED_PAYOUTS, preparationResult.ValidPayouts,
 				constants.LOG_FIELD_VALID_PAYOUTS, preparationResult.ValidPayouts,
 				constants.LOG_FIELD_INVALID_PAYOUTS, preparationResult.InvalidPayouts,
 			)
 		default:
-			PrintPreparationResults(preparationResult, cycles...)
+			utils.PrintPreparePayoutsResult(preparationResult, &utils.PrintPreparePayoutsResultOptions{AutoMergeRecords: true})
 		}
 
 		if len(preparationResult.ValidPayouts) == 0 {
 			slog.Info("nothing to pay out")
 			notificator, _ := cmd.Flags().GetString(NOTIFICATOR_FLAG)
 			if notificator != "" { // rerun notification through notificator if specified manually
-				notifyPayoutsProcessed(config, generationResults.GetSummary(), notificator)
+				notifyPayoutsProcessed(config, utils.GeneratePayoutSummaryFromPreparationResult(preparationResult), notificator)
 			}
 			os.Exit(0)
 		}
@@ -131,7 +105,7 @@ var payDateRangeCmd = &cobra.Command{
 		if !confirmed {
 			msg := "Do you want to pay out above VALID payouts?"
 			if isDryRun {
-				msg = msg + " (dry-run)"
+				msg = msg + " " + constants.DRY_RUN_NOTE
 			}
 			assertRequireConfirmation(msg)
 		}
@@ -157,15 +131,13 @@ var payDateRangeCmd = &cobra.Command{
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 		if silent, _ := cmd.Flags().GetBool(SILENT_FLAG); !silent && !isDryRun {
-			summary := generationResults.GetSummary()
-			summary.PaidDelegators = executionResult.PaidDelegators
-			notifyPayoutsProcessedThroughAllNotificators(config, summary)
+			notifyPayoutsProcessedThroughAllNotificators(config, &executionResult.Summary)
 		}
 		switch {
 		case state.Global.GetWantsOutputJson():
 			slog.Info(constants.LOG_MESSAGE_PAYOUTS_EXECUTED, constants.LOG_FIELD_CYCLES, cycles, "phase", "result")
 		default:
-			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of #%s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
+			utils.PrintBatchResults(executionResult.BatchResults, fmt.Sprintf("Results of %s", utils.FormatCycleNumbers(cycles...)), config.Network.Explorer)
 		}
 		PrintPayoutWalletRemainingBalance(collector, signer)
 	},

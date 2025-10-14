@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/tez-capital/tezpay/common"
@@ -19,18 +20,18 @@ type PayoutConstraint interface {
 	common.PayoutRecipe | common.PayoutReport
 }
 
-func PayoutBlueprintToJson(payoutBlueprint *common.CyclePayoutBlueprint) []byte {
+func PayoutBlueprintToJson(payoutBlueprint common.CyclePayoutBlueprints) []byte {
 	marshaled, _ := json.Marshal(payoutBlueprint)
 	return marshaled
 }
 
-func PayoutBlueprintFromJson(data []byte) (*common.CyclePayoutBlueprint, error) {
-	var payuts common.CyclePayoutBlueprint
+func PayoutBlueprintFromJson(data []byte) (common.CyclePayoutBlueprints, error) {
+	var payuts common.CyclePayoutBlueprints
 	err := json.Unmarshal(data, &payuts)
 	if err != nil {
 		return nil, err
 	}
-	return &payuts, err
+	return payuts, err
 }
 
 func PayoutsFromJson(data []byte) ([]common.PayoutRecipe, error) {
@@ -42,56 +43,74 @@ func PayoutsFromJson(data []byte) ([]common.PayoutRecipe, error) {
 	return payuts, err
 }
 
-func FilterPayoutsByTxKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutTransactionKind) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func FilterPayoutsByTxKind(payouts []*common.AccumulatedPayoutRecipe, kinds []enums.EPayoutTransactionKind) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return lo.Contains(kinds, payout.TxKind)
 	})
 }
 
-func RejectPayoutsByTxKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutTransactionKind) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func RejectPayoutsByTxKind(payouts []*common.AccumulatedPayoutRecipe, kinds []enums.EPayoutTransactionKind) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return !lo.Contains(kinds, payout.TxKind)
 	})
 }
 
-func FilterPayoutsByKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutKind) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func FilterPayoutsByKind(payouts []*common.AccumulatedPayoutRecipe, kinds []enums.EPayoutKind) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return lo.Contains(kinds, payout.Kind)
 	})
 }
 
-func RejectPayoutsByKind(payouts []common.PayoutRecipe, kinds []enums.EPayoutKind) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func RejectPayoutsByKind(payouts []*common.AccumulatedPayoutRecipe, kinds []enums.EPayoutKind) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return !lo.Contains(kinds, payout.Kind)
 	})
 }
 
-func FilterPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func FilterPayoutsByType(payouts []*common.AccumulatedPayoutRecipe, t tezos.AddressType) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return payout.Recipient.Type() == t
 	})
 }
 
-func RejectPayoutsByType(payouts []common.PayoutRecipe, t tezos.AddressType) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func RejectPayoutsByType(payouts []*common.AccumulatedPayoutRecipe, t tezos.AddressType) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return payout.Recipient.Type() != t
 	})
 }
 
-func FilterPayoutsByCycle(payouts []common.PayoutRecipe, cycle int64) []common.PayoutRecipe {
-	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+func FilterPayoutsByCycle(payouts []common.PayoutReport, cycle int64) []common.PayoutReport {
+	return lo.Filter(payouts, func(payout common.PayoutReport, _ int) bool {
 		return payout.Cycle == cycle
 	})
 }
 
-func OnlyValidPayouts(payouts []common.PayoutRecipe) []common.PayoutRecipe {
+func OnlyValidPayoutRecipes(payouts []common.PayoutRecipe) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
 		return payout.IsValid
 	})
 }
 
-func OnlyInvalidPayouts(payouts []common.PayoutRecipe) []common.PayoutRecipe {
+func OnlyValidAccumulatedPayouts(payouts []*common.AccumulatedPayoutRecipe) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
+		return payout.IsValid
+	})
+}
+
+func OnlyFailedOrInvalidPayouts(payouts []common.PayoutReport) []common.PayoutReport {
+	return lo.Filter(payouts, func(payout common.PayoutReport, _ int) bool {
+		return !payout.IsSuccess
+	})
+}
+
+func OnlyInvalidPayoutRecipes(payouts []common.PayoutRecipe) []common.PayoutRecipe {
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
+		return !payout.IsValid
+	})
+}
+
+func OnlyInvalidAccumulatedPayouts(payouts []*common.AccumulatedPayoutRecipe) []*common.AccumulatedPayoutRecipe {
+	return lo.Filter(payouts, func(payout *common.AccumulatedPayoutRecipe, _ int) bool {
 		return !payout.IsValid
 	})
 }
@@ -117,18 +136,14 @@ type payoutId struct {
 }
 
 func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.PayoutReport, collector common.CollectorEngine) ([]common.PayoutRecipe, []common.PayoutReport) {
-	paidOut := make(map[payoutId]common.PayoutReport)
+	paidOut := make(map[string]common.PayoutReport)
 	validOpHashes := make(map[string]bool)
 	if collector == nil {
 		slog.Debug("collector undefined filtering payout recipes only by succcess status from reports")
 	}
 
 	for _, report := range reports {
-		addr := report.Delegator.String()
-		if report.Delegator.Equal(tezos.ZeroAddress) {
-			addr = report.Recipient.String()
-		}
-		payoutId := payoutId{report.Kind, report.TxKind, report.FAContract.String(), report.FATokenId.String(), addr}
+		payoutId := report.GetDestinationIdentifier()
 		if collector != nil && !report.OpHash.Equal(tezos.ZeroOpHash) {
 			if _, ok := validOpHashes[report.OpHash.String()]; ok {
 				paidOut[payoutId] = report
@@ -156,12 +171,87 @@ func FilterRecipesByReports(payouts []common.PayoutRecipe, reports []common.Payo
 	}
 
 	return lo.Filter(payouts, func(payout common.PayoutRecipe, _ int) bool {
-		addr := payout.Delegator.String()
-		if payout.Delegator.Equal(tezos.ZeroAddress) {
-			addr = payout.Recipient.String()
-		}
-		payoutId := payoutId{payout.Kind, payout.TxKind, payout.FAContract.String(), payout.FATokenId.String(), addr}
+		payoutId := payout.ToPayoutReport().GetDestinationIdentifier()
 		_, ok := paidOut[payoutId]
 		return !ok
 	}), lo.Values(paidOut)
+}
+
+func GeneratePayoutSummary(blueprints []*common.CyclePayoutBlueprint, reports []common.PayoutReport) (summary *common.PayoutSummary) {
+	allReports := lo.Flatten(lo.Map(reports, func(pr common.PayoutReport, _ int) []common.PayoutReport {
+		return pr.Disperse()
+	}))
+
+	summary = &common.PayoutSummary{}
+	delegators := make(map[string]struct{}, len(allReports))
+	paidDelegators := make(map[string]struct{}, len(allReports))
+
+	for _, blueprint := range blueprints {
+		cycle := blueprint.Cycle
+
+		cycleReports := FilterPayoutsByCycle(allReports, cycle)
+		cycleSummary := common.CyclePayoutSummary{
+			OwnStakedBalance:         blueprint.OwnStakedBalance,
+			OwnDelegatedBalance:      blueprint.OwnDelegatedBalance,
+			ExternalStakedBalance:    blueprint.ExternalStakedBalance,
+			ExternalDelegatedBalance: blueprint.ExternalDelegatedBalance,
+			EarnedBlockFees:          blueprint.EarnedBlockFees,
+			EarnedRewards:            blueprint.EarnedRewards,
+			EarnedTotal:              blueprint.EarnedTotal,
+			BondIncome:               blueprint.BondIncome,
+			FeeIncome:                blueprint.FeeIncome,
+			IncomeTotal:              blueprint.IncomeTotal,
+			DonatedBonds:             blueprint.DonatedBonds,
+			DonatedFees:              blueprint.DonatedFees,
+			DonatedTotal:             blueprint.DonatedTotal,
+			Timestamp:                time.Now(),
+		}
+		cycleDelegators := make(map[string]struct{}, len(cycleReports))
+		cyclePaidDelegators := make(map[string]struct{}, len(cycleReports))
+
+		for _, report := range cycleReports {
+			cycleDelegators[report.Delegator.String()] = struct{}{}
+
+			switch report.Kind {
+			case enums.PAYOUT_KIND_DELEGATOR_REWARD:
+				if report.IsSuccess {
+					cycleSummary.DistributedRewards = cycleSummary.DistributedRewards.Add(report.Amount)
+					cycleSummary.TxFeesPaid = cycleSummary.TxFeesPaid.Add64(report.TxFee)
+					cycleSummary.TxFeesPaidForRewards = cycleSummary.TxFeesPaidForRewards.Add64(report.TxFee)
+					cyclePaidDelegators[report.Delegator.String()] = struct{}{}
+				} else {
+					cycleSummary.NotDistributedRewards = cycleSummary.NotDistributedRewards.Add(report.Amount)
+				}
+			default:
+				if report.IsSuccess {
+					cycleSummary.TxFeesPaid = cycleSummary.TxFeesPaid.Add64(report.TxFee)
+				}
+			}
+		}
+
+		cycleSummary.Delegators = len(cycleDelegators)
+		cycleSummary.PaidDelegators = len(cyclePaidDelegators)
+
+		delegators = lo.Assign(delegators, cycleDelegators)
+		paidDelegators = lo.Assign(paidDelegators, cyclePaidDelegators)
+		summary.AddCycleSummary(cycle, &cycleSummary)
+	}
+
+	summary.Delegators = len(delegators)
+	summary.PaidDelegators = len(paidDelegators)
+	return summary
+}
+
+func GeneratePayoutSummaryFromPreparationResult(result *common.PreparePayoutsResult) (summary *common.PayoutSummary) {
+	if len(result.ValidPayouts) > 0 {
+		panic("preparation result contains valid payouts, use GeneratePayoutSummary with execution reports instead")
+	}
+
+	invalidReports := lo.Map(result.InvalidPayouts, func(pr common.PayoutRecipe, _ int) common.PayoutReport {
+		r := pr.ToPayoutReport()
+		r.IsSuccess = false
+		return r
+	})
+
+	return GeneratePayoutSummary(result.Blueprints, append(result.ReportsOfPastSuccessfulPayouts, invalidReports...))
 }

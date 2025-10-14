@@ -59,8 +59,7 @@ type tzktBakersCycleData struct {
 	DalRewardsStakedOwn    int64 `json:"dalAttestationRewardsStakedOwn"`
 	DalRewardsStakedEdge   int64 `json:"dalAttestationRewardsStakedEdge"`
 	DalRewardsStakedShared int64 `json:"dalAttestationRewardsStakedShared"`
-	// EndorsementRewards       int64            `json:"endorsementRewards"` // EndorsementRewardsLiquid + EndorsementRewardsStakedOwn
-	MissedDalRewards int64 `json:"missedDalAttestationRewards"`
+	MissedDalRewards       int64 `json:"missedDalAttestationRewards"`
 
 	DelegatorsCount int32 `json:"delegatorsCount"`
 	StakersCount    int32 `json:"stakersCount"`
@@ -330,22 +329,22 @@ func (client *Client) GetCycleData(ctx context.Context, chainId tezos.ChainIdHas
 	blockDelegatedFees := tezos.NewZ(tzktBakerCycleData.BlockFees)
 
 	return &common.BakersCycleData{
-		DelegatorsCount:                  tzktBakerCycleData.DelegatorsCount,
-		OwnDelegatedBalance:              tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance),
-		ExternalDelegatedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalDelegatedBalance),
-		BlockDelegatedRewards:            blockDelegatedRewards,
-		IdealBlockDelegatedRewards:       blockDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
-		EndorsementDelegatedRewards:      endorsingDelegatedRewards,
-		IdealEndorsementDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedAttestationRewards).Div64(precision)),
-		DalDelegatedRewards:              dalDelegatedRewards,
-		IdealDalDelegatedRewards:         dalDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedDalRewards).Div64(precision)),
-		BlockDelegatedFees:               blockDelegatedFees,
+		DelegatorsCount:                   tzktBakerCycleData.DelegatorsCount,
+		OwnDelegatedBalance:               tezos.NewZ(tzktBakerCycleData.OwnDelegatedBalance),
+		ExternalDelegatedBalance:          tezos.NewZ(tzktBakerCycleData.ExternalDelegatedBalance),
+		BlockDelegatedRewards:             blockDelegatedRewards,
+		IdealBlockDelegatedRewards:        blockDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedBlockRewards).Div64(precision)),
+		AttestationsDelegatedRewards:      endorsingDelegatedRewards,
+		IdealAttestationsDelegatedRewards: endorsingDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedAttestationRewards).Div64(precision)),
+		DalDelegatedRewards:               dalDelegatedRewards,
+		IdealDalDelegatedRewards:          dalDelegatedRewards.Add(delegationShare.Mul64(tzktBakerCycleData.MissedDalRewards).Div64(precision)),
+		BlockDelegatedFees:                blockDelegatedFees,
 
 		StakersCount:                  tzktBakerCycleData.StakersCount,
 		OwnStakedBalance:              tezos.NewZ(tzktBakerCycleData.OwnStakedBalance),
 		ExternalStakedBalance:         tezos.NewZ(tzktBakerCycleData.ExternalStakedBalance),
 		BlockStakingRewardsEdge:       tezos.NewZ(tzktBakerCycleData.BlockRewardsStakedEdge),
-		EndorsementStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.AttestationRewardsStakedEdge),
+		AttestationStakingRewardsEdge: tezos.NewZ(tzktBakerCycleData.AttestationRewardsStakedEdge),
 		BlockStakingFees:              tezos.Zero, // block fees are distributed as liquid balance only
 
 		FrozenDepositLimit: tezos.NewZ(tzktBakerData.FrozenDepositLimit),

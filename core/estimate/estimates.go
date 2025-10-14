@@ -140,7 +140,7 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 
 type EstimateResult[T common.TransferArgs] struct {
 	Transaction T
-	Result      *common.OpLimits
+	OpLimits    *common.OpLimits
 	Error       error
 }
 
@@ -181,7 +181,7 @@ func EstimateTransactionFees[T common.TransferArgs](transactions []T, ctx *Estim
 
 				return EstimateResult[T]{
 					Transaction: candidate,
-					Result:      simulationResults[0],
+					OpLimits:    simulationResults[0],
 				}
 			})
 		}
@@ -191,7 +191,7 @@ func EstimateTransactionFees[T common.TransferArgs](transactions []T, ctx *Estim
 			}
 			return EstimateResult[T]{
 				Transaction: candidate,
-				Result:      simulationResults[index],
+				OpLimits:    simulationResults[index],
 			}
 		})
 	})
