@@ -22,8 +22,12 @@ var generatePayoutsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
+
 		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
 		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
+		payoutOffset, _ := cmd.Flags().GetInt64(PAYOUT_OFFSET_FLAG)
+		payoutOffset = getBoundedPayoutOffset(payoutOffset, payoutPeriod)
+
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 		config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
 		defer extension.CloseExtensions()
@@ -33,7 +37,7 @@ var generatePayoutsCmd = &cobra.Command{
 			cycle = lastCompletedCycle + cycle
 		}
 
-		cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycle, payoutPeriod)
+		cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycle, payoutPeriod, payoutOffset)
 		if !isEndOfThePeriod {
 			slog.Error("cycle is not at the end of the specified payout period", "cycle", cycle, "payout_period", payoutPeriod)
 			os.Exit(EXIT_OPERTION_FAILED)
@@ -78,6 +82,7 @@ func init() {
 	generatePayoutsCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
 	generatePayoutsCmd.Flags().String(TO_FILE_FLAG, "", "saves generated payouts to specified file")
 	generatePayoutsCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
+	generatePayoutsCmd.Flags().Int64(PAYOUT_OFFSET_FLAG, 1, "offset for the payout period (in cycles)")
 	generatePayoutsCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
 	generatePayoutsCmd.Flags().Bool(DRY_RUN_FLAG, false, "Performs all actions except sending transactions. Reports are stored in 'reports/dry' folder")
 	RootCmd.AddCommand(generatePayoutsCmd)

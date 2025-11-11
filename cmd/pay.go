@@ -31,8 +31,11 @@ var payCmd = &cobra.Command{
 		mixInContractCalls, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG)
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
+
 		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
 		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
+		payoutOffset, _ := cmd.Flags().GetInt64(PAYOUT_OFFSET_FLAG)
+		payoutOffset = getBoundedPayoutOffset(payoutOffset, payoutPeriod)
 
 		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
 			DryRun: isDryRun,
@@ -68,7 +71,7 @@ var payCmd = &cobra.Command{
 			}
 
 			var isEndOfThePeriod bool
-			cycles, isEndOfThePeriod = getCyclesInCompletedPeriod(cycle, payoutPeriod)
+			cycles, isEndOfThePeriod = getCyclesInCompletedPeriod(cycle, payoutPeriod, payoutOffset)
 			if !isEndOfThePeriod {
 				slog.Error("cycle is not at the end of the specified payout period", "cycle", cycle, "payout_period", payoutPeriod)
 				os.Exit(EXIT_OPERTION_FAILED)
@@ -162,6 +165,7 @@ func init() {
 	payCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
 	payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
 	payCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
+	payCmd.Flags().Int64(PAYOUT_OFFSET_FLAG, 1, "offset for the payout period (in cycles)")
 	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
 	payCmd.Flags().Bool(FROM_STDIN_FLAG, false, "loads payouts from stdin instead of generating on the fly")

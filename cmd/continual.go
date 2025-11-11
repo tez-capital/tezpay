@@ -26,7 +26,7 @@ var (
 	endCycle              int64
 )
 
-func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool, payoutPeriod int64) (processed bool) {
+func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool, payoutPeriod, payoutOffset int64) (processed bool) {
 	processed = true
 	retry := func() bool {
 		processed = false
@@ -34,7 +34,7 @@ func processCycleInContinualMode(context *configurationAndEngines, forceConfirma
 	}
 
 	cycleToProcess = lastProcessedCycle + 1
-	cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycleToProcess, payoutPeriod)
+	cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycleToProcess, payoutPeriod, payoutOffset)
 	if !isEndOfThePeriod {
 		slog.Info("cycle is not at the end of the specified payout period, skipping", "cycle", cycleToProcess, "payout_period", payoutPeriod)
 		lastProcessedCycle = cycleToProcess
@@ -158,6 +158,8 @@ var continualCmd = &cobra.Command{
 		silent, _ := cmd.Flags().GetBool(SILENT_FLAG)
 		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
 		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
+		payoutOffset, _ := cmd.Flags().GetInt64(PAYOUT_OFFSET_FLAG)
+		payoutOffset = getBoundedPayoutOffset(payoutOffset, payoutPeriod)
 
 		if isDryRun {
 			slog.Info("Dry run mode enabled")
@@ -243,7 +245,7 @@ var continualCmd = &cobra.Command{
 				}
 			}
 
-			processCycleInContinualMode(configurationContext, forceConfirmationPrompt, mixInContractCalls, mixInFATransfers, isDryRun, silent, payoutPeriod)
+			processCycleInContinualMode(configurationContext, forceConfirmationPrompt, mixInContractCalls, mixInFATransfers, isDryRun, silent, payoutPeriod, payoutOffset)
 		}
 	},
 }
@@ -252,6 +254,7 @@ func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Int64P(END_CYCLE_FLAG, "e", 0, "end cycle")
 	continualCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
+	continualCmd.Flags().Int64(PAYOUT_OFFSET_FLAG, 1, "offset for the payout period (in cycles)")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")

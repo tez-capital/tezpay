@@ -170,8 +170,27 @@ func getBoundedPayoutPeriod(payoutPeriod int64) int64 {
 	return payoutPeriod
 }
 
-func getCyclesInCompletedPeriod(cycle int64, period int64) (periodCycles []int64, ok bool) {
-	if cycle <= 0 || period <= 0 || cycle%period != 0 {
+func getBoundedPayoutOffset(payoutOffset, period int64) int64 {
+	if period <= 1 {
+		return 0 // no offset possible
+	}
+
+	min := int64(0)
+	max := period
+
+	if payoutOffset < min {
+		slog.Warn("payout offset too low, capping to min", "min", min)
+		return min
+	}
+	if payoutOffset > max {
+		slog.Warn("payout offset too high, capping to max", "max", max)
+		return max
+	}
+	return payoutOffset
+}
+
+func getCyclesInCompletedPeriod(cycle, period, offset int64) (periodCycles []int64, ok bool) {
+	if cycle <= 0 || period <= 0 || (cycle+offset)%period != 0 {
 		return nil, false
 	}
 
