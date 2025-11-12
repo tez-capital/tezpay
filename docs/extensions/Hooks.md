@@ -166,7 +166,7 @@ This hook is capable of mutating data *currently*.
     {
       "id": "7c7E1tgHsd48EmiM",
       "baker": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU",
-      "timestamp": "2025-11-12T21:05:31.273184388Z",
+      "timestamp": "2025-11-12T21:48:09.92391023Z",
       "cycle": 1,
       "kind": "delegator reward",
       "tx_kind": "fa1",

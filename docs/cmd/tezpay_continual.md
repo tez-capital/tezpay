@@ -18,9 +18,9 @@ tezpay continual [flags]
   -e, --end-cycle int                 end cycle
   -a, --force-confirmation-prompt     ask for confirmation on each payout
   -h, --help                          help for continual
-      --include-previous-cycles int   number of previous cycles to reevaluate for missed or failed payouts
-      --interval int                  number of cycles between consecutive payouts (default 1)
-      --interval-trigger-offset int   offset (in cycles) to trigger payouts within the interval
+      --include-previous-cycles int   Number of previous cycles to scan for missed payouts. A value of '0' (default) only processes the cycles in current interval. A value of '5' would re-check the last 5 cycles in addition to the current interval.
+      --interval int                  Specifies the payout frequency in cycles. For example, '1' (default) attempts a payout every cycle. '10' attempts a payout every 10th cycle. See --interval-trigger-offset to adjust the start. (default 1)
+      --interval-trigger-offset int   An offset (in cycles) to adjust *when* the payout interval triggers. Example: With an interval of '10', an offset of '0' (default) triggers on cycles 10, 20, 30. An offset of '3' triggers on cycles 13, 23, 33.
       --no-separate-fa                disables fa transfers separation (mixes txs and fa transfers within batches)
       --no-separate-sc                disables smart contract separation (mixes txs and smart contract calls within batches)
 ```
