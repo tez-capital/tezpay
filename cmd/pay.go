@@ -166,9 +166,9 @@ var payCmd = &cobra.Command{
 func init() {
 	payCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
 	payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
-	payCmd.Flags().Int64(PAYMENT_INTERVAL_CYCLES_FLAG, 1, "number of cycles between consecutive payouts")
-	payCmd.Flags().Int64(INTERVAL_TRIGGER_OFFSET_FLAG, 0, "offset (in cycles) to trigger payouts within the interval")
-	payCmd.Flags().Int64(INCLUDE_PREVIOUS_CYCLES_FLAG, 0, "number of previous cycles to reevaluate for missed or failed payouts")
+	payCmd.Flags().Int64(PAYMENT_INTERVAL_CYCLES_FLAG, 1, "Specifies the payout frequency in cycles. For example, '1' (default) attempts a payout every cycle. '10' attempts a payout every 10th cycle. See --interval-trigger-offset to adjust the start.")
+	payCmd.Flags().Int64(INTERVAL_TRIGGER_OFFSET_FLAG, 0, "An offset (in cycles) to adjust *when* the payout interval triggers. Example: With an interval of '10', an offset of '0' (default) triggers on cycles 10, 20, 30. An offset of '3' triggers on cycles 13, 23, 33.")
+	payCmd.Flags().Int64(INCLUDE_PREVIOUS_CYCLES_FLAG, 0, "Number of previous cycles to scan for missed payouts. A value of '0' (default) only processes the cycles in current interval. A value of '5' would re-check the last 5 cycles in addition to the current interval.")
 	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
 	payCmd.Flags().Bool(FROM_STDIN_FLAG, false, "loads payouts from stdin instead of generating on the fly")

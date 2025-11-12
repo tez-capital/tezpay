@@ -258,9 +258,9 @@ var continualCmd = &cobra.Command{
 func init() {
 	continualCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "initial cycle")
 	continualCmd.Flags().Int64P(END_CYCLE_FLAG, "e", 0, "end cycle")
-	continualCmd.Flags().Int64(PAYMENT_INTERVAL_CYCLES_FLAG, 1, "number of cycles between consecutive payouts")
-	continualCmd.Flags().Int64(INTERVAL_TRIGGER_OFFSET_FLAG, 0, "offset (in cycles) to trigger payouts within the interval")
-	continualCmd.Flags().Int64(INCLUDE_PREVIOUS_CYCLES_FLAG, 0, "number of previous cycles to reevaluate for missed or failed payouts")
+	continualCmd.Flags().Int64(PAYMENT_INTERVAL_CYCLES_FLAG, 1, "Specifies the payout frequency in cycles. For example, '1' (default) attempts a payout every cycle. '10' attempts a payout every 10th cycle. See --interval-trigger-offset to adjust the start.")
+	continualCmd.Flags().Int64(INTERVAL_TRIGGER_OFFSET_FLAG, 0, "An offset (in cycles) to adjust *when* the payout interval triggers. Example: With an interval of '10', an offset of '0' (default) triggers on cycles 10, 20, 30. An offset of '3' triggers on cycles 13, 23, 33.")
+	continualCmd.Flags().Int64(INCLUDE_PREVIOUS_CYCLES_FLAG, 0, "Number of previous cycles to scan for missed payouts. A value of '0' (default) only processes the cycles in current interval. A value of '5' would re-check the last 5 cycles in addition to the current interval.")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_SC_PAYOUTS_FLAG, false, "disables smart contract separation (mixes txs and smart contract calls within batches)")
 	continualCmd.Flags().Bool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG, false, "disables fa transfers separation (mixes txs and fa transfers within batches)")
 	continualCmd.Flags().BoolP(FORCE_CONFIRMATION_PROMPT_FLAG, "a", false, "ask for confirmation on each payout")
