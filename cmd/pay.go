@@ -32,10 +32,12 @@ var payCmd = &cobra.Command{
 		mixInFATransfers, _ := cmd.Flags().GetBool(DISABLE_SEPARATE_FA_PAYOUTS_FLAG)
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 
-		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
-		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
-		payoutOffset, _ := cmd.Flags().GetInt64(PAYOUT_OFFSET_FLAG)
-		payoutOffset = getBoundedPayoutOffset(payoutOffset, payoutPeriod)
+		payoutInterval, _ := cmd.Flags().GetInt64(PAYMENT_INTERVAL_CYCLES_FLAG)
+		payoutInterval = getBoundedPayoutInterval(payoutInterval)
+		intervalTriggerOffset, _ := cmd.Flags().GetInt64(INTERVAL_TRIGGER_OFFSET_FLAG)
+		intervalTriggerOffset = boundToInterval(intervalTriggerOffset, payoutInterval, "interval-trigger-offset")
+		includePrevious, _ := cmd.Flags().GetInt64(INCLUDE_PREVIOUS_CYCLES_FLAG)
+		includePrevious = boundToInterval(includePrevious, payoutInterval*2, "include-previous-cycles")
 
 		fsReporter := reporter_engines.NewFileSystemReporter(config, &common.ReporterEngineOptions{
 			DryRun: isDryRun,
@@ -50,7 +52,7 @@ var payCmd = &cobra.Command{
 		fromFile, _ := cmd.Flags().GetString(FROM_FILE_FLAG)
 		fromStdin, _ := cmd.Flags().GetBool(FROM_STDIN_FLAG)
 
-		cycles := make([]int64, 0, payoutPeriod)
+		cycles := make([]int64, 0, payoutInterval)
 		switch {
 		case fromStdin:
 			generationResults = assertRunWithResult(func() (common.CyclePayoutBlueprints, error) {
@@ -71,9 +73,9 @@ var payCmd = &cobra.Command{
 			}
 
 			var isEndOfThePeriod bool
-			cycles, isEndOfThePeriod = getCyclesInCompletedPeriod(cycle, payoutPeriod, payoutOffset)
+			cycles, isEndOfThePeriod = getCyclesInCompletedPeriod(cycle, payoutInterval, intervalTriggerOffset, includePrevious)
 			if !isEndOfThePeriod {
-				slog.Error("cycle is not at the end of the specified payout period", "cycle", cycle, "payout_period", payoutPeriod)
+				slog.Error("cycle is not at the end of the specified payout interval", "cycle", cycle, "payout_interval", payoutInterval, "interval_trigger_offset", intervalTriggerOffset, "include_previous", includePrevious)
 				os.Exit(EXIT_OPERTION_FAILED)
 			}
 
@@ -164,8 +166,9 @@ var payCmd = &cobra.Command{
 func init() {
 	payCmd.Flags().Bool(CONFIRM_FLAG, false, "automatically confirms generated payouts")
 	payCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
-	payCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
-	payCmd.Flags().Int64(PAYOUT_OFFSET_FLAG, 1, "offset for the payout period (in cycles)")
+	payCmd.Flags().Int64(PAYMENT_INTERVAL_CYCLES_FLAG, 1, "number of cycles between consecutive payouts")
+	payCmd.Flags().Int64(INTERVAL_TRIGGER_OFFSET_FLAG, 0, "offset (in cycles) to trigger payouts within the interval")
+	payCmd.Flags().Int64(INCLUDE_PREVIOUS_CYCLES_FLAG, 0, "number of previous cycles to reevaluate for missed or failed payouts")
 	payCmd.Flags().Bool(REPORT_TO_STDOUT, false, "prints them to stdout (wont write to file)")
 	payCmd.Flags().String(FROM_FILE_FLAG, "", "loads payouts from file instead of generating on the fly")
 	payCmd.Flags().Bool(FROM_STDIN_FLAG, false, "loads payouts from stdin instead of generating on the fly")

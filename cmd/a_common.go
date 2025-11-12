@@ -155,47 +155,50 @@ func handleGeneratePayoutsFailure(err error) {
 	}
 }
 
-func getBoundedPayoutPeriod(payoutPeriod int64) int64 {
-	min := constants.MINIMUM_PAYOUT_PERIOD_CYCLES
-	max := constants.MAXIMUM_PAYOUT_PERIOD_CYCLES
+func getBoundedPayoutInterval(interval int64) int64 {
+	min := constants.MINIMUM_PAYOUT_INTERVAL_CYCLES
+	max := constants.MAXIMUM_PAYOUT_INTERVAL_CYCLES
 
-	if payoutPeriod < min {
-		slog.Warn("payout period too low, capping to min", "min", min)
+	if interval < min {
+		slog.Warn("payout interval too low, capping to min", "min", min)
 		return min
 	}
-	if payoutPeriod > max {
-		slog.Warn("payout period too high, capping to max", "max", max)
+	if interval > max {
+		slog.Warn("payout interval too high, capping to max", "max", max)
 		return max
 	}
-	return payoutPeriod
+	return interval
 }
 
-func getBoundedPayoutOffset(payoutOffset, period int64) int64 {
-	if period <= 1 {
+func boundToInterval(value, interval int64, name string) int64 {
+	if interval <= 1 {
 		return 0 // no offset possible
 	}
 
 	min := int64(0)
-	max := period
+	max := interval
 
-	if payoutOffset < min {
-		slog.Warn("payout offset too low, capping to min", "min", min)
+	if value < min {
+		slog.Warn(name+" too low, capping to min", "min", min)
 		return min
 	}
-	if payoutOffset > max {
-		slog.Warn("payout offset too high, capping to max", "max", max)
+	if value > max {
+		slog.Warn(name+" too high, capping to max", "max", max)
 		return max
 	}
-	return payoutOffset
+	return value
 }
 
-func getCyclesInCompletedPeriod(cycle, period, offset int64) (periodCycles []int64, ok bool) {
-	if cycle <= 0 || period <= 0 || (cycle+offset)%period != 0 {
+func getCyclesInCompletedPeriod(cycle, interval, offset, includePrevious int64) (periodCycles []int64, ok bool) {
+	if cycle <= 0 || interval <= 0 || (cycle+offset)%interval != 0 {
 		return nil, false
 	}
 
-	periodCycles = make([]int64, 0, period)
-	startCycle := cycle - period + 1
+	periodCycles = make([]int64, 0, interval)
+	startCycle := cycle - interval + 1 - includePrevious
+	if startCycle < 0 {
+		startCycle = 0
+	}
 
 	for c := cycle; c >= startCycle; c-- {
 		periodCycles = append(periodCycles, c)

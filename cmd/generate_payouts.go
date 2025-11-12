@@ -23,10 +23,12 @@ var generatePayoutsCmd = &cobra.Command{
 		cycle, _ := cmd.Flags().GetInt64(CYCLE_FLAG)
 		skipBalanceCheck, _ := cmd.Flags().GetBool(SKIP_BALANCE_CHECK_FLAG)
 
-		payoutPeriod, _ := cmd.Flags().GetInt64(PAYOUT_PERIOD_FLAG)
-		payoutPeriod = getBoundedPayoutPeriod(payoutPeriod)
-		payoutOffset, _ := cmd.Flags().GetInt64(PAYOUT_OFFSET_FLAG)
-		payoutOffset = getBoundedPayoutOffset(payoutOffset, payoutPeriod)
+		payoutInterval, _ := cmd.Flags().GetInt64(PAYMENT_INTERVAL_CYCLES_FLAG)
+		payoutInterval = getBoundedPayoutInterval(payoutInterval)
+		intervalTriggerOffset, _ := cmd.Flags().GetInt64(INTERVAL_TRIGGER_OFFSET_FLAG)
+		intervalTriggerOffset = boundToInterval(intervalTriggerOffset, payoutInterval, "interval-trigger-offset")
+		includePrevious, _ := cmd.Flags().GetInt64(INCLUDE_PREVIOUS_CYCLES_FLAG)
+		includePrevious = boundToInterval(includePrevious, payoutInterval*2, "include-previous-cycles")
 
 		isDryRun, _ := cmd.Flags().GetBool(DRY_RUN_FLAG)
 		config, collector, signer, _ := assertRunWithResult(loadConfigurationEnginesExtensions, EXIT_CONFIGURATION_LOAD_FAILURE).Unwrap()
@@ -37,9 +39,9 @@ var generatePayoutsCmd = &cobra.Command{
 			cycle = lastCompletedCycle + cycle
 		}
 
-		cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycle, payoutPeriod, payoutOffset)
+		cycles, isEndOfThePeriod := getCyclesInCompletedPeriod(cycle, payoutInterval, intervalTriggerOffset, includePrevious)
 		if !isEndOfThePeriod {
-			slog.Error("cycle is not at the end of the specified payout period", "cycle", cycle, "payout_period", payoutPeriod)
+			slog.Error("cycle is not at the end of the specified payout interval", "cycle", cycle, "payout_interval", payoutInterval, "interval_trigger_offset", intervalTriggerOffset, "include_previous", includePrevious)
 			os.Exit(EXIT_OPERTION_FAILED)
 		}
 
@@ -81,8 +83,9 @@ var generatePayoutsCmd = &cobra.Command{
 func init() {
 	generatePayoutsCmd.Flags().Int64P(CYCLE_FLAG, "c", 0, "cycle to generate payouts for")
 	generatePayoutsCmd.Flags().String(TO_FILE_FLAG, "", "saves generated payouts to specified file")
-	generatePayoutsCmd.Flags().Int64(PAYOUT_PERIOD_FLAG, 1, "payout period")
-	generatePayoutsCmd.Flags().Int64(PAYOUT_OFFSET_FLAG, 1, "offset for the payout period (in cycles)")
+	generatePayoutsCmd.Flags().Int64(PAYMENT_INTERVAL_CYCLES_FLAG, 1, "number of cycles between consecutive payouts")
+	generatePayoutsCmd.Flags().Int64(INTERVAL_TRIGGER_OFFSET_FLAG, 0, "offset (in cycles) to trigger payouts within the interval")
+	generatePayoutsCmd.Flags().Int64(INCLUDE_PREVIOUS_CYCLES_FLAG, 0, "number of previous cycles to reevaluate for missed or failed payouts")
 	generatePayoutsCmd.Flags().Bool(SKIP_BALANCE_CHECK_FLAG, false, "skips payout wallet balance check")
 	generatePayoutsCmd.Flags().Bool(DRY_RUN_FLAG, false, "Performs all actions except sending transactions. Reports are stored in 'reports/dry' folder")
 	RootCmd.AddCommand(generatePayoutsCmd)
