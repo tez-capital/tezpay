@@ -206,9 +206,11 @@ var continualCmd = &cobra.Command{
 		notifiedNewVersionAvailable := false
 
 		startupProtocol := GetProtocolWithRetry(collector)
+		slog.Info("Continual mode started", "interval", payoutInterval, "interval_trigger_offset", intervalTriggerOffset, "include_previous_cycles", includePrevious, "protocol", startupProtocol)
 		if !config.Network.IgnoreProtocolChanges {
-			slog.Info("Continual mode started in safe mode. In the event of a protocol change, TezPay will stop processing payouts and you will be notified.")
+			slog.Info("Continual mode started in SAFE mode. In the event of a protocol change, TezPay will stop processing payouts and you will be notified.")
 		}
+
 		defer func() {
 			notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
 		}()
