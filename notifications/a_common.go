@@ -51,6 +51,16 @@ func PopulateMessageTemplate(messageTempalte string, summary *common.PayoutSumma
 		}
 	}
 
+	v = reflect.ValueOf(summary.CyclePayoutSummary)
+	typeOfS = v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		val := fmt.Sprintf("%v", v.Field(i).Interface())
+		if typeOfS.Field(i).Type.Name() == "Z" && strings.Contains(typeOfS.Field(i).Type.PkgPath(), "tzgo/tezos") {
+			val = fmt.Sprintf("%v", common.MutezToTezS(v.Field(i).Interface().(tezos.Z).Int64()))
+		}
+		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", typeOfS.Field(i).Name), val)
+	}
+
 	for k, v := range additionalData {
 		messageTempalte = strings.ReplaceAll(messageTempalte, fmt.Sprintf("<%s>", k), v)
 	}
