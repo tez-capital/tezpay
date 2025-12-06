@@ -58,6 +58,12 @@ func (e *StdioExtension) Load() error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+	// reap
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			slog.Default().Error("extension process exited", "extension", e.GetDefinition().Name, "err", err)
+		}
+	}()
 	time.Sleep(time.Duration(e.definition.WaitForStart) * time.Second)
 	// init extension
 
