@@ -1,19 +1,19 @@
-docs/cmd/tezpay_version.md## tezpay version
+docs/cmd/tezpay_reveal.md## tezpay reveal
 
-prints tezpay version
+reveals the payout wallet
 
 ### Synopsis
 
-generates payouts without further processing
+reveals the payout wallet on the blockchain
 
 ```
-tezpay version [flags]
+tezpay reveal [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for reveal
 ```
 
 ### Options inherited from parent commands
