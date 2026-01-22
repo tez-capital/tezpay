@@ -3,6 +3,8 @@ name: web
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'install.sh'
 
 permissions:
   contents: read
