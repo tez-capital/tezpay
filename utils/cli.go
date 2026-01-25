@@ -323,7 +323,7 @@ func PrintCycleSummary(summary common.PayoutSummary, header string) {
 	summaryTable.Render()
 }
 
-func PrintBatchResults(results []common.BatchResult, header string, explorerUrl string) {
+func PrintBatchResults(results []*common.BatchResult, header string, explorerUrl string) {
 	if len(results) == 0 {
 		return
 	}

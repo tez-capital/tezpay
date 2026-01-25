@@ -145,7 +145,7 @@ var payCmd = &cobra.Command{
 		}, EXIT_OPERTION_FAILED)
 
 		// notify
-		failedCount := lo.CountBy(executionResult.BatchResults, func(br common.BatchResult) bool { return !br.IsSuccess })
+		failedCount := lo.CountBy(executionResult.BatchResults, func(br *common.BatchResult) bool { return !br.IsSuccess })
 		if len(executionResult.BatchResults) > 0 && failedCount > 0 {
 			slog.Error("failed operations detected", "failed", failedCount, "total", len(executionResult.BatchResults))
 			os.Exit(EXIT_OPERTION_FAILED)
