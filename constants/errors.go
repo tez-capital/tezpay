@@ -62,14 +62,16 @@ var (
 	ErrPayoutsSaveToFileFailed               = errors.New("failed to save payouts to file")
 	ErrInsufficientBalance                   = errors.New("insufficient balance")
 	ErrFailedToCheckBalance                  = errors.New("failed to check balance")
+	ErrPayoutRecordedBeforeExecution         = errors.New("payout already recorded before execution")
 	ErrFailedToEstimateSerializationGasLimit = errors.New("failed to estimate batch serialization gas limit")
 
 	// execute payouts
 
-	ErrFailedToCompleteOperation    = errors.New("failed to complete operation")
-	ErrFailedToSignOperation        = errors.New("failed to sign operation")
-	ErrExecutePayoutsUserTerminated = errors.New("user terminated execution")
-	ErrGetChainLimitsFailed         = errors.New("failed to get chain limits")
+	ErrFailedToCompleteOperation            = errors.New("failed to complete operation")
+	ErrFailedToSignOperation                = errors.New("failed to sign operation")
+	ErrFailedToRecordPayoutsBeforeExecution = errors.New("failed to record payouts before execution")
+	ErrExecutePayoutsUserTerminated         = errors.New("user terminated execution")
+	ErrGetChainLimitsFailed                 = errors.New("failed to get chain limits")
 
 	// notifications
 

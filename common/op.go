@@ -13,13 +13,16 @@ type OpExecutionContext struct {
 	Op         *codec.Op
 	Transactor TransactorEngine
 	result     OpResult
+
+	batch RecipeBatch
 }
 
-func InitOpExecutionContext(op *codec.Op, transactor TransactorEngine) *OpExecutionContext {
+func InitOpExecutionContext(op *codec.Op, transactor TransactorEngine, batch RecipeBatch) *OpExecutionContext {
 	return &OpExecutionContext{
 		Op:         op,
 		result:     nil,
 		Transactor: transactor,
+		batch:      batch,
 	}
 }
 
@@ -44,6 +47,14 @@ func (ctx *OpExecutionContext) WaitForApply() error {
 		return constants.ErrOperationNotDispatched
 	}
 	return ctx.result.WaitForApply()
+}
+
+func (ctx *OpExecutionContext) AsFailedBatchResult(err error) *BatchResult {
+	return NewFailedBatchResultWithOpHash(ctx.batch, ctx.GetOpHash(), err)
+}
+
+func (ctx *OpExecutionContext) AsSuccessBatchResult() *BatchResult {
+	return NewSuccessBatchResult(ctx.batch, ctx.GetOpHash())
 }
 
 type TransferArgs interface {

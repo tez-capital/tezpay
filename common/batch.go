@@ -56,15 +56,15 @@ func (b *batchBlueprint) ToBatch() RecipeBatch {
 
 type RecipeBatch []*AccumulatedPayoutRecipe
 
-func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor TransactorEngine) (*OpExecutionContext, error) {
+func (b RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor TransactorEngine) (*OpExecutionContext, error) {
 	op := codec.NewOp().WithSource(signer.GetPKH())
 	op.WithTTL(constants.MAX_OPERATION_TTL)
 
-	serializationGasLimit := lo.Reduce(*b, func(acc int64, p *AccumulatedPayoutRecipe, _ int) int64 {
+	serializationGasLimit := lo.Reduce(b, func(acc int64, p *AccumulatedPayoutRecipe, _ int) int64 {
 		return acc + p.OpLimits.DeserializationGasLimit
 	}, int64(0))
 
-	for i, p := range *b {
+	for i, p := range b {
 		buffer := int64(0)
 		if i == 0 {
 			buffer = serializationGasLimit
@@ -86,5 +86,5 @@ func (b *RecipeBatch) ToOpExecutionContext(signer SignerEngine, transactor Trans
 	if err != nil {
 		return nil, errors.Join(constants.ErrFailedToSignOperation, err)
 	}
-	return InitOpExecutionContext(op, transactor), nil
+	return InitOpExecutionContext(op, transactor, b), nil
 }

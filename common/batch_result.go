@@ -52,8 +52,8 @@ func (br *BatchResult) ToIndividualReports() []PayoutReport {
 	return result
 }
 
-type BatchResults []BatchResult
+type BatchResults []*BatchResult
 
 func (brs BatchResults) ToIndividualReports() []PayoutReport {
-	return lo.Flatten(lo.Map(brs, func(br BatchResult, _ int) []PayoutReport { return br.ToIndividualReports() }))
+	return lo.Flatten(lo.Map(brs, func(br *BatchResult, _ int) []PayoutReport { return br.ToIndividualReports() }))
 }
