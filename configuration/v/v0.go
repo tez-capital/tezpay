@@ -87,6 +87,7 @@ type ConfigurationV0 struct {
 	Extensions                 []ExtensionConfigurationV0    `json:"extensions,omitempty" comment:"extensions (for custom functionality)"`
 	SourceBytes                []byte                        `json:"-"`
 	DisableAnalytics           bool                          `json:"disable_analytics,omitempty" comment:"disables analytics, please consider leaving it enabled🙏"`
+	DisableKillSwitch          bool                          `json:"disable_kill_switch,omitempty" comment:"disables kill switch, please consider leaving it enabled🙏"`
 }
 
 type NotificatorConfigurationBase struct {
