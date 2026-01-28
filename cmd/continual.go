@@ -204,6 +204,7 @@ var continualCmd = &cobra.Command{
 		}
 
 		notifiedNewVersionAvailable := false
+		notifiedProtocolChanged := false
 
 		startupProtocol := GetProtocolWithRetry(collector)
 		slog.Info("Continual mode started", "interval", payoutInterval, "interval_trigger_offset", intervalTriggerOffset, "include_previous_cycles", includePrevious, "protocol", startupProtocol)
@@ -238,7 +239,10 @@ var continualCmd = &cobra.Command{
 				if currentProtocol != startupProtocol {
 					/// we can not exit here. Users may configure recover mechanism in case of crashes/exits so we really want to wait for the operator to take action
 					slog.Warn("protocol changed, operator action required", "old_protocol", startupProtocol, "new_protocol", currentProtocol, "phase", "waiting_for_operator_action")
-					notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
+					if !notifiedProtocolChanged {
+						notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
+						notifiedProtocolChanged = true
+					}
 					continue
 				}
 			}
