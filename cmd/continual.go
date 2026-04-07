@@ -17,6 +17,7 @@ import (
 	"github.com/tez-capital/tezpay/extension"
 	"github.com/tez-capital/tezpay/state"
 	"github.com/tez-capital/tezpay/utils"
+	"github.com/trilitech/tzgo/tezos"
 )
 
 var (
@@ -25,6 +26,42 @@ var (
 	cycleToProcess        int64
 	endCycle              int64
 )
+
+type protocolChangeDecision struct {
+	HasProtocolChanged              bool
+	ShouldNotify                    bool
+	ShouldSkipPayouts               bool
+	NotificationMessage             string
+	UpdatedExpectedProtocol         tezos.ProtocolHash
+	UpdatedLastNotifiedProtocolPair string
+}
+
+func evaluateProtocolChange(expectedProtocol, currentProtocol tezos.ProtocolHash, lastNotifiedProtocolPair string, ignoreProtocolChanges bool) protocolChangeDecision {
+	decision := protocolChangeDecision{
+		HasProtocolChanged:              currentProtocol != expectedProtocol,
+		UpdatedExpectedProtocol:         expectedProtocol,
+		UpdatedLastNotifiedProtocolPair: lastNotifiedProtocolPair,
+	}
+
+	if !decision.HasProtocolChanged {
+		return decision
+	}
+
+	notificationKey := fmt.Sprintf("%s->%s", expectedProtocol, currentProtocol)
+	if notificationKey != lastNotifiedProtocolPair {
+		decision.ShouldNotify = true
+		decision.NotificationMessage = fmt.Sprintf("Protocol changed from %s to %s.", expectedProtocol, currentProtocol)
+		decision.UpdatedLastNotifiedProtocolPair = notificationKey
+	}
+
+	if ignoreProtocolChanges {
+		decision.UpdatedExpectedProtocol = currentProtocol
+	} else {
+		decision.ShouldSkipPayouts = true
+	}
+
+	return decision
+}
 
 func processCycleInContinualMode(context *configurationAndEngines, forceConfirmationPrompt bool, mixInContractCalls bool, mixInFATransfers bool, isDryRun bool, silent bool, payoutInterval, intervalTriggerOffset, includePrevious int64) (processed bool) {
 	processed = true
@@ -204,10 +241,10 @@ var continualCmd = &cobra.Command{
 		}
 
 		notifiedNewVersionAvailable := false
-		notifiedProtocolChanged := false
+		lastNotifiedProtocolPair := ""
 
-		startupProtocol := GetProtocolWithRetry(collector)
-		slog.Info("Continual mode started", "interval", payoutInterval, "interval_trigger_offset", intervalTriggerOffset, "include_previous_cycles", includePrevious, "protocol", startupProtocol)
+		expectedProtocol := GetProtocolWithRetry(collector)
+		slog.Info("Continual mode started", "interval", payoutInterval, "interval_trigger_offset", intervalTriggerOffset, "include_previous_cycles", includePrevious, "protocol", expectedProtocol)
 		if !config.Network.IgnoreProtocolChanges {
 			slog.Info("Continual mode started in SAFE mode. In the event of a protocol change, TezPay will stop processing payouts and you will be notified.")
 		}
@@ -215,7 +252,7 @@ var continualCmd = &cobra.Command{
 		defer func() {
 			notifyAdmin(config, fmt.Sprintf("Continual payouts stopped on cycle #%d", lastProcessedCycle+1))
 		}()
-		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s, protocol %s)", lastProcessedCycle+1, constants.VERSION, startupProtocol))
+		notifyAdmin(config, fmt.Sprintf("Continual payouts started on cycle #%d (tezpay %s, protocol %s)", lastProcessedCycle+1, constants.VERSION, expectedProtocol))
 		for {
 			if lastProcessedCycle >= onchainCompletedCycle {
 				slog.Info("waiting for next cycle to complete", "phase", "waiting_for_next_cycle")
@@ -233,18 +270,20 @@ var continualCmd = &cobra.Command{
 				}
 			}
 
-			if !config.Network.IgnoreProtocolChanges {
-				slog.Debug("checking for protocol changes")
-				currentProtocol := GetProtocolWithRetry(collector)
-				if currentProtocol != startupProtocol {
-					/// we can not exit here. Users may configure recover mechanism in case of crashes/exits so we really want to wait for the operator to take action
-					slog.Warn("protocol changed, operator action required", "old_protocol", startupProtocol, "new_protocol", currentProtocol, "phase", "waiting_for_operator_action")
-					if !notifiedProtocolChanged {
-						notifyAdmin(config, fmt.Sprintf("Protocol changed from %s to %s, waiting for the operator to take action.", startupProtocol, currentProtocol))
-						notifiedProtocolChanged = true
-					}
+			slog.Debug("checking for protocol changes")
+			currentProtocol := GetProtocolWithRetry(collector)
+			decision := evaluateProtocolChange(expectedProtocol, currentProtocol, lastNotifiedProtocolPair, config.Network.IgnoreProtocolChanges)
+			if decision.HasProtocolChanged {
+				slog.Warn("protocol changed", "old_protocol", expectedProtocol, "new_protocol", currentProtocol, "ignore_protocol_changes", config.Network.IgnoreProtocolChanges, "phase", "protocol_change_detected")
+				if decision.ShouldNotify {
+					notifyAdmin(config, decision.NotificationMessage)
+					lastNotifiedProtocolPair = decision.UpdatedLastNotifiedProtocolPair
+				}
+				if decision.ShouldSkipPayouts {
+					slog.Warn("protocol changed, operator action required; skipping payouts until restart", "old_protocol", expectedProtocol, "new_protocol", currentProtocol, "phase", "waiting_for_operator_action")
 					continue
 				}
+				expectedProtocol = decision.UpdatedExpectedProtocol
 			}
 
 			if !notifiedNewVersionAvailable {

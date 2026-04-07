@@ -16,6 +16,11 @@ import (
 
 const KILL_SWITCH_DETECTED_MESSAGE = "kill switch detected, please check TzC support channels for more information"
 
+var (
+	killSwitchDoNotPayURL        = "https://raw.githubusercontent.com/tez-capital/tezpay/refs/heads/main/DO_NOT_PAY"
+	killSwitchUpgradeRequiredURL = "https://raw.githubusercontent.com/tez-capital/tezpay/refs/heads/main/UPGRADE_REQUIRED"
+)
+
 func checkKillSwitch(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
 
@@ -37,49 +42,57 @@ func checkKillSwitch(ctx *PayoutGenerationContext, options *common.GeneratePayou
 	// 1. DO_NOT_PAY
 	// - https://raw.githubusercontent.com/tez-capital/tezpay/refs/heads/main/DO_NOT_PAY
 	// - content of the file does not matter, the file just needs to exist to trigger the kill switch
-	resp, err := client.Get("https://raw.githubusercontent.com/tez-capital/tezpay/refs/heads/main/DO_NOT_PAY")
-	if err == nil {
-		resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
-			return ctx, errors.New(KILL_SWITCH_DETECTED_MESSAGE)
-		}
+	resp, err := client.Get(killSwitchDoNotPayURL)
+	if err != nil {
+		return ctx, fmt.Errorf("kill switch check failed: could not fetch DO_NOT_PAY: %w", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		return ctx, errors.New(KILL_SWITCH_DETECTED_MESSAGE)
+	}
+	if resp.StatusCode != http.StatusNotFound {
+		return ctx, fmt.Errorf("kill switch check failed: failed to determine DO_NOT_PAY status (status: %d)", resp.StatusCode)
 	}
 
 	// 2. UPGRADE_REQUIRED
 	// - https://raw.githubusercontent.com/tez-capital/tezpay/refs/heads/main/UPGRADE_REQUIRED
 	// - the version will be the raw content of the file and is supposed to be compared against constants.VERSION
-	resp, err = client.Get("https://raw.githubusercontent.com/tez-capital/tezpay/refs/heads/main/UPGRADE_REQUIRED")
-	if err == nil {
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return ctx, fmt.Errorf("kill switch check failed: found UPGRADE_REQUIRED but failed to read body: %w", err)
-			}
-
-			requiredVersionStr := strings.TrimSpace(string(body))
-			if requiredVersionStr == "" {
-				return ctx, errors.New(KILL_SWITCH_DETECTED_MESSAGE)
-			}
-
-			if constants.VERSION == "dev" {
-				return ctx, nil
-			}
-
-			currentVersion, err := version.NewVersion(constants.VERSION)
-			if err != nil {
-				return ctx, fmt.Errorf("kill switch check failed: invalid current version format '%s': %w", constants.VERSION, err)
-			}
-
-			requiredVersion, err := version.NewVersion(requiredVersionStr)
-			if err != nil {
-				return ctx, fmt.Errorf("kill switch check failed: found UPGRADE_REQUIRED but failed to parse version '%s': %w", requiredVersionStr, err)
-			}
-
-			if currentVersion.LessThan(requiredVersion) {
-				return ctx, fmt.Errorf("kill switch activated: upgrade required (current: %s, required: %s)", constants.VERSION, requiredVersionStr)
-			}
+	resp, err = client.Get(killSwitchUpgradeRequiredURL)
+	if err != nil {
+		return ctx, fmt.Errorf("kill switch check failed: could not fetch UPGRADE_REQUIRED: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return ctx, fmt.Errorf("kill switch check failed: found UPGRADE_REQUIRED but failed to read body: %w", err)
 		}
+
+		requiredVersionStr := strings.TrimSpace(string(body))
+		if requiredVersionStr == "" {
+			return ctx, errors.New(KILL_SWITCH_DETECTED_MESSAGE)
+		}
+
+		if constants.VERSION == "dev" {
+			return ctx, nil
+		}
+
+		currentVersion, err := version.NewVersion(constants.VERSION)
+		if err != nil {
+			return ctx, fmt.Errorf("kill switch check failed: invalid current version format '%s': %w", constants.VERSION, err)
+		}
+
+		requiredVersion, err := version.NewVersion(requiredVersionStr)
+		if err != nil {
+			return ctx, fmt.Errorf("kill switch check failed: found UPGRADE_REQUIRED but failed to parse version '%s': %w", requiredVersionStr, err)
+		}
+
+		if currentVersion.LessThan(requiredVersion) {
+			return ctx, fmt.Errorf("kill switch activated: upgrade required (current: %s, required: %s)", constants.VERSION, requiredVersionStr)
+		}
+	}
+	if resp.StatusCode != http.StatusNotFound {
+		return ctx, fmt.Errorf("kill switch check failed: failed to determine UPGRADE_REQUIRED status (status: %d)", resp.StatusCode)
 	}
 
 	return ctx, nil
