@@ -22,6 +22,12 @@ var (
 )
 
 func checkKillSwitch(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions) (*PayoutGenerationContext, error) {
+	return checkKillSwitchWithClient(ctx, options, &http.Client{
+		Timeout: 5 * time.Second,
+	})
+}
+
+func checkKillSwitchWithClient(ctx *PayoutGenerationContext, options *common.GeneratePayoutsOptions, client *http.Client) (*PayoutGenerationContext, error) {
 	configuration := ctx.GetConfiguration()
 
 	if os.Getenv("DISABLE_TEZPAY_KILL_SWITCH") == "true" {
@@ -30,10 +36,6 @@ func checkKillSwitch(ctx *PayoutGenerationContext, options *common.GeneratePayou
 
 	if configuration.DisableKillSwitch {
 		return ctx, nil
-	}
-
-	client := &http.Client{
-		Timeout: 5 * time.Second,
 	}
 
 	// there are 2 types of kill switches

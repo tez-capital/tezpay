@@ -35,30 +35,12 @@ func splitIntoBatches[T any](candidates []T, capacity int) [][]T {
 	return batches
 }
 
-func buildOpForEstimation[T common.TransferArgs](payoutKey tezos.Key, batch []T, injectBurnTransactions bool) (*codec.Op, error) {
-	var err error
-	op := codec.NewOp().WithSource(payoutKey.Address())
-	op.WithTTL(constants.MAX_OPERATION_TTL)
-	if injectBurnTransactions {
-		op.WithTransfer(tezos.BurnAddress, 1)
-	}
-	for _, p := range batch {
-		if err = common.InjectTransferContents(op, payoutKey.Address(), p); err != nil {
-			break
-		}
-	}
-	if injectBurnTransactions {
-		op.WithTransfer(tezos.BurnAddress, 1)
-	}
-	return op, err
-}
-
 func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext) ([]*common.OpLimits, error) {
 	var (
 		err     error
 		receipt *rpc.Receipt
 	)
-	op, err := buildOpForEstimation(ctx.PayoutKey, batch, true)
+	op, err := common.BuildOpForEstimation(ctx.PayoutKey, batch, true)
 
 	if err != nil {
 		return nil, err
@@ -100,7 +82,7 @@ func estimateBatchFees[T common.TransferArgs](batch []T, ctx *EstimationContext)
 			return nil, err
 		}
 		// rebuild op for estimates
-		op, err := buildOpForEstimation(ctx.PayoutKey, []T{batch[i]}, false)
+		op, err := common.BuildOpForEstimation(ctx.PayoutKey, []T{batch[i]}, false)
 		if err != nil {
 			return nil, err
 		}

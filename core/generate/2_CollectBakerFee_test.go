@@ -17,29 +17,23 @@ import (
 var (
 	payoutCandidatesWithBondAmount = []PayoutCandidateWithBondAmount{
 		{
-			PayoutCandidate: PayoutCandidate{
-				Source:    mock.GetRandomAddress(),
-				Recipient: mock.GetRandomAddress(),
-				FeeRate:   0.05,
-			},
+			Source:      mock.GetRandomAddress(),
+			Recipient:   mock.GetRandomAddress(),
+			FeeRate:     0.05,
 			BondsAmount: tezos.NewZ(10000000),
 			TxKind:      enums.PAYOUT_TX_KIND_TEZ,
 		},
 		{
-			PayoutCandidate: PayoutCandidate{
-				Source:    mock.GetRandomAddress(),
-				Recipient: mock.GetRandomAddress(),
-				FeeRate:   0.05,
-			},
+			Source:      mock.GetRandomAddress(),
+			Recipient:   mock.GetRandomAddress(),
+			FeeRate:     0.05,
 			BondsAmount: tezos.NewZ(20000000),
 			TxKind:      enums.PAYOUT_TX_KIND_TEZ,
 		},
 		{
-			PayoutCandidate: PayoutCandidate{
-				Source:    mock.GetRandomAddress(),
-				Recipient: mock.GetRandomAddress(),
-				FeeRate:   0.05,
-			},
+			Source:      mock.GetRandomAddress(),
+			Recipient:   mock.GetRandomAddress(),
+			FeeRate:     0.05,
 			BondsAmount: tezos.NewZ(20000000),
 			TxKind:      enums.PAYOUT_TX_KIND_FA1_2,
 		},

@@ -21,8 +21,9 @@ func TestCheckKillSwitch_DoNotPayEnabled(t *testing.T) {
 	mux.HandleFunc("/UPGRADE_REQUIRED", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
-	server := httptest.NewServer(mux)
+	server := httptest.NewTestServer(t, mux)
 	defer server.Close()
+	client := server.Client()
 
 	oldDoNotPayURL := killSwitchDoNotPayURL
 	oldUpgradeRequiredURL := killSwitchUpgradeRequiredURL
@@ -36,7 +37,7 @@ func TestCheckKillSwitch_DoNotPayEnabled(t *testing.T) {
 	config := configuration.GetDefaultRuntimeConfiguration()
 	ctx := &PayoutGenerationContext{configuration: &config}
 
-	_, err := checkKillSwitch(ctx, &common.GeneratePayoutsOptions{})
+	_, err := checkKillSwitchWithClient(ctx, &common.GeneratePayoutsOptions{}, client)
 	assert.Error(err)
 	assert.Contains(err.Error(), KILL_SWITCH_DETECTED_MESSAGE)
 }
@@ -52,8 +53,9 @@ func TestCheckKillSwitch_UpgradeRequired(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("9.9.9"))
 	})
-	server := httptest.NewServer(mux)
+	server := httptest.NewTestServer(t, mux)
 	defer server.Close()
+	client := server.Client()
 
 	oldVersion := constants.VERSION
 	oldDoNotPayURL := killSwitchDoNotPayURL
@@ -70,7 +72,7 @@ func TestCheckKillSwitch_UpgradeRequired(t *testing.T) {
 	config := configuration.GetDefaultRuntimeConfiguration()
 	ctx := &PayoutGenerationContext{configuration: &config}
 
-	_, err := checkKillSwitch(ctx, &common.GeneratePayoutsOptions{})
+	_, err := checkKillSwitchWithClient(ctx, &common.GeneratePayoutsOptions{}, client)
 	assert.Error(err)
 	assert.Contains(err.Error(), "kill switch activated: upgrade required")
 }
@@ -125,8 +127,9 @@ func TestCheckKillSwitch_FailsOnUnexpectedDoNotPayStatusCode(t *testing.T) {
 	mux.HandleFunc("/UPGRADE_REQUIRED", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
-	server := httptest.NewServer(mux)
+	server := httptest.NewTestServer(t, mux)
 	defer server.Close()
+	client := server.Client()
 
 	oldDoNotPayURL := killSwitchDoNotPayURL
 	oldUpgradeRequiredURL := killSwitchUpgradeRequiredURL
@@ -140,7 +143,7 @@ func TestCheckKillSwitch_FailsOnUnexpectedDoNotPayStatusCode(t *testing.T) {
 	config := configuration.GetDefaultRuntimeConfiguration()
 	ctx := &PayoutGenerationContext{configuration: &config}
 
-	_, err := checkKillSwitch(ctx, &common.GeneratePayoutsOptions{})
+	_, err := checkKillSwitchWithClient(ctx, &common.GeneratePayoutsOptions{}, client)
 	assert.Error(err)
 	assert.Contains(err.Error(), "failed to determine DO_NOT_PAY status")
 }
@@ -155,8 +158,9 @@ func TestCheckKillSwitch_FailsOnUnexpectedUpgradeRequiredStatusCode(t *testing.T
 	mux.HandleFunc("/UPGRADE_REQUIRED", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 	})
-	server := httptest.NewServer(mux)
+	server := httptest.NewTestServer(t, mux)
 	defer server.Close()
+	client := server.Client()
 
 	oldDoNotPayURL := killSwitchDoNotPayURL
 	oldUpgradeRequiredURL := killSwitchUpgradeRequiredURL
@@ -170,7 +174,7 @@ func TestCheckKillSwitch_FailsOnUnexpectedUpgradeRequiredStatusCode(t *testing.T
 	config := configuration.GetDefaultRuntimeConfiguration()
 	ctx := &PayoutGenerationContext{configuration: &config}
 
-	_, err := checkKillSwitch(ctx, &common.GeneratePayoutsOptions{})
+	_, err := checkKillSwitchWithClient(ctx, &common.GeneratePayoutsOptions{}, client)
 	assert.Error(err)
 	assert.Contains(err.Error(), "failed to determine UPGRADE_REQUIRED status")
 }

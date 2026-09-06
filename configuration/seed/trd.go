@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
 	"strings"
 
 	"github.com/hjson/hjson-go/v4"
@@ -40,16 +41,12 @@ func MigrateTrdv1ToTPv0(sourceBytes []byte) ([]byte, error) {
 
 	feeRecipients := make(map[string]float64, len(configuration.FoundersMap))
 	if len(configuration.FoundersMap) > 0 {
-		for recipient, share := range configuration.FoundersMap {
-			feeRecipients[recipient] = share
-		}
+		maps.Copy(feeRecipients, configuration.FoundersMap)
 	}
 
 	bondRecipients := make(map[string]float64, len(configuration.OwnersMap))
 	if len(configuration.OwnersMap) > 0 {
-		for recipient, share := range configuration.OwnersMap {
-			bondRecipients[recipient] = share
-		}
+		maps.Copy(bondRecipients, configuration.OwnersMap)
 	}
 
 	delegatorOverrides := make(map[string]tezpay_configuration.DelegatorOverrideV0, len(configuration.SpecialsMap)+len(configuration.SupportersSet))

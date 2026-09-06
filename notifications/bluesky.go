@@ -119,10 +119,10 @@ func ValidateBlueskyConfiguration(configurationBytes []byte) error {
 }
 
 func (bn *BlueskyNotificator) createPost(text string) error {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"collection": "app.bsky.feed.post",
 		"repo":       bn.handle,
-		"record": map[string]interface{}{
+		"record": map[string]any{
 			"text":      text,
 			"createdAt": time.Now().Format(time.RFC3339),
 			"$type":     "app.bsky.feed.post",

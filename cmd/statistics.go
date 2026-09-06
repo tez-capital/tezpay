@@ -30,7 +30,7 @@ var statisticsCmd = &cobra.Command{
 
 		var total common.PayoutSummary
 		ok := 0
-		for i := 0; i < n; i++ {
+		for i := range n {
 			cycle := lastCycle - int64(i)
 			summary, err := fsReporter.GetExistingCycleSummary(cycle)
 			if err != nil {

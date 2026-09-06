@@ -65,6 +65,24 @@ type TransferArgs interface {
 	GetAmount() tezos.Z
 }
 
+func BuildOpForEstimation[T TransferArgs](payoutKey tezos.Key, batch []T, injectBurnTransactions bool) (*codec.Op, error) {
+	var err error
+	op := codec.NewOp().WithSource(payoutKey.Address())
+	op.WithTTL(constants.MAX_OPERATION_TTL)
+	if injectBurnTransactions {
+		op.WithTransfer(tezos.BurnAddress, 1)
+	}
+	for _, p := range batch {
+		if err = InjectTransferContents(op, payoutKey.Address(), p); err != nil {
+			break
+		}
+	}
+	if injectBurnTransactions {
+		op.WithTransfer(tezos.BurnAddress, 1)
+	}
+	return op, err
+}
+
 func InjectTransferContents(op *codec.Op, source tezos.Address, p TransferArgs) error {
 	switch p.GetTxKind() {
 	case enums.PAYOUT_TX_KIND_FA1_2:

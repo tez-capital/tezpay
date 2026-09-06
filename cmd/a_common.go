@@ -195,10 +195,7 @@ func getCyclesInCompletedPeriod(cycle, interval, offset, includePrevious int64) 
 	}
 
 	periodCycles = make([]int64, 0, interval)
-	startCycle := cycle - interval + 1 - includePrevious
-	if startCycle < 0 {
-		startCycle = 0
-	}
+	startCycle := max(cycle-interval+1-includePrevious, 0)
 
 	for c := cycle; c >= startCycle; c-- {
 		periodCycles = append(periodCycles, c)

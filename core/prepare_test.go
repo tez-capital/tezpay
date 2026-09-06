@@ -52,13 +52,11 @@ func (engine *mockPrepareCollector) Simulate(o *codec.Op, publicKey tezos.Key) (
 			tx.StorageLimit = 30000
 			tx.Fee = 1000
 			return rpc.Transaction{
-				Manager: rpc.Manager{
-					GasLimit:     520000,
-					StorageLimit: 30000,
-					Fee:          1000,
-				},
-				Destination: tx.Destination,
-				Amount:      tx.Amount.Int64(),
+				GasLimit:     520000,
+				StorageLimit: 30000,
+				Fee:          1000,
+				Destination:  tx.Destination,
+				Amount:       tx.Amount.Int64(),
 			}
 		}),
 	}

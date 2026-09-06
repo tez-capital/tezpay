@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"strings"
 	"time"
+	"uuid"
 
 	rpc "github.com/alis-is/jsonrpc2"
-	"github.com/google/uuid"
 	"github.com/tez-capital/tezpay/common"
 	"github.com/tez-capital/tezpay/constants"
 	"github.com/tez-capital/tezpay/constants/enums"
@@ -32,10 +32,7 @@ var (
 )
 
 func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefinition, env *ExtensionStoreEnviromnent) error {
-	uuid, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
+	id := uuid.NewV4()
 
 	extensions := make([]Extension, 0, len(es))
 	for _, def := range es {
@@ -46,7 +43,7 @@ func InitializeExtensionStore(ctx context.Context, es []common.ExtensionDefiniti
 		extensions = append(extensions, ext)
 	}
 	extensionStore = ExtensionStore{
-		id:          uuid,
+		id:          id,
 		extensions:  extensions,
 		environment: env,
 	}

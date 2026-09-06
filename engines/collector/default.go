@@ -147,7 +147,7 @@ func (engine *DefaultRpcAndTzktColletor) Simulate(o *codec.Op, publicKey tezos.K
 	}
 
 	o = o.WithParams(params)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		_, err = utils.AttemptWithRpcClients(defaultCtx, engine.rpcs, func(client *rpc.Client) (bool, error) {
 			err := client.Complete(context.Background(), o, publicKey)
 			if err != nil {

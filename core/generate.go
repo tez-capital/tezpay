@@ -22,7 +22,7 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		return nil, err
 	}
 
-	ctx, err = WrapContext[*generate.PayoutGenerationContext, *common.GeneratePayoutsOptions](ctx).ExecuteStages(options,
+	ctx, err = executeStages(ctx, options,
 		generate.SendAnalytics,
 		generate.CheckConditionsAndPrepare,
 		generate.GeneratePayoutCandidates,
@@ -30,7 +30,7 @@ func GeneratePayouts(config *configuration.RuntimeConfiguration, engineContext *
 		generate.CollectBakerFee,
 		generate.ValidateRecipe,
 		generate.FinalizeRecipes,
-		generate.CreateBlueprint).Unwrap()
+		generate.CreateBlueprint)
 	if err != nil {
 		return nil, err
 	}

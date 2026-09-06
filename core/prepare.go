@@ -17,14 +17,14 @@ func PreparePayouts(blueprints []*common.CyclePayoutBlueprint, config *configura
 		return nil, err
 	}
 
-	ctx, err = WrapContext[*prepare.PayoutPrepareContext, *common.PreparePayoutsOptions](ctx).ExecuteStages(options,
+	ctx, err = executeStages(ctx, options,
 		prepare.PreparePayouts,
 		prepare.AccumulatePayouts,
 		prepare.CheckSufficientBalance,
 		prepare.CollectTransactionFees,
 		prepare.ValidatePreparedPayouts,
 		// prepare.FinalizePayouts,
-	).Unwrap()
+	)
 	if err != nil {
 		return nil, err
 	}

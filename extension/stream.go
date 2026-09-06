@@ -30,10 +30,8 @@ type StdioExtension struct {
 
 func newStdioExtension(ctx context.Context, def common.ExtensionDefinition) Extension {
 	return &StdioExtension{
-		ExtensionBase: ExtensionBase{
-			definition: def,
-		},
-		ctx: ctx,
+		definition: def,
+		ctx:        ctx,
 	}
 }
 func (e *StdioExtension) Load() error {
@@ -99,10 +97,8 @@ type TcpExtension struct {
 
 func newTcpExtension(ctx context.Context, def common.ExtensionDefinition) Extension {
 	return &TcpExtension{
-		ExtensionBase: ExtensionBase{
-			definition: def,
-		},
-		ctx: ctx,
+		definition: def,
+		ctx:        ctx,
 	}
 }
 func (e *TcpExtension) Load() error {

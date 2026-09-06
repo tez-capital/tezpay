@@ -21,9 +21,7 @@ var revealCmd = &cobra.Command{
 		op := codec.NewOp().WithSource(signer.GetPKH())
 		op.WithTTL(constants.MAX_OPERATION_TTL)
 		reveal := &codec.Reveal{
-			Manager: codec.Manager{
-				Source: signer.GetPKH(),
-			},
+			Source:    signer.GetPKH(),
 			PublicKey: signer.GetKey(),
 		}
 		reveal.WithLimits(rpc.DefaultRevealLimits)

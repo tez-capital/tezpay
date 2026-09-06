@@ -11,30 +11,10 @@ import (
 	"github.com/tez-capital/tezpay/constants/enums"
 	"github.com/tez-capital/tezpay/extension"
 	"github.com/tez-capital/tezpay/utils"
-	"github.com/trilitech/tzgo/codec"
-	"github.com/trilitech/tzgo/tezos"
 )
 
-func buildOpForEstimation[T common.TransferArgs](ctx *PayoutPrepareContext, batch []T, injectBurnTransactions bool) (*codec.Op, error) {
-	var err error
-	op := codec.NewOp().WithSource(ctx.PayoutKey.Address())
-	op.WithTTL(constants.MAX_OPERATION_TTL)
-	if injectBurnTransactions {
-		op.WithTransfer(tezos.BurnAddress, 1)
-	}
-	for _, p := range batch {
-		if err = common.InjectTransferContents(op, ctx.PayoutKey.Address(), p); err != nil {
-			break
-		}
-	}
-	if injectBurnTransactions {
-		op.WithTransfer(tezos.BurnAddress, 1)
-	}
-	return op, err
-}
-
 func estimateBatchSerializationGasLimit(ctx *PayoutPrepareContext) error {
-	op, err := buildOpForEstimation(ctx, []common.TransferArgs{}, true)
+	op, err := common.BuildOpForEstimation(ctx.PayoutKey, []common.TransferArgs{}, true)
 	if err != nil {
 		return err
 	}

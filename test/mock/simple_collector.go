@@ -128,28 +128,24 @@ func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.R
 	opList := append(rpc.OperationList{},
 		lo.Slice(lo.Map(o.Contents, func(content codec.Operation, _ int) rpc.TypedOperation {
 			return rpc.Transaction{
-				Manager: rpc.Manager{
-					Fee: 500,
-					Generic: rpc.Generic{
-						Metadata: rpc.OperationMetadata{
-							Result: rpc.OperationResult{
-								ConsumedGas:      0,
-								ConsumedMilliGas: engine.opts.UsedMilliGas,
-								Allocated:        true,
-								BalanceUpdates: rpc.BalanceUpdates{
-									rpc.BalanceUpdate{
-										Kind:   "contract",
-										Change: -engine.opts.AllocationBurn,
-									},
-									rpc.BalanceUpdate{
-										Kind:   "contract",
-										Change: -engine.opts.StorageBurn,
-									},
-								},
-								PaidStorageSizeDiff: 0,
-								Status:              tezos.OpStatusApplied,
+				Fee: 500,
+				Metadata: rpc.OperationMetadata{
+					Result: rpc.OperationResult{
+						ConsumedGas:      0,
+						ConsumedMilliGas: engine.opts.UsedMilliGas,
+						Allocated:        true,
+						BalanceUpdates: rpc.BalanceUpdates{
+							rpc.BalanceUpdate{
+								Kind:   "contract",
+								Change: -engine.opts.AllocationBurn,
+							},
+							rpc.BalanceUpdate{
+								Kind:   "contract",
+								Change: -engine.opts.StorageBurn,
 							},
 						},
+						PaidStorageSizeDiff: 0,
+						Status:              tezos.OpStatusApplied,
 					},
 				},
 			}
@@ -161,18 +157,12 @@ func (engine *SimpleColletor) Simulate(o *codec.Op, publicKey tezos.Key) (*rpc.R
 			Op: &rpc.Operation{
 				Contents: []rpc.TypedOperation{
 					rpc.Transaction{
-						Manager: rpc.Manager{
-							Generic: rpc.Generic{
-								Metadata: rpc.OperationMetadata{
-									Result: rpc.OperationResult{
-										Status: tezos.OpStatusFailed,
-										Errors: []rpc.OperationError{
-											{
-												GenericError: rpc.GenericError{
-													Kind: engine.opts.FailWithReceiptError.Error(),
-												},
-											},
-										},
+						Metadata: rpc.OperationMetadata{
+							Result: rpc.OperationResult{
+								Status: tezos.OpStatusFailed,
+								Errors: []rpc.OperationError{
+									{
+										Kind: engine.opts.FailWithReceiptError.Error(),
 									},
 								},
 							},

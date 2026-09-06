@@ -15,7 +15,7 @@ type dummyCycleMonitor struct {
 
 func NewDumyCycleMonitor(start int64, end int64) CycleMonitor {
 	return &dummyCycleMonitor{
-		Cycle: make(chan int64),
+		Cycle: make(chan int64, end-start+1),
 		start: start,
 		end:   end,
 	}

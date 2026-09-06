@@ -12,10 +12,10 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"uuid"
 
 	"github.com/fatih/color"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/tez-capital/tezpay/constants"
 )
 
@@ -213,11 +213,7 @@ func NewLogServer(address string) *LogServer {
 			LogChannel: make(chan string),
 			Ctx:        c.Context(),
 		}
-		clientID, err := uuid.NewV7()
-		if err != nil {
-			slog.Error("failed to generate client ID", "error", err.Error())
-			return err
-		}
+		clientID := uuid.NewV7()
 		logServer.AddClient(clientID, client)
 		slog.Debug("new client connected", "clientID", clientID)
 
@@ -260,70 +256,4 @@ func NewLogServer(address string) *LogServer {
 	}()
 
 	return logServer
-}
-
-type MultiWriter struct {
-	writers []io.Writer
-}
-
-func (m *MultiWriter) Write(p []byte) (n int, err error) {
-	for _, w := range m.writers {
-		n, err = w.Write(p)
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
-func NewMultiWriter(writers ...io.Writer) *MultiWriter {
-	return &MultiWriter{
-		writers: writers,
-	}
-}
-
-type SlogMultiHandler struct {
-	handlers []slog.Handler
-}
-
-func NewSlogMultiHandler(handlers ...slog.Handler) *SlogMultiHandler {
-	return &SlogMultiHandler{
-		handlers: handlers,
-	}
-}
-
-func (h *SlogMultiHandler) Handle(ctx context.Context, r slog.Record) error {
-	for _, handler := range h.handlers {
-		if !handler.Enabled(ctx, r.Level) {
-			continue
-		}
-		if err := handler.Handle(ctx, r); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (h *SlogMultiHandler) Enabled(_ context.Context, level slog.Level) bool {
-	return true
-}
-
-func (h *SlogMultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	newHandlers := make([]slog.Handler, 0, len(h.handlers))
-	for _, handler := range h.handlers {
-		newHandlers = append(newHandlers, handler.WithAttrs(attrs))
-	}
-	return &SlogMultiHandler{
-		handlers: newHandlers,
-	}
-}
-
-func (h *SlogMultiHandler) WithGroup(name string) slog.Handler {
-	newHandlers := make([]slog.Handler, 0, len(h.handlers))
-	for _, handler := range h.handlers {
-		newHandlers = append(newHandlers, handler.WithGroup(name))
-	}
-	return &SlogMultiHandler{
-		handlers: newHandlers,
-	}
 }

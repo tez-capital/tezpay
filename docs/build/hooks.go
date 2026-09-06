@@ -14,23 +14,19 @@ import (
 
 func GenerateHookSampleData() {
 	payoutCandidate := generate.PayoutCandidateWithBondAmountAndFee{
-		PayoutCandidateWithBondAmount: generate.PayoutCandidateWithBondAmount{
-			PayoutCandidate: generate.PayoutCandidate{
-				Source:           tezos.ZeroAddress,
-				Recipient:        tezos.ZeroAddress,
-				FeeRate:          5.0,
-				DelegatedBalance: tezos.NewZ(1000000000),
-				StakedBalance:    tezos.NewZ(1000000000),
-				IsInvalid:        true,
-				IsEmptied:        true,
-				InvalidBecause:   "reason",
-			},
-			BondsAmount: tezos.NewZ(1000000000),
-			TxKind:      "fa1",
-			FATokenId:   tezos.NewZ(10),
-			FAContract:  tezos.ZeroContract,
-		},
-		Fee: tezos.NewZ(1000000000),
+		Source:           tezos.ZeroAddress,
+		Recipient:        tezos.ZeroAddress,
+		FeeRate:          5.0,
+		DelegatedBalance: tezos.NewZ(1000000000),
+		StakedBalance:    tezos.NewZ(1000000000),
+		IsInvalid:        true,
+		IsEmptied:        true,
+		InvalidBecause:   "reason",
+		BondsAmount:      tezos.NewZ(1000000000),
+		TxKind:           "fa1",
+		FATokenId:        tezos.NewZ(10),
+		FAContract:       tezos.ZeroContract,
+		Fee:              tezos.NewZ(1000000000),
 	}
 
 	acg := generate.AfterCandidateGeneratedHookData{

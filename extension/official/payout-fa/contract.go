@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/tez-capital/tezpay/utils"
 	"github.com/trilitech/tzgo/contract"
 	"github.com/trilitech/tzgo/micheline"
 	"github.com/trilitech/tzgo/rpc"
@@ -106,7 +107,7 @@ func NewContract(ctx context.Context, rpcs []*rpc.Client, PayoutPKH string, toke
 		return nil, fmt.Errorf("Invalid contract address")
 	}
 
-	con, _ := AttemptWithRpcClients(ctx, rpcs, func(client *rpc.Client) (*contract.Contract, error) {
+	con, _ := utils.AttemptWithRpcClients(ctx, rpcs, func(client *rpc.Client) (*contract.Contract, error) {
 		contract := contract.NewContract(a, client)
 		if err := contract.Resolve(ctx); err != nil {
 			return nil, err

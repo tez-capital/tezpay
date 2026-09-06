@@ -113,10 +113,11 @@ func Test_Generate(t *testing.T) {
         overdelegation: {
                 protect: true
         }
-        income_recipients: {
-                donate: 0.01
-        }
-        notifications: [
+		income_recipients: {
+		        donate: 0.01
+		}
+		disable_kill_switch: true
+		notifications: [
         ]
 	}`
 

@@ -61,28 +61,26 @@ func setupLogger(level slog.Level, logServerAddress string, logFile string, form
 
 	textWriters := []io.Writer{os.Stdout}
 
-	switch format {
-	case "json":
+	if format == "json" {
+		textWriters = nil
 		jsonWriters = append(jsonWriters, os.Stdout)
-	case "text":
-		textWriters = append(textWriters, os.Stdout)
 	}
 
 	handlers := make([]slog.Handler, 0, 2)
 	if len(textWriters) > 0 {
-		textHandler := utils.NewPrettyTextLogHandler(utils.NewMultiWriter(textWriters...), utils.PrettyHandlerOptions{
-			HandlerOptions: slog.HandlerOptions{Level: level},
-			NoColor:        noColor,
+		textHandler := utils.NewPrettyTextLogHandler(io.MultiWriter(textWriters...), utils.PrettyHandlerOptions{
+			Level:   level,
+			NoColor: noColor,
 		})
 		handlers = append(handlers, textHandler)
 	}
 
 	if len(jsonWriters) > 0 {
-		jsonHandler := slog.NewJSONHandler(utils.NewMultiWriter(jsonWriters...), &slog.HandlerOptions{Level: level})
+		jsonHandler := slog.NewJSONHandler(io.MultiWriter(jsonWriters...), &slog.HandlerOptions{Level: level})
 		handlers = append(handlers, jsonHandler)
 	}
 
-	slog.SetDefault(slog.New(utils.NewSlogMultiHandler(handlers...)))
+	slog.SetDefault(slog.New(slog.NewMultiHandler(handlers...)))
 
 	if logServerAddress != "" {
 		slog.Info("log server started", "address", logServerAddress)
